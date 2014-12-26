@@ -14,8 +14,15 @@
 var Auth = require('../src/auth');
 var HttpClient = require('../src/http_client');
 
+function sign_function(credentials, http_method, path, params, headers) {
+    var auth = new Auth(credentials.ak, credentials.sk);
+    return auth.generateAuthorization(http_method, path, params, headers);
+}
+
 describe('HttpClient', function() {
     it('invalidUrl', function(done) {
+        var fail = this.fail.bind(this);
+
         var config = {
             'endpoint': 'http://no-such-url',
         };
@@ -61,6 +68,203 @@ describe('HttpClient', function() {
                 }
             )
             .then(done);
+    });
+
+    it('sendRequest', function(done) {
+        var fail = this.fail.bind(this);
+
+        var config = require('./config');
+        var client = new HttpClient(config);
+
+        client.sendRequest('GET', '/v1', null, null, null, sign_function)
+            .then(
+                function(response) {
+                    expect(response.http_headers['content-type']).toEqual('application/json; charset=utf-8');
+                    expect(response.http_headers.hasOwnProperty('x-bce-request-id')).toEqual(true);
+                    expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).toEqual(true);
+                    expect(response.body.owner).toEqual({
+                        id: 'a0a2fe988a774be08978736ae2a1668b',
+                        displayName: 'PASSPORT:105003501'
+                    });
+                    expect(Array.isArray(response.body.buckets)).toEqual(true);
+                },
+                function(e) {
+                    fail(e);
+                }
+            )
+            .then(done);
+    });
+
+
+    it('readRequestBodyFromBuffer', function(done) {
+        var fail = this.fail.bind(this);
+
+        var grant_list = [
+            {
+                grantee: [
+                    {id: 'a0a2fe988a774be08978736ae2a1668b'},
+                    {id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}
+                ],
+                permission: ['FULL_CONTROL']
+            }
+        ]
+        var bucket = 'no-such-bucket-name';
+
+        // Prepare the request body
+        var body = new Buffer(JSON.stringify({accessControlList: grant_list}));
+
+        var config = require('./config');
+        var client = new HttpClient(config);
+        var path = '/v1/' + bucket;
+
+
+        client.sendRequest('DELETE', path, null, null, null, sign_function)
+            .then(start, start);
+
+        function start() {
+            // Create the bucket
+            client.sendRequest('PUT', path, null, null, null, sign_function)
+                .then(function(x) {
+                    // Set bucket acl
+                    var params = {'acl': ''};
+                    return client.sendRequest('PUT', path, body, null, params, sign_function);
+                })
+                .then(function(response) {
+                    expect(response.http_headers.hasOwnProperty('x-bce-request-id')).toEqual(true);
+                    expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).toEqual(true);
+                    expect(response.http_headers.hasOwnProperty('content-length')).toEqual(true);
+                    expect(response.http_headers.hasOwnProperty('date')).toEqual(true);
+                    expect(response.http_headers.hasOwnProperty('server')).toEqual(true);
+                    expect(response.body).toEqual({});
+                })
+                .then(function() {
+                    return client.sendRequest('DELETE', path, null, null, null, sign_function);
+                })
+                .catch(fail)
+                .fin(done);
+        }
+    });
+
+    it('readRequestBodyFromString', function(done) {
+        var fail = this.fail.bind(this);
+
+        var grant_list = [
+            {
+                grantee: [
+                    {id: 'a0a2fe988a774be08978736ae2a1668b'},
+                    {id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}
+                ],
+                permission: ['FULL_CONTROL']
+            }
+        ]
+        var bucket = 'no-such-bucket-name';
+
+        // Prepare the request body
+        var body = JSON.stringify({accessControlList: grant_list});
+
+        var config = require('./config');
+        var client = new HttpClient(config);
+        var path = '/v1/' + bucket;
+
+
+        client.sendRequest('DELETE', path, null, null, null, sign_function)
+            .then(start, start);
+
+        function start() {
+            // Create the bucket
+            client.sendRequest('PUT', path, null, null, null, sign_function)
+                .then(function(x) {
+                    // Set bucket acl
+                    var params = {'acl': ''};
+                    return client.sendRequest('PUT', path, body, null, params, sign_function);
+                })
+                .then(function(response) {
+                    expect(response.http_headers.hasOwnProperty('x-bce-request-id')).toEqual(true);
+                    expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).toEqual(true);
+                    expect(response.http_headers.hasOwnProperty('content-length')).toEqual(true);
+                    expect(response.http_headers.hasOwnProperty('date')).toEqual(true);
+                    expect(response.http_headers.hasOwnProperty('server')).toEqual(true);
+                    expect(response.body).toEqual({});
+                })
+                .then(function() {
+                    return client.sendRequest('DELETE', path, null, null, null, sign_function);
+                })
+                .catch(fail)
+                .fin(done);
+        }
+    });
+
+    it('readRequestBodyFromStream', function(done) {
+        var fail = this.fail.bind(this);
+
+        var grant_list = [
+            {
+                grantee: [
+                    {id: 'a0a2fe988a774be08978736ae2a1668b'},
+                    {id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}
+                ],
+                permission: ['FULL_CONTROL']
+            }
+        ]
+        var bucket = 'no-such-bucket-name';
+
+        var access_control_list = JSON.stringify({accessControlList: grant_list});
+        // Prepare the request body
+        var Readable = require('stream').Readable
+        var body = new Readable();
+        body.push(access_control_list);
+        body.push(null);
+
+        var config = require('./config');
+        var client = new HttpClient(config);
+        var path = '/v1/' + bucket;
+
+
+        client.sendRequest('DELETE', path, null, null, null, sign_function)
+            .then(start, start);
+
+        function start() {
+            // Create the bucket
+            client.sendRequest('PUT', path, null, null, null, sign_function)
+                .then(function(x) {
+                    // Set bucket acl
+                    var params = {'acl': ''};
+                    var headers = {'Content-Length': Buffer.byteLength(access_control_list)};
+                    return client.sendRequest('PUT', path, body, headers, params, sign_function);
+                })
+                .then(function(response) {
+                    expect(response.http_headers.hasOwnProperty('x-bce-request-id')).toEqual(true);
+                    expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).toEqual(true);
+                    expect(response.http_headers.hasOwnProperty('content-length')).toEqual(true);
+                    expect(response.http_headers.hasOwnProperty('date')).toEqual(true);
+                    expect(response.http_headers.hasOwnProperty('server')).toEqual(true);
+                    expect(response.body).toEqual({});
+                })
+                .then(function() {
+                    return client.sendRequest('DELETE', path, null, null, null, sign_function);
+                })
+                .catch(fail)
+                .fin(done);
+        }
+    });
+
+    it('sendRequestWithOutputStream', function(done) {
+        var fail = this.fail.bind(this);
+
+        var config = require('./config');
+        var client = new HttpClient(config);
+
+        var WMStream = require('./wm_stream');
+        var output_stream = new WMStream();
+        client.sendRequest('GET', '/v1', null, null, null, sign_function, output_stream)
+            .then(function(response) {
+                expect(response.body).toEqual({});
+                expect(output_stream.store.length).toBeGreaterThan(0);
+                var owner = JSON.parse(output_stream.store.toString()).owner;
+                expect(owner).toEqual({"id":"a0a2fe988a774be08978736ae2a1668b","displayName":"PASSPORT:105003501"});
+            })
+            .catch(fail)
+            .fin(done);
     });
 });
 

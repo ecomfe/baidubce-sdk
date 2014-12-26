@@ -14,7 +14,7 @@
 var util = require('util');
 var stream = require('stream');
 
-var Promise = require('promise');
+var Q = require('q');
 
 /**
  * @constructor
@@ -68,30 +68,32 @@ HttpClient.prototype.sendRequest = function(http_method, path, opt_body,
     options.method = http_method;
     options.headers = headers;
 
+    var deferred = Q.defer();
+
     var client = this;
-    return new Promise(function(resolve, reject) {
-        var req = api.request(options, function(res) {
-            if (opt_output_stream
-                && opt_output_stream instanceof stream.Writeable) {
-                res.pipe(opt_output_stream);
-                res.on('end', function(){
-                    resolve({
-                        http_headers: client._fixHeaders(res.headers),
-                        body: {},
-                    });
+    var req = api.request(options, function(res) {
+        if (opt_output_stream
+            && opt_output_stream instanceof stream.Writable) {
+            res.pipe(opt_output_stream);
+            res.on('end', function(){
+                deferred.resolve({
+                    http_headers: client._fixHeaders(res.headers),
+                    body: {},
                 });
-                return;
-            }
+            });
+            return;
+        }
 
-            resolve(client._recvResponse(res));
-        });
-
-        req.on('error', function(e) {
-            reject(e);
-        });
-
-        client._sendRequest(req, body);
+        deferred.resolve(client._recvResponse(res));
     });
+
+    req.on('error', function(e) {
+        deferred.reject(e);
+    });
+
+    client._sendRequest(req, body);
+
+    return deferred.promise;
 };
 
 HttpClient.prototype._guessContentLength = function(data) {
@@ -144,51 +146,53 @@ HttpClient.prototype._recvResponse = function(res) {
         }
     }
 
-    return new Promise(function(resolve, reject) {
-        var payload = [];
-        res.on('data', function(chunk) { payload.push(chunk); });
-        res.on('error', function(e) { reject(e); });
-        res.on('end', function(){
-            var raw = Buffer.concat(payload);
-            var response_body = null;
+    var deferred = Q.defer();
 
-            try {
-                response_body = parseHttpResponseBody(raw);
-            }
-            catch (e) {
-                reject(e);
-                return;
-            }
+    var payload = [];
+    res.on('data', function(chunk) { payload.push(chunk); });
+    res.on('error', function(e) { deferred.reject(e); });
+    res.on('end', function(){
+        var raw = Buffer.concat(payload);
+        var response_body = null;
 
-            if (status_code >= 100 && status_code < 200) {
-                reject({
+        try {
+            response_body = parseHttpResponseBody(raw);
+        }
+        catch (e) {
+            deferred.reject(e);
+            return;
+        }
+
+        if (status_code >= 100 && status_code < 200) {
+            deferred.reject({
+                status_code: status_code,
+                message: 'Can not handle 1xx http status code.',
+            });
+        }
+        else if (status_code < 100 || status_code >= 300) {
+            if (response_body['requestId']) {
+                deferred.reject({
                     status_code: status_code,
-                    message: 'Can not handle 1xx http status code.',
+                    message: response_body['message'],
+                    code: response_body['code'],
+                    request_id: response_body['requestId'],
                 });
             }
-            else if (status_code < 100 || status_code >= 300) {
-                if (response_body['requestId']) {
-                    reject({
-                        status_code: status_code,
-                        message: response_body['message'],
-                        code: response_body['code'],
-                        request_id: response_body['requestId'],
-                    });
-                }
-                else {
-                    reject({
-                        status_code: status_code,
-                        message: response_body,
-                    });
-                }
+            else {
+                deferred.reject({
+                    status_code: status_code,
+                    message: response_body,
+                });
             }
+        }
 
-            resolve({
-                http_headers: response_headers,
-                body: response_body,
-            });
+        deferred.resolve({
+            http_headers: response_headers,
+            body: response_body,
         });
     });
+
+    return deferred.promise;
 };
 
 HttpClient.prototype._sendRequest = function(req, data) {
