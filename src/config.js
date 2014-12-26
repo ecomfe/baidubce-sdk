@@ -11,16 +11,10 @@
 * specific language governing permissions and limitations under the License.
 */
 
-module.exports = {
-    'credentials': {
-        'ak': '4c60a1d7c5c846c79bff4f304240c581',
-        'sk': '42bb4f0b2f274b7eb0b544156a50e564',
-    },
-    'connection_timeout_in_mills': 5000,    // 5 seconds
-    'endpoint': 'http://10.105.97.15',
-    // 'endpoint': 'http://localhost:8828',
-};
+exports.DEFAULT_SERVICE_DOMAIN = 'baidubce.com';
 
+exports.DEFAULT_CONFIG = {
+};
 
 
 

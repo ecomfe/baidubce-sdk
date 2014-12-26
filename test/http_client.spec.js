@@ -83,8 +83,8 @@ describe('HttpClient', function() {
                     expect(response.http_headers.hasOwnProperty('x-bce-request-id')).toEqual(true);
                     expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).toEqual(true);
                     expect(response.body.owner).toEqual({
-                        id: 'a0a2fe988a774be08978736ae2a1668b',
-                        displayName: 'PASSPORT:105003501'
+                        id: '992c67ee10be4e85bf444d18b638f9ba',
+                        displayName: 'PASSPORT:105015804'
                     });
                     expect(Array.isArray(response.body.buckets)).toEqual(true);
                 },
@@ -102,7 +102,7 @@ describe('HttpClient', function() {
         var grant_list = [
             {
                 grantee: [
-                    {id: 'a0a2fe988a774be08978736ae2a1668b'},
+                    {id: '992c67ee10be4e85bf444d18b638f9ba'},
                     {id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}
                 ],
                 permission: ['FULL_CONTROL']
@@ -151,7 +151,7 @@ describe('HttpClient', function() {
         var grant_list = [
             {
                 grantee: [
-                    {id: 'a0a2fe988a774be08978736ae2a1668b'},
+                    {id: '992c67ee10be4e85bf444d18b638f9ba'},
                     {id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}
                 ],
                 permission: ['FULL_CONTROL']
@@ -200,7 +200,7 @@ describe('HttpClient', function() {
         var grant_list = [
             {
                 grantee: [
-                    {id: 'a0a2fe988a774be08978736ae2a1668b'},
+                    {id: '992c67ee10be4e85bf444d18b638f9ba'},
                     {id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}
                 ],
                 permission: ['FULL_CONTROL']
@@ -261,7 +261,7 @@ describe('HttpClient', function() {
                 expect(response.body).toEqual({});
                 expect(output_stream.store.length).toBeGreaterThan(0);
                 var owner = JSON.parse(output_stream.store.toString()).owner;
-                expect(owner).toEqual({"id":"a0a2fe988a774be08978736ae2a1668b","displayName":"PASSPORT:105003501"});
+                expect(owner).toEqual({"id":"992c67ee10be4e85bf444d18b638f9ba","displayName":"PASSPORT:105015804"});
             })
             .catch(fail)
             .fin(done);
