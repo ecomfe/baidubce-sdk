@@ -11,6 +11,7 @@
 * specific language governing permissions and limitations under the License.
 */
 
+var util = require('util');
 var stream = require('stream');
 
 var Promise = require('promise');
@@ -42,10 +43,11 @@ HttpClient.prototype.sendRequest = function(http_method, path, opt_body,
         'User-Agent': util.format("bce-sdk-nodejs/%s/%s/%s", require('../package.json').version,
                                   process.platform, process.version),
         'x-bce-date': new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
+        'Connection': 'close',
         // 'Expect': '',
         // 'Transfer-Encoding': '',
         'Content-Type': 'application/json; charset=utf-8',
-        'Host': options.Host,
+        'Host': options.host,
     };
     for (var key in default_headers) {
         if (!headers.hasOwnProperty(key)) {
@@ -62,7 +64,7 @@ HttpClient.prototype.sendRequest = function(http_method, path, opt_body,
         headers['Content-Length'] = this._guessContentLength(body);
     }
 
-    var api = options.protocol === 'https' ? require('https') : require('http');
+    var api = options.protocol === 'https:' ? require('https') : require('http');
     options.method = http_method;
     options.headers = headers;
 
@@ -219,6 +221,8 @@ HttpClient.prototype._getRequestUrl = function(path, params) {
 
     return this.config['endpoint'] + uri;
 };
+
+module.exports = HttpClient;
 
 
 
