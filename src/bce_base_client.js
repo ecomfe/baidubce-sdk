@@ -21,7 +21,7 @@ var config = require('./config');
  * @constructor
  * @param {Object} client_config The bce client configuration.
  * @param {string} service_id The service id.
- * @param {boolean} region_supported The service supported region or not.
+ * @param {boolean} opt_region_supported The service supported region or not.
  */
 function BceBaseClient(client_config, service_id, opt_region_supported) {
     this.config = u.extend({}, config.DEFAULT_CONFIG, client_config);
@@ -31,7 +31,10 @@ function BceBaseClient(client_config, service_id, opt_region_supported) {
     this.config.endpoint = this._computeEndpoint();
 }
 
-BceBaseClient.prototype._computeEndpoint = function() {
+/**
+ * @return {string} The bce client endpoint.
+ */
+BceBaseClient.prototype._computeEndpoint = function () {
     if (this.config.endpoint) {
         return this.config.endpoint;
     }
@@ -43,12 +46,10 @@ BceBaseClient.prototype._computeEndpoint = function() {
             this.config.region,
             config.DEFAULT_SERVICE_DOMAIN);
     }
-    else {
-        return util.format('%s://%s.%s',
-            this.config.protocol,
-            this.service_id,
-            config.DEFAULT_SERVICE_DOMAIN);
-    }
+    return util.format('%s://%s.%s',
+        this.config.protocol,
+        this.service_id,
+        config.DEFAULT_SERVICE_DOMAIN);
 };
 
 

@@ -27,7 +27,7 @@ function HttpClient(config) {
 
 // public function sendRequest($http_method, $path, $body = null, $headers = array(),
 //                             $params = array(), $sign_function = null, $output_stream = null) {
-HttpClient.prototype.sendRequest = function(http_method, path, opt_body,
+HttpClient.prototype.sendRequest = function (http_method, path, opt_body,
                                             opt_headers, opt_params, opt_sign_function,
                                             opt_output_stream) {
 
@@ -40,14 +40,14 @@ HttpClient.prototype.sendRequest = function(http_method, path, opt_body,
 
     // Prepare the request headers.
     var default_headers = {
-        'User-Agent': util.format("bce-sdk-nodejs/%s/%s/%s", require('../package.json').version,
+        'User-Agent': util.format('bce-sdk-nodejs/%s/%s/%s', require('../package.json').version,
                                   process.platform, process.version),
         'x-bce-date': new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
         'Connection': 'close',
         // 'Expect': '',
         // 'Transfer-Encoding': '',
         'Content-Type': 'application/json; charset=utf-8',
-        'Host': options.host,
+        'Host': options.host
     };
     for (var key in default_headers) {
         if (!headers.hasOwnProperty(key)) {
@@ -55,7 +55,7 @@ HttpClient.prototype.sendRequest = function(http_method, path, opt_body,
         }
     }
     if (typeof opt_sign_function === 'function') {
-        headers['Authorization'] = opt_sign_function(this.config['credentials'],
+        headers.Authorization = opt_sign_function(this.config.credentials,
             http_method, path, params, headers);
     }
 
@@ -71,14 +71,14 @@ HttpClient.prototype.sendRequest = function(http_method, path, opt_body,
     var deferred = Q.defer();
 
     var client = this;
-    var req = api.request(options, function(res) {
+    var req = api.request(options, function (res) {
         if (opt_output_stream
             && opt_output_stream instanceof stream.Writable) {
             res.pipe(opt_output_stream);
-            res.on('end', function(){
+            res.on('end', function () {
                 deferred.resolve({
                     http_headers: client._fixHeaders(res.headers),
-                    body: {},
+                    body: {}
                 });
             });
             return;
@@ -87,7 +87,7 @@ HttpClient.prototype.sendRequest = function(http_method, path, opt_body,
         deferred.resolve(client._recvResponse(res));
     });
 
-    req.on('error', function(error) {
+    req.on('error', function (error) {
         deferred.reject(error);
     });
 
@@ -101,7 +101,7 @@ HttpClient.prototype.sendRequest = function(http_method, path, opt_body,
     return deferred.promise;
 };
 
-HttpClient.prototype._guessContentLength = function(data) {
+HttpClient.prototype._guessContentLength = function (data) {
     if (data == null) {
         return 0;
     }
@@ -115,10 +115,10 @@ HttpClient.prototype._guessContentLength = function(data) {
     throw new Error('No Content-Length is specified.');
 };
 
-HttpClient.prototype._fixHeaders = function(headers) {
+HttpClient.prototype._fixHeaders = function (headers) {
     var fixed_headers = {};
 
-    Object.keys(headers).forEach(function(key) {
+    Object.keys(headers).forEach(function (key) {
         var value = headers[key].trim();
         if (value) {
             key = key.toLowerCase();
@@ -132,7 +132,7 @@ HttpClient.prototype._fixHeaders = function(headers) {
     return fixed_headers;
 };
 
-HttpClient.prototype._recvResponse = function(res) {
+HttpClient.prototype._recvResponse = function (res) {
     var response_headers = this._fixHeaders(res.headers);
     var status_code = res.statusCode;
 
@@ -146,17 +146,17 @@ HttpClient.prototype._recvResponse = function(res) {
                  && /(application|text)\/json/.test(content_type)) {
             return JSON.parse(raw.toString());
         }
-        else {
-            return raw;
-        }
+        return raw;
     }
 
     var deferred = Q.defer();
 
     var payload = [];
-    res.on('data', function(chunk) { payload.push(chunk); });
-    res.on('error', function(e) { deferred.reject(e); });
-    res.on('end', function(){
+    /*eslint-disable*/
+    res.on('data', function (chunk) { payload.push(chunk); });
+    res.on('error', function (e) { deferred.reject(e); });
+    /*eslint-enable*/
+    res.on('end', function () {
         var raw = Buffer.concat(payload);
         var response_body = null;
 
@@ -171,38 +171,40 @@ HttpClient.prototype._recvResponse = function(res) {
         if (status_code >= 100 && status_code < 200) {
             deferred.reject({
                 status_code: status_code,
-                message: 'Can not handle 1xx http status code.',
+                message: 'Can not handle 1xx http status code.'
             });
         }
         else if (status_code < 100 || status_code >= 300) {
-            if (response_body['requestId']) {
+            if (response_body.requestId) {
                 deferred.reject({
                     status_code: status_code,
-                    message: response_body['message'],
-                    code: response_body['code'],
-                    request_id: response_body['requestId'],
+                    message: response_body.message,
+                    code: response_body.code,
+                    request_id: response_body.requestId
                 });
             }
             else {
                 deferred.reject({
                     status_code: status_code,
-                    message: response_body,
+                    message: response_body
                 });
             }
         }
 
         deferred.resolve({
             http_headers: response_headers,
-            body: response_body,
+            body: response_body
         });
     });
 
     return deferred.promise;
 };
 
-HttpClient.prototype._sendRequest = function(req, data) {
+HttpClient.prototype._sendRequest = function (req, data) {
+    /*eslint-disable*/
     if (!data) { req.end(); return; }
     if (typeof data === 'string') { data = new Buffer(data); }
+    /*eslint-enable*/
 
     if (Buffer.isBuffer(data)) {
         req.write(data);
@@ -213,10 +215,10 @@ HttpClient.prototype._sendRequest = function(req, data) {
             throw new Error('stream is not readable');
         }
 
-        data.on('data', function(chunk) {
+        data.on('data', function (chunk) {
             req.write(chunk);
         });
-        data.on('end', function(){
+        data.on('end', function () {
             req.end();
         });
     }
@@ -225,14 +227,14 @@ HttpClient.prototype._sendRequest = function(req, data) {
     }
 };
 
-HttpClient.prototype._getRequestUrl = function(path, params) {
+HttpClient.prototype._getRequestUrl = function (path, params) {
     var uri = encodeURI(path);
     var query_string = require('querystring').encode(params);
     if (query_string) {
         uri += '?' + query_string;
     }
 
-    return this.config['endpoint'] + uri;
+    return this.config.endpoint + uri;
 };
 
 module.exports = HttpClient;

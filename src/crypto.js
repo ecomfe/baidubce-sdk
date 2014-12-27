@@ -11,38 +11,37 @@
 * specific language governing permissions and limitations under the License.
 */
 var fs = require('fs');
-var crypto = require('crypto');
 
 var Q = require('q');
 
-exports.md5sum = function(data, opt_enc, opt_digest) {
+exports.md5sum = function (data, opt_enc, opt_digest) {
     if (!Buffer.isBuffer(data)) {
         data = new Buffer(data, opt_enc || 'utf-8');
     }
 
-    var md5 = crypto.createHash('md5');
+    var md5 = require('crypto').createHash('md5');
     md5.update(data);
 
     return md5.digest(opt_digest || 'base64');
-}
+};
 
-exports.md5stream = function(stream) {
+exports.md5stream = function (stream) {
     var deferred = Q.defer();
 
-    var md5 = crypto.createHash('md5');
-    stream.on('data', function(chunk) {
+    var md5 = require('crypto').createHash('md5');
+    stream.on('data', function (chunk) {
         md5.update(chunk);
-    })
-    stream.on('end', function() {
+    });
+    stream.on('end', function () {
         deferred.resolve(md5.digest('base64'));
     });
 
     return deferred.promise;
 };
 
-exports.md5file = function(filename) {
+exports.md5file = function (filename) {
     return exports.md5stream(fs.createReadStream(filename));
-}
+};
 
 
 
