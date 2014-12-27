@@ -1,7 +1,7 @@
 {
-  "name": "bos-js-sdk",
-  "version": "0.0.0",
-  "description": "baidu object storage system (boss) node.js sdk",
+  "name": "baidubce-sdk",
+  "version": "0.0.1",
+  "description": "baidu cloud engine node.js sdk",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -16,7 +16,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "promise": "^6.0.1",
     "q": "^1.1.2",
     "underscore": "^1.7.0"
   }

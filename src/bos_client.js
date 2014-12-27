@@ -232,8 +232,8 @@ BosClient.prototype.getObjectToFile = function (bucket_name, key, filename, opt_
 };
 
 BosClient.prototype.copyObject = function (source_bucket_name, source_key,
-                                          target_bucket_name, target_key,
-                                          opt_options) {
+                                           target_bucket_name, target_key,
+                                           opt_options) {
     /*eslint-disable*/
     if (!source_bucket_name) { throw new TypeError('source_bucket_name should not be empty'); }
     if (!source_key) { throw new TypeError('source_key should not be empty'); }
@@ -290,7 +290,7 @@ BosClient.prototype.abortMultipartUpload = function (bucket_name, key, upload_id
 };
 
 BosClient.prototype.completeMultipartUpload = function (bucket_name, key, upload_id,
-                                                       part_list, opt_options) {
+                                                        part_list, opt_options) {
 
     var options = this._checkOptions(u.extend({
         'Content-Type': 'application/json; charset=utf-8'
@@ -307,8 +307,8 @@ BosClient.prototype.completeMultipartUpload = function (bucket_name, key, upload
 };
 
 BosClient.prototype.uploadPartFromFile = function (bucket_name, key, upload_id,
-                                                  part_number, part_size, filename, offset,
-                                                  part_md5, opt_options) {
+                                                   part_number, part_size, filename, offset,
+                                                   part_md5, opt_options) {
     var start = offset;
     var end = offset + part_size - 1;
     var part_fp = fs.createReadStream(filename, {start: start, end: end});
@@ -317,8 +317,8 @@ BosClient.prototype.uploadPartFromFile = function (bucket_name, key, upload_id,
 };
 
 BosClient.prototype.uploadPart = function (bucket_name, key, upload_id,
-                                          part_number, part_size, part_fp, part_md5,
-                                          opt_options) {
+                                           part_number, part_size, part_fp, part_md5,
+                                           opt_options) {
     /*eslint-disable*/
     if (!bucket_name) { throw new TypeError('bucket_name should not be empty');}
     if (!key) { throw new TypeError('key should not be empty'); }
@@ -395,7 +395,7 @@ BosClient.prototype.listMultipartUploads = function (bucket_name, opt_options) {
 };
 
 BosClient.prototype.createSignature = function (credentials, http_method,
-                                               path, params, headers) {
+                                                path, params, headers) {
     var auth = new Auth(credentials.ak, credentials.sk);
     return auth.generateAuthorization(http_method, path, params, headers);
 };
