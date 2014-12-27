@@ -11,27 +11,24 @@
 * specific language governing permissions and limitations under the License.
 */
 
-var stream = require('stream');
-var util = require('util');
+var path = require('path');
 
-/**
- * Writable memory stream
- */
-function WMStream() {
-    stream.Writable.call(this);
+var crypto = require('../src/crypto');
 
-    this.store = new Buffer('');
-}
-util.inherits(WMStream, stream.Writable);
+describe('crypto', function() {
+    it('md5sum', function() {
+        expect(crypto.md5sum('hello world')).toEqual('XrY7u+Ae7tCTyyK7j1rNww==');
+    });
 
-WMStream.prototype._write = function(chunk, enc, cb) {
-    var buffer = Buffer.isBuffer(chunk) ? chunk : new Buffer(chunk, enc);
-    this.store = Buffer.concat([this.store, buffer]);
+    it('md5file', function(done) {
+        crypto.md5file(path.join(__dirname, 'Makefile'))
+            .then(function(md5sum) {
+                expect(md5sum).toEqual('EYPMaQHNRW73PRa874z0og==');
+            })
+            .fin(done);
+    });
+});
 
-    cb();
-};
-
-module.exports = WMStream;
 
 
 

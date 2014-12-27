@@ -11,7 +11,6 @@
 * specific language governing permissions and limitations under the License.
 */
 
-var crypto = require('crypto');
 var util = require('util');
 
 /**
@@ -24,7 +23,7 @@ function Auth(ak, sk) {
     this.sk = sk;
 }
 
-Auth.prototype.generateAuthorization = function(method, resource,
+Auth.prototype.generateAuthorization = function (method, resource,
     opt_params, opt_headers, opt_timestamp,
     opt_expiration_in_seconds, opt_headers_to_sign) {
 
@@ -35,7 +34,7 @@ Auth.prototype.generateAuthorization = function(method, resource,
     var headers_to_sign = opt_headers_to_sign || null;
 
     var now = timestamp ? new Date(timestamp * 1000) : new Date();
-    var raw_session_key = util.format("bce-auth-v1/%s/%s/%d",
+    var raw_session_key = util.format('bce-auth-v1/%s/%s/%d',
         this.ak, now.toISOString().replace(/\.\d+Z$/, 'Z'), expiration_in_seconds);
     var session_key = this.hash(raw_session_key, this.sk);
 
@@ -46,7 +45,7 @@ Auth.prototype.generateAuthorization = function(method, resource,
     var canonical_headers = rv[0];
     var signed_headers = rv[1];
 
-    var raw_signature = util.format("%s\n%s\n%s\n%s",
+    var raw_signature = util.format('%s\n%s\n%s\n%s',
         method, canonical_uri, canonical_query_string, canonical_headers);
     var signature = this.hash(raw_signature, session_key);
 
@@ -57,9 +56,9 @@ Auth.prototype.generateAuthorization = function(method, resource,
     return util.format('%s//%s', raw_session_key, signature);
 };
 
-Auth.prototype.queryStringCanonicalization = function(params) {
+Auth.prototype.queryStringCanonicalization = function (params) {
     var canonical_query_string = [];
-    Object.keys(params).forEach(function(key) {
+    Object.keys(params).forEach(function (key) {
         if (key === 'authorization') {
             return;
         }
@@ -75,18 +74,18 @@ Auth.prototype.queryStringCanonicalization = function(params) {
     return canonical_query_string.join('&');
 };
 
-Auth.prototype.headersCanonicalization = function(headers, headers_to_sign) {
+Auth.prototype.headersCanonicalization = function (headers, headers_to_sign) {
     if (!headers_to_sign || !headers_to_sign.length) {
         headers_to_sign = ['host', 'content-md5', 'content-length', 'content-type'];
     }
 
     var headers_map = {};
-    headers_to_sign.forEach(function(item) {
+    headers_to_sign.forEach(function (item) {
         headers_map[item] = true;
     });
 
     var canonical_headers = [];
-    Object.keys(headers).forEach(function(key) {
+    Object.keys(headers).forEach(function (key) {
         var value = headers[key];
         if (value == null || value === '') {
             return;
@@ -102,14 +101,15 @@ Auth.prototype.headersCanonicalization = function(headers, headers_to_sign) {
     canonical_headers.sort();
 
     var signed_headers = [];
-    canonical_headers.forEach(function(item) {
+    canonical_headers.forEach(function (item) {
         signed_headers.push(item.split(':')[0]);
     });
 
     return [canonical_headers.join('\n'), signed_headers];
 };
 
-Auth.prototype.hash = function(data, key) {
+Auth.prototype.hash = function (data, key) {
+    var crypto = require('crypto');
     var sha256_hmac = crypto.createHmac('sha256', key);
     sha256_hmac.update(data);
     return sha256_hmac.digest('hex');

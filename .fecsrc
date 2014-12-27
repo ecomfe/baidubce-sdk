@@ -1,0 +1,11 @@
+{
+  "eslint": {
+    "env": {
+      "node": true
+    },
+    "rules": {
+      "camelcase": 0,
+      "max-params": [1, 8]
+    }
+  }
+}

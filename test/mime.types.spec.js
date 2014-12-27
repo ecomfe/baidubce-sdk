@@ -1,4 +1,3 @@
-<?php
 /*
 * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
 *
@@ -12,9 +11,23 @@
 * specific language governing permissions and limitations under the License.
 */
 
+var MimeType = require('../src/mime.types');
+
+describe('MimeType', function() {
+    it('guess', function() {
+        expect(MimeType.guess('.txt')).toEqual('text/plain');
+        expect(MimeType.guess('txt')).toEqual('text/plain');
+        expect(MimeType.guess('')).toEqual('application/octet-stream');
+    });
+});
 
 
-print_r(gmstrftime("%Y-%m-%dT%H:%M:%SZ", time()));
+
+
+
+
+
+
 
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */

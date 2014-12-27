@@ -13,6 +13,7 @@
 
 var Auth = require('../src/auth');
 var HttpClient = require('../src/http_client');
+var WMStream = require('../src/wm_stream');
 
 function sign_function(credentials, http_method, path, params, headers) {
     var auth = new Auth(credentials.ak, credentials.sk);
@@ -254,7 +255,6 @@ describe('HttpClient', function() {
         var config = require('./config');
         var client = new HttpClient(config);
 
-        var WMStream = require('./wm_stream');
         var output_stream = new WMStream();
         client.sendRequest('GET', '/v1', null, null, null, sign_function, output_stream)
             .then(function(response) {

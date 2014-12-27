@@ -87,11 +87,16 @@ HttpClient.prototype.sendRequest = function(http_method, path, opt_body,
         deferred.resolve(client._recvResponse(res));
     });
 
-    req.on('error', function(e) {
-        deferred.reject(e);
+    req.on('error', function(error) {
+        deferred.reject(error);
     });
 
-    client._sendRequest(req, body);
+    try {
+        client._sendRequest(req, body);
+    }
+    catch(ex) {
+        deferred.reject(ex);
+    }
 
     return deferred.promise;
 };
@@ -204,6 +209,10 @@ HttpClient.prototype._sendRequest = function(req, data) {
         req.end();
     }
     else if (data instanceof stream.Readable) {
+        if (!data.readable) {
+            throw new Error('stream is not readable');
+        }
+
         data.on('data', function(chunk) {
             req.write(chunk);
         });
