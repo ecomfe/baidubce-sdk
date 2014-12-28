@@ -1,6 +1,6 @@
 {
   "name": "baidubce-sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "baidu cloud engine node.js sdk",
   "main": "index.js",
   "directories": {
@@ -13,8 +13,8 @@
     "type": "git",
     "url": "http://gitlab.baidu.com/inf/bos-js-sdk.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "leeight@gmail.com",
+  "license": "MIT",
   "dependencies": {
     "q": "^1.1.2",
     "underscore": "^1.7.0"
