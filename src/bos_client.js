@@ -42,6 +42,38 @@ function BosClient (config) {
 util.inherits(BosClient, BceBaseClient);
 
 // --- B E G I N ---
+BosClient.prototype.generatePresignedUrl = function (bucket_name, key,
+                                                     opt_timestamp,
+                                                     opt_expiration_in_seconds,
+                                                     opt_headers,
+                                                     opt_params,
+                                                     opt_headers_to_sign,
+                                                     opt_config) {
+
+    var timestamp = opt_timestamp || 0;
+    var expiration_in_seconds = opt_expiration_in_seconds || 1800;
+    var headers = opt_headers || {};
+    var params = opt_params || {};
+    var headers_to_sign = opt_headers_to_sign || [];
+    var config = u.extend({}, this.config, opt_config || {});
+
+    var resource = path.normalize(path.join(
+        '/v1',
+        bucket_name || '',
+        key || ''
+    ));
+
+    headers['Host'] = require('url').parse(config.endpoint).host;
+
+    var credentials = config.credentials;
+    var auth = new Auth(credentials.ak, credentials.sk);
+    var authorization = auth.generateAuthorization(
+        'GET', resource, params, headers, timestamp, expiration_in_seconds,
+        headers_to_sign);
+
+    return util.format("%s%s?authorization=%s", config.endpoint,
+        resource, encodeURIComponent(authorization));
+}
 
 BosClient.prototype.listBuckets = function (opt_options) {
     var options = opt_options || {};
