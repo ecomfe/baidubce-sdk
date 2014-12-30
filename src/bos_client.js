@@ -63,7 +63,7 @@ BosClient.prototype.generatePresignedUrl = function (bucket_name, key,
         key || ''
     ));
 
-    headers['Host'] = require('url').parse(config.endpoint).host;
+    headers.Host = require('url').parse(config.endpoint).host;
 
     var credentials = config.credentials;
     var auth = new Auth(credentials.ak, credentials.sk);
@@ -71,9 +71,9 @@ BosClient.prototype.generatePresignedUrl = function (bucket_name, key,
         'GET', resource, params, headers, timestamp, expiration_in_seconds,
         headers_to_sign);
 
-    return util.format("%s%s?authorization=%s", config.endpoint,
+    return util.format('%s%s?authorization=%s', config.endpoint,
         resource, encodeURIComponent(authorization));
-}
+};
 
 BosClient.prototype.listBuckets = function (opt_options) {
     var options = opt_options || {};
