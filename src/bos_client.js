@@ -1,15 +1,15 @@
-/*
-* Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
-*
-* Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-* an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-* specific language governing permissions and limitations under the License.
-*/
+/**
+ * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 
 var util = require('util');
 var path = require('path');
@@ -491,8 +491,8 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
         }
     });
 
-    if (meta_size > 2048) {
-        throw new TypeError('Metadata size should not be greater than 2048.');
+    if (meta_size > MAX_USER_METADATA_SIZE) {
+        throw new TypeError('Metadata size should not be greater than ' + MAX_USER_METADATA_SIZE + '.');
     }
 
     if (u.has(headers, 'Content-Length')) {
@@ -500,8 +500,9 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
         if (content_length < 0) {
             throw new TypeError('content_length should not be negative.')
         }
-        else if (content_length > 5368709120) { // 5G
-            throw new TypeError('Object length should be less than 5368709120. Use multi-part upload instead.')
+        else if (content_length > MAX_PUT_OBJECT_LENGTH) { // 5G
+            throw new TypeError('Object length should be less than ' + MAX_PUT_OBJECT_LENGTH +
+                '. Use multi-part upload instead.')
         }
     }
 

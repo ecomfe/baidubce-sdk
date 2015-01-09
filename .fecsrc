@@ -5,7 +5,7 @@
     },
     "rules": {
       "camelcase": 0,
-      "max-params": [1, 10]
+      "max-params": [0, 10]
     }
   }
 }
