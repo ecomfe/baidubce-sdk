@@ -10,15 +10,29 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * @file src/config.js
+ * @file src/headers.js
  * @author leeight
  */
 
 /*eslint-env node*/
 
-exports.DEFAULT_SERVICE_DOMAIN = 'baidubce.com';
+exports.CONTENT_TYPE = 'Content-Type';
+exports.CONTENT_LENGTH = 'Content-Length';
+exports.CONTENT_MD5 = 'Content-MD5';
+exports.CONNECTION = 'Connection';
+exports.HOST = 'Host';
+exports.USER_AGENT = 'User-Agent';
 
-exports.DEFAULT_CONFIG = {};
+exports.X_BCE_DATE = 'x-bce-date';
+exports.X_BCE_ACL = 'x-bce-acl';
+
+exports.X_HTTP_HEADERS = 'http_headers';
+exports.X_BODY = 'body';
+exports.X_STATUS_CODE = 'status_code';
+exports.X_MESSAGE = 'message';
+exports.X_CODE = 'code';
+exports.X_REQUEST_ID = 'request_id';
+
 
 
 

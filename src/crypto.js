@@ -9,21 +9,26 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
+ *
+ * @file src/crypto.js
+ * @author leeight
  */
+
+/*eslint-env node*/
 
 var fs = require('fs');
 
 var Q = require('q');
 
-exports.md5sum = function (data, opt_enc, opt_digest) {
+exports.md5sum = function (data, enc, digest) {
     if (!Buffer.isBuffer(data)) {
-        data = new Buffer(data, opt_enc || 'utf-8');
+        data = new Buffer(data, enc || 'utf-8');
     }
 
     var md5 = require('crypto').createHash('md5');
     md5.update(data);
 
-    return md5.digest(opt_digest || 'base64');
+    return md5.digest(digest || 'base64');
 };
 
 exports.md5stream = function (stream) {

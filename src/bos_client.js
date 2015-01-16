@@ -9,7 +9,13 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
+ *
+ * @file src/bos_client.js
+ * @author leeight
  */
+
+/*eslint-env node*/
+/*eslint max-params:[0,10]*/
 
 var util = require('util');
 var path = require('path');
@@ -18,12 +24,12 @@ var fs = require('fs');
 var u = require('underscore');
 var Q = require('q');
 
+var H = require('./headers');
 var Auth = require('./auth');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
 var MimeType = require('./mime.types');
 var WMStream = require('./wm_stream');
-
 
 const MIN_PART_SIZE = 5242880;                // 5M
 const MAX_PUT_OBJECT_LENGTH = 5368709120;     // 5G
@@ -32,6 +38,10 @@ const MIN_PART_NUMBER = 1;
 const MAX_PART_NUMBER = 10000;
 
 /**
+ * BOS service api
+ *
+ * @see http://gollum.baidu.com/BOS_API#BOS-API文档
+ *
  * @constructor
  * @param {Object} config The bos client configuration.
  * @extends {BceBaseClient}
@@ -42,55 +52,46 @@ function BosClient (config) {
 util.inherits(BosClient, BceBaseClient);
 
 // --- B E G I N ---
-BosClient.prototype.generatePresignedUrl = function (bucket_name, key,
-                                                     opt_timestamp,
-                                                     opt_expiration_in_seconds,
-                                                     opt_headers,
-                                                     opt_params,
-                                                     opt_headers_to_sign,
-                                                     opt_config) {
+BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
+    expirationInSeconds, headers, params, headersToSign, config) {
 
-    var timestamp = opt_timestamp || 0;
-    var expiration_in_seconds = opt_expiration_in_seconds || 1800;
-    var headers = opt_headers || {};
-    var params = opt_params || {};
-    var headers_to_sign = opt_headers_to_sign || [];
-    var config = u.extend({}, this.config, opt_config || {});
+    config = u.extend({}, this.config, config);
 
     var resource = path.normalize(path.join(
         '/v1',
-        bucket_name || '',
+        bucketName || '',
         key || ''
     ));
 
+    headers = headers || {};
     headers.Host = require('url').parse(config.endpoint).host;
 
     var credentials = config.credentials;
     var auth = new Auth(credentials.ak, credentials.sk);
     var authorization = auth.generateAuthorization(
-        'GET', resource, params, headers, timestamp, expiration_in_seconds,
-        headers_to_sign);
+        'GET', resource, params, headers, timestamp, expirationInSeconds,
+        headersToSign);
 
     return util.format('%s%s?authorization=%s', config.endpoint,
         resource, encodeURIComponent(authorization));
 };
 
-BosClient.prototype.listBuckets = function (opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.listBuckets = function (options) {
+    options = options || {};
     return this._sendRequest('GET', {config: options.config});
 };
 
-BosClient.prototype.createBucket = function (bucket_name, opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.createBucket = function (bucketName, options) {
+    options = options || {};
 
     return this._sendRequest('PUT', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         config: options.config
     });
 };
 
-BosClient.prototype.listObjects = function (bucket_name, opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.listObjects = function (bucketName, options) {
+    options = options || {};
 
     var params = u.extend(
         {maxKeys: 1000},
@@ -98,17 +99,17 @@ BosClient.prototype.listObjects = function (bucket_name, opt_options) {
     );
 
     return this._sendRequest('GET', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         params: params,
         config: options.config
     });
 };
 
-BosClient.prototype.doesBucketExist = function (bucket_name, opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.doesBucketExist = function (bucketName, options) {
+    options = options || {};
 
     return this._sendRequest('HEAD', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         config: options.config
     }).then(
         /*eslint-disable*/
@@ -116,10 +117,10 @@ BosClient.prototype.doesBucketExist = function (bucket_name, opt_options) {
             return Q(true);
         },
         function (e) {
-            if (e && e.status_code === 403) {
+            if (e && e[H.X_STATUS_CODE] === 403) {
                 return Q(true);
             }
-            if (e && e.status_code === 404) {
+            if (e && e[H.X_STATUS_CODE] === 404) {
                 return Q(false);
             }
             return Q.reject(e);
@@ -128,67 +129,71 @@ BosClient.prototype.doesBucketExist = function (bucket_name, opt_options) {
     );
 };
 
-BosClient.prototype.deleteBucket = function (bucket_name, opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.deleteBucket = function (bucketName, options) {
+    options = options || {};
 
     return this._sendRequest('DELETE', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         config: options.config
     });
 };
 
-BosClient.prototype.setBucketCannedAcl = function (bucket_name, canned_acl, opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.setBucketCannedAcl = function (bucketName, cannedAcl, options) {
+    options = options || {};
 
+    var headers = {};
+    headers[H.X_BCE_ACL] = cannedAcl;
     return this._sendRequest('PUT', {
-        bucket_name: bucket_name,
-        headers: {'x-bce-acl': canned_acl},
-        params: {'acl': ''},
+        bucketName: bucketName,
+        headers: headers,
+        params: {acl: ''},
         config: options.config
     });
 };
 
-BosClient.prototype.setBucketAcl = function (bucket_name, acl, opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.setBucketAcl = function (bucketName, acl, options) {
+    options = options || {};
+
+    var headers = {};
+    headers[H.CONTENT_TYPE] = 'application/json; charset=utf-8';
     return this._sendRequest('PUT', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         body: JSON.stringify({accessControlList: acl}),
-        headers: {
-            'Content-Type': 'application/json; charset=utf-8'
-        },
-        params: {'acl': ''},
+        headers: headers,
+        params: {acl: ''},
         config: options.config
     });
 };
 
-BosClient.prototype.getBucketAcl = function (bucket_name, opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.getBucketAcl = function (bucketName, options) {
+    options = options || {};
 
     return this._sendRequest('GET', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         params: {'acl': ''},
         config: options.config
     });
 };
 
-BosClient.prototype.deleteObject = function (bucket_name, key, opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.deleteObject = function (bucketName, key, options) {
+    options = options || {};
+
     return this._sendRequest('DELETE', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         key: key,
         config: options.config
     });
 };
 
-BosClient.prototype.putObject = function (bucket_name, key, data, opt_options) {
+BosClient.prototype.putObject = function (bucketName, key, data, options) {
     if (!key) {
         throw new TypeError('key should not be empty.');
     }
 
-    var options = this._checkOptions(opt_options || {});
+    options = this._checkOptions(options || {});
 
     return this._sendRequest('PUT', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         key: key,
         body: data,
         headers: options.headers,
@@ -196,188 +201,186 @@ BosClient.prototype.putObject = function (bucket_name, key, data, opt_options) {
     });
 };
 
-BosClient.prototype.putObjectFromString = function (bucket_name, key, data, opt_options) {
-    var options = u.extend({
-        'Content-Length': Buffer.byteLength(data),
-        'Content-MD5': require('./crypto').md5sum(data)
-    }, opt_options);
-    return this.putObject(bucket_name, key, data, options);
+BosClient.prototype.putObjectFromString = function (bucketName, key, data, options) {
+    var headers = {};
+    headers[H.CONTENT_LENGTH] = Buffer.byteLength(data);
+    headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
+    options = u.extend(headers, options);
+
+    return this.putObject(bucketName, key, data, options);
 };
 
-BosClient.prototype.putObjectFromFile = function (bucket_name, key, filename, opt_options) {
-    var options = u.extend({
-        'Content-Length': fs.statSync(filename).size,
-        'Content-Type': MimeType.guess(path.extname(filename))
-    }, opt_options);
+BosClient.prototype.putObjectFromFile = function (bucketName, key, filename, options) {
+    var headers = {};
+    headers[H.CONTENT_LENGTH] = fs.statSync(filename).size;
+    headers[H.CONTENT_TYPE] = MimeType.guess(path.extname(filename));
+    options = u.extend(headers, options);
 
     var fp = fs.createReadStream(filename);
-    if (!u.has(options, 'Content-MD5')) {
+    if (!u.has(options, H.CONTENT_MD5)) {
         var me = this;
         return require('./crypto').md5file(filename)
             .then(function (md5sum) {
-                options['Content-MD5'] = md5sum;
-                return me.putObject(bucket_name, key, fp, options);
+                options[H.CONTENT_MD5] = md5sum;
+                return me.putObject(bucketName, key, fp, options);
             });
     }
-    return this.putObject(bucket_name, key, fp, options);
+    return this.putObject(bucketName, key, fp, options);
 };
 
-BosClient.prototype.getObjectMetadata = function (bucket_name, key, opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.getObjectMetadata = function (bucketName, key, options) {
+    options = options || {};
+
     return this._sendRequest('HEAD', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         key: key,
         config: options.config
     });
 };
 
-BosClient.prototype.getObject = function (bucket_name, key, opt_range, opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.getObject = function (bucketName, key, range, options) {
+    options = options || {};
 
-    var output_stream = new WMStream();
+    var outputStream = new WMStream();
     return this._sendRequest('GET', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         key: key,
         headers: {
-            'Range': opt_range ? util.format('bytes=%s', opt_range) : ''
+            'Range': range ? util.format('bytes=%s', range) : ''
         },
         config: options.config,
-        output_stream: output_stream
+        outputStream: outputStream
     }).then(function (response) {
-        response.body = output_stream.store;
+        response.body = outputStream.store;
         return response;
     });
 };
 
-BosClient.prototype.getObjectToFile = function (bucket_name, key, filename, opt_range, opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.getObjectToFile = function (bucketName, key, filename, range, options) {
+    options = options || {};
 
     return this._sendRequest('GET', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         key: key,
         headers: {
-            'Range': opt_range ? util.format('bytes=%s', opt_range) : ''
+            'Range': range ? util.format('bytes=%s', range) : ''
         },
         config: options.config,
-        output_stream: fs.createWriteStream(filename)
+        outputStream: fs.createWriteStream(filename)
     });
 };
 
-BosClient.prototype.copyObject = function (source_bucket_name, source_key,
-                                           target_bucket_name, target_key,
-                                           opt_options) {
+BosClient.prototype.copyObject = function (sourceBucketName, sourceKey, targetBucketName, targetKey, options) {
     /*eslint-disable*/
-    if (!source_bucket_name) { throw new TypeError('source_bucket_name should not be empty'); }
-    if (!source_key) { throw new TypeError('source_key should not be empty'); }
-    if (!target_bucket_name) { throw new TypeError('target_bucket_name should not be empty'); }
-    if (!target_key) { throw new TypeError('target_key should not be empty'); }
+    if (!sourceBucketName) { throw new TypeError('sourceBucketName should not be empty'); }
+    if (!sourceKey) { throw new TypeError('sourceKey should not be empty'); }
+    if (!targetBucketName) { throw new TypeError('targetBucketName should not be empty'); }
+    if (!targetKey) { throw new TypeError('targetKey should not be empty'); }
     /*eslint-enable*/
 
-    var options = this._checkOptions(opt_options || {});
-    var has_user_metadata = false;
+    options = this._checkOptions(options || {});
+    var hasUserMetadata = false;
     u.some(options.headers, function (value, key) {
         if (key.indexOf('x-bce-meta-') === 0) {
-            has_user_metadata = true;
+            hasUserMetadata = true;
             return true;
         }
     });
     options.headers['x-bce-copy-source'] = encodeURI(util.format('/%s/%s',
-        source_bucket_name, source_key));
+        sourceBucketName, sourceKey));
     if (u.has(options.headers, 'ETag')) {
         options.headers['x-bce-copy-source-if-match'] = options.headers.ETag;
     }
-    options.headers['x-bce-metadata-directive'] = has_user_metadata ? 'replace' : 'copy';
+    options.headers['x-bce-metadata-directive'] = hasUserMetadata ? 'replace' : 'copy';
 
     return this._sendRequest('PUT', {
-        bucket_name: target_bucket_name,
-        key: target_key,
+        bucketName: targetBucketName,
+        key: targetKey,
         headers: options.headers,
         config: options.config
     });
 };
 
-BosClient.prototype.initiateMultipartUpload = function (bucket_name, key, opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.initiateMultipartUpload = function (bucketName, key, options) {
+    options = options || {};
 
+    var headers = {};
+    headers[H.CONTENT_TYPE] = MimeType.guess(path.basename(key));
     return this._sendRequest('POST', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         key: key,
         params: {'uploads': ''},
-        headers: {
-            'Content-Type': MimeType.guess(path.basename(key))
-        },
+        headers: headers,
         config: options.config
     });
 };
 
-BosClient.prototype.abortMultipartUpload = function (bucket_name, key, upload_id, opt_options) {
-    var options = opt_options || {};
+BosClient.prototype.abortMultipartUpload = function (bucketName, key, uploadId, options) {
+    options = options || {};
 
     return this._sendRequest('DELETE', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         key: key,
-        params: {'uploadId': upload_id},
+        params: {'uploadId': uploadId},
         config: options.config
     });
 };
 
-BosClient.prototype.completeMultipartUpload = function (bucket_name, key, upload_id,
-                                                        part_list, opt_options) {
-
-    var options = this._checkOptions(u.extend({
-        'Content-Type': 'application/json; charset=utf-8'
-    }, opt_options));
+BosClient.prototype.completeMultipartUpload = function (bucketName, key, uploadId, partList, options) {
+    var headers = {};
+    headers[H.CONTENT_TYPE] = 'application/json; charset=utf-8';
+    options = this._checkOptions(u.extend(headers, options));
 
     return this._sendRequest('POST', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         key: key,
-        body: JSON.stringify({parts: part_list}),
+        body: JSON.stringify({parts: partList}),
         headers: options.headers,
-        params: {uploadId: upload_id},
+        params: {uploadId: uploadId},
         config: options.config
     });
 };
 
-BosClient.prototype.uploadPartFromFile = function (bucket_name, key, upload_id,
-                                                   part_number, part_size, filename, offset,
-                                                   part_md5, opt_options) {
+BosClient.prototype.uploadPartFromFile = function (bucketName, key, uploadId, partNumber,
+    partSize, filename, offset, partMd5, options) {
+
     var start = offset;
-    var end = offset + part_size - 1;
-    var part_fp = fs.createReadStream(filename, {start: start, end: end});
-    return this.uploadPart(bucket_name, key, upload_id, part_number,
-        part_size, part_fp, part_md5, opt_options);
+    var end = offset + partSize - 1;
+    var partFp = fs.createReadStream(filename, {start: start, end: end});
+    return this.uploadPart(bucketName, key, uploadId, partNumber,
+        partSize, partFp, partMd5, options);
 };
 
-BosClient.prototype.uploadPart = function (bucket_name, key, upload_id,
-                                           part_number, part_size, part_fp, part_md5,
-                                           opt_options) {
+BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber,
+    partSize, partFp, partMd5, options) {
+
     /*eslint-disable*/
-    if (!bucket_name) { throw new TypeError('bucket_name should not be empty');}
+    if (!bucketName) { throw new TypeError('bucketName should not be empty');}
     if (!key) { throw new TypeError('key should not be empty'); }
     /*eslint-enable*/
-    if (part_number < MIN_PART_NUMBER || part_number > MAX_PART_NUMBER) {
-        throw new TypeError(util.format('Invalid part_number %d. The valid range is from %d to %d.',
-            part_number, MIN_PART_NUMBER, MAX_PART_NUMBER));
+    if (partNumber < MIN_PART_NUMBER || partNumber > MAX_PART_NUMBER) {
+        throw new TypeError(util.format('Invalid partNumber %d. The valid range is from %d to %d.',
+            partNumber, MIN_PART_NUMBER, MAX_PART_NUMBER));
     }
 
     var client = this;
 
-    // TODO(leeight) 计算md5的时候已经把 part_fp 读完了，如果从头再来呢？
-    var cloned_part_fp = fs.createReadStream(part_fp.path, {
-        start: part_fp.start,
-        end: part_fp.end
+    // TODO(leeight) 计算md5的时候已经把 partFp 读完了，如果从头再来呢？
+    var clonedPartFp = fs.createReadStream(partFp.path, {
+        start: partFp.start,
+        end: partFp.end
     });
 
-    var options = u.extend({
-        'Content-Length': part_size,
-        'Content-Type': 'application/octet-stream',
-        'Content-MD5': part_md5
-    }, opt_options);
+    var headers = {};
+    headers[H.CONTENT_LENGTH] = partSize;
+    headers[H.CONTENT_TYPE] = 'application/octet-stream';
+    headers[H.CONTENT_MD5] = partMd5;
+    options = u.extend(headers, options);
 
-    if (!options['Content-MD5']) {
-        return require('./crypto').md5stream(part_fp)
+    if (!options[H.CONTENT_MD5]) {
+        return require('./crypto').md5stream(partFp)
             .then(function (md5sum) {
-                options['Content-MD5'] = md5sum;
+                options[H.CONTENT_MD5] = md5sum;
                 return newPromise();
             });
     }
@@ -385,94 +388,92 @@ BosClient.prototype.uploadPart = function (bucket_name, key, upload_id,
     function newPromise() {
         options = client._checkOptions(options);
         return client._sendRequest('PUT', {
-            bucket_name: bucket_name,
+            bucketName: bucketName,
             key: key,
-            body: cloned_part_fp,
+            body: clonedPartFp,
             headers: options.headers,
-            params: {partNumber: part_number, uploadId: upload_id},
+            params: {partNumber: partNumber, uploadId: uploadId},
             config: options.config
         });
     }
     return newPromise();
 };
 
-BosClient.prototype.listParts = function (bucket_name, key, upload_id, opt_options) {
+BosClient.prototype.listParts = function (bucketName, key, uploadId, options) {
     /*eslint-disable*/
-    if (!upload_id) { throw new TypeError('upload_id should not empty'); }
+    if (!uploadId) { throw new TypeError('uploadId should not empty'); }
     /*eslint-enable*/
 
-    var allowed_params = ['maxParts', 'partNumberMarker', 'uploadId'];
-    var options = this._checkOptions(opt_options || {}, allowed_params);
-    options.params.uploadId = upload_id;
+    var allowedParams = ['maxParts', 'partNumberMarker', 'uploadId'];
+    options = this._checkOptions(options || {}, allowedParams);
+    options.params.uploadId = uploadId;
 
     return this._sendRequest('GET', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         key: key,
         params: options.params,
         config: options.config
     });
 };
 
-BosClient.prototype.listMultipartUploads = function (bucket_name, opt_options) {
-    var allowed_params = ['delimiter', 'maxUploads', 'keyMarker', 'prefix', 'uploads'];
+BosClient.prototype.listMultipartUploads = function (bucketName, options) {
+    var allowedParams = ['delimiter', 'maxUploads', 'keyMarker', 'prefix', 'uploads'];
 
-    var options = this._checkOptions(opt_options || {}, allowed_params);
+    options = this._checkOptions(options || {}, allowedParams);
     options.params.uploads = '';
 
     return this._sendRequest('GET', {
-        bucket_name: bucket_name,
+        bucketName: bucketName,
         params: options.params,
         config: options.config
     });
 };
 
-BosClient.prototype.createSignature = function (credentials, http_method,
-                                                path, params, headers) {
+BosClient.prototype.createSignature = function (credentials, httpMethod, path, params, headers) {
     var auth = new Auth(credentials.ak, credentials.sk);
-    return auth.generateAuthorization(http_method, path, params, headers);
+    return auth.generateAuthorization(httpMethod, path, params, headers);
 };
 
 // --- E N D ---
 
-BosClient.prototype._sendRequest = function (http_method, var_args) {
-    var default_args = {
-        bucket_name: null,
+BosClient.prototype._sendRequest = function (httpMethod, varArgs) {
+    var defaultArgs = {
+        bucketName: null,
         key: null,
         body: null,
         headers: {},
         params: {},
         config: {},
-        output_stream: null
+        outputStream: null
     };
-    var args = u.extend(default_args, var_args);
+    var args = u.extend(defaultArgs, varArgs);
 
     var config = u.extend({}, this.config, args.config);
     var resource = path.normalize(path.join(
         '/v1',
-        args.bucket_name || '',
+        args.bucketName || '',
         args.key || ''
     ));
 
-    var http_client = new HttpClient(config);
-    return http_client.sendRequest(http_method, resource, args.body,
+    var httpClient = new HttpClient(config);
+    return httpClient.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
-        args.output_stream
+        args.outputStream
     );
 };
 
-BosClient.prototype._checkOptions = function (options, opt_allowed_params) {
+BosClient.prototype._checkOptions = function (options, allowedParams) {
     var rv = {};
-    var allowed_params = [];
 
     rv.config = options.config || {};
     rv.headers = this._prepareObjectHeaders(options);
-    rv.params = u.pick(options, allowed_params);
+    rv.params = u.pick(options, allowedParams || []);
 
     return rv;
 };
 
 BosClient.prototype._prepareObjectHeaders = function (options) {
-    var allowed_headers = [
+    var allowedHeaders = [
         'Content-Length',
         'Content-Encoding',
         'Content-MD5',
@@ -480,27 +481,27 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
         'Content-Disposition',
         'ETag'
     ];
-    var meta_size = 0;
+    var metaSize = 0;
     var headers = u.pick(options, function (value, key) {
-        if (allowed_headers.indexOf(key) !== -1) {
+        if (allowedHeaders.indexOf(key) !== -1) {
             return true;
         }
         else if (/^x\-bce\-meta\-/.test(key)) {
-            meta_size += Buffer.byteLength(key) + Buffer.byteLength('' + value);
+            metaSize += Buffer.byteLength(key) + Buffer.byteLength('' + value);
             return true;
         }
     });
 
-    if (meta_size > MAX_USER_METADATA_SIZE) {
+    if (metaSize > MAX_USER_METADATA_SIZE) {
         throw new TypeError('Metadata size should not be greater than ' + MAX_USER_METADATA_SIZE + '.');
     }
 
-    if (u.has(headers, 'Content-Length')) {
-        var content_length = headers['Content-Length'];
-        if (content_length < 0) {
+    if (u.has(headers, H.CONTENT_LENGTH)) {
+        var contentLength = headers[H.CONTENT_LENGTH];
+        if (contentLength < 0) {
             throw new TypeError('content_length should not be negative.')
         }
-        else if (content_length > MAX_PUT_OBJECT_LENGTH) { // 5G
+        else if (contentLength > MAX_PUT_OBJECT_LENGTH) { // 5G
             throw new TypeError('Object length should be less than ' + MAX_PUT_OBJECT_LENGTH +
                 '. Use multi-part upload instead.')
         }
@@ -513,8 +514,8 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
         }
     }
 
-    if (!u.has(headers, 'Content-Type')) {
-        headers['Content-Type'] = 'application/octet-stream';
+    if (!u.has(headers, H.CONTENT_TYPE)) {
+        headers[H.CONTENT_TYPE] = 'application/octet-stream';
     }
 
     return headers;

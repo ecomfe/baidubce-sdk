@@ -9,7 +9,13 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
+ *
+ * @file src/auth.js
+ * @author leeight
  */
+
+/*eslint-env node*/
+/*eslint max-params:[0,10]*/
 
 var util = require('util');
 
@@ -24,68 +30,89 @@ function Auth(ak, sk) {
     this.sk = sk;
 }
 
-Auth.prototype.generateAuthorization = function (method, resource,
-    opt_params, opt_headers, opt_timestamp,
-    opt_expiration_in_seconds, opt_headers_to_sign) {
-
-    var params = opt_params || {};
-    var headers = opt_headers || {};
-    var timestamp = opt_timestamp || 0;
-    var expiration_in_seconds = opt_expiration_in_seconds || 1800;
-    var headers_to_sign = opt_headers_to_sign || null;
+/**
+ * Generate the signature based on http://gollum.baidu.com/AuthenticationMechanism
+ *
+ * @param {string} method The http request method, such as GET, POST, DELETE, PUT, ...
+ * @param {string} resource The request path.
+ * @param {Object=} params The query strings.
+ * @param {Object=} headers The http request headers.
+ * @param {number=} timestamp Set the current timestamp.
+ * @param {number=} expirationInSeconds The signature validation time.
+ * @param {Array.<string>=} headersToSign The request headers list which will be used to calcualate the signature.
+ *
+ * @return {string} The signature.
+ */
+Auth.prototype.generateAuthorization = function (method, resource, params,
+    headers, timestamp, expirationInSeconds, headersToSign) {
 
     var now = timestamp ? new Date(timestamp * 1000) : new Date();
-    var raw_session_key = util.format('bce-auth-v1/%s/%s/%d',
-        this.ak, now.toISOString().replace(/\.\d+Z$/, 'Z'), expiration_in_seconds);
-    var session_key = this.hash(raw_session_key, this.sk);
+    var rawSessionKey = util.format('bce-auth-v1/%s/%s/%d',
+        this.ak, now.toISOString().replace(/\.\d+Z$/, 'Z'), expirationInSeconds || 1800);
+    var sessionKey = this.hash(rawSessionKey, this.sk);
 
-    var canonical_uri = encodeURI(resource);
-    var canonical_query_string = this.queryStringCanonicalization(params);
+    var canonicalUri = encodeURI(resource);
+    var canonicalQueryString = this.queryStringCanonicalization(params || {});
 
-    var rv = this.headersCanonicalization(headers, headers_to_sign);
-    var canonical_headers = rv[0];
-    var signed_headers = rv[1];
+    var rv = this.headersCanonicalization(headers || {}, headersToSign);
+    var canonicalHeaders = rv[0];
+    var signedHeaders = rv[1];
 
-    var raw_signature = util.format('%s\n%s\n%s\n%s',
-        method, canonical_uri, canonical_query_string, canonical_headers);
-    var signature = this.hash(raw_signature, session_key);
+    var rawSignature = util.format('%s\n%s\n%s\n%s',
+        method, canonicalUri, canonicalQueryString, canonicalHeaders);
+    var signature = this.hash(rawSignature, sessionKey);
 
-    if (signed_headers.length) {
-        return util.format('%s/%s/%s', raw_session_key, signed_headers.join(';'), signature);
+    if (signedHeaders.length) {
+        return util.format('%s/%s/%s', rawSessionKey, signedHeaders.join(';'), signature);
     }
 
-    return util.format('%s//%s', raw_session_key, signature);
+    return util.format('%s//%s', rawSessionKey, signature);
 };
 
+/**
+ * Canonical the query strings.
+ * @see http://gollum.baidu.com/AuthenticationMechanism#生成CanonicalQueryString
+ *
+ * @param {Object} params The query strings.
+ * @return {string}
+ */
 Auth.prototype.queryStringCanonicalization = function (params) {
-    var canonical_query_string = [];
+    var canonicalQueryString = [];
     Object.keys(params).forEach(function (key) {
         if (key === 'authorization') {
             return;
         }
 
         var value = params[key] == null ? '' : params[key];
-        canonical_query_string.push(
+        canonicalQueryString.push(
             encodeURIComponent(key) + '=' + encodeURIComponent(value)
         );
     });
 
-    canonical_query_string.sort();
+    canonicalQueryString.sort();
 
-    return canonical_query_string.join('&');
+    return canonicalQueryString.join('&');
 };
 
-Auth.prototype.headersCanonicalization = function (headers, headers_to_sign) {
-    if (!headers_to_sign || !headers_to_sign.length) {
-        headers_to_sign = ['host', 'content-md5', 'content-length', 'content-type'];
+/**
+ * Canonical the http request headers.
+ * @see http://gollum.baidu.com/AuthenticationMechanism#生成CanonicalHeaders
+ *
+ * @param {Object} headers The http request headers.
+ * @param {Array.<string>=} headersToSign The request headers list which will be used to calcualate the signature.
+ * @return {*} canonicalHeaders and signedHeaders
+ */
+Auth.prototype.headersCanonicalization = function (headers, headersToSign) {
+    if (!headersToSign || !headersToSign.length) {
+        headersToSign = ['host', 'content-md5', 'content-length', 'content-type'];
     }
 
-    var headers_map = {};
-    headers_to_sign.forEach(function (item) {
-        headers_map[item] = true;
+    var headersMap = {};
+    headersToSign.forEach(function (item) {
+        headersMap[item] = true;
     });
 
-    var canonical_headers = [];
+    var canonicalHeaders = [];
     Object.keys(headers).forEach(function (key) {
         var value = headers[key];
         if (value == null || value === '') {
@@ -93,27 +120,27 @@ Auth.prototype.headersCanonicalization = function (headers, headers_to_sign) {
         }
 
         key = key.toLowerCase();
-        if (/^x\-bce\-/.test(key) || headers_map[key] === true) {
-            canonical_headers.push(util.format('%s:%s',
+        if (/^x\-bce\-/.test(key) || headersMap[key] === true) {
+            canonicalHeaders.push(util.format('%s:%s',
                 encodeURIComponent(key), encodeURIComponent(value)));
         }
     });
 
-    canonical_headers.sort();
+    canonicalHeaders.sort();
 
-    var signed_headers = [];
-    canonical_headers.forEach(function (item) {
-        signed_headers.push(item.split(':')[0]);
+    var signedHeaders = [];
+    canonicalHeaders.forEach(function (item) {
+        signedHeaders.push(item.split(':')[0]);
     });
 
-    return [canonical_headers.join('\n'), signed_headers];
+    return [canonicalHeaders.join('\n'), signedHeaders];
 };
 
 Auth.prototype.hash = function (data, key) {
     var crypto = require('crypto');
-    var sha256_hmac = crypto.createHmac('sha256', key);
-    sha256_hmac.update(data);
-    return sha256_hmac.digest('hex');
+    var sha256Hmac = crypto.createHmac('sha256', key);
+    sha256Hmac.update(data);
+    return sha256Hmac.digest('hex');
 };
 
 module.exports = Auth;

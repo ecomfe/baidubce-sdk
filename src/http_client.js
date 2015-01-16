@@ -9,12 +9,21 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
+ *
+ * @file src/http_client.js
+ * @author leeight
  */
+
+/*eslint-env node*/
+/*eslint max-params:[0,10]*/
 
 var util = require('util');
 var stream = require('stream');
 
+var u = require('underscore');
 var Q = require('q');
+
+var H = require('./headers');
 
 /**
  * @constructor
@@ -26,73 +35,59 @@ function HttpClient(config) {
 
 
 /**
- * @param {string} http_method GET,POST,PUT,DELETE,HEAD
+ * @param {string} httpMethod GET,POST,PUT,DELETE,HEAD
  * @param {string} path The http request path.
- * @param {(string|Buffer|stream.Readable)=} opt_body The request body. If `opt_body` is a
+ * @param {(string|Buffer|stream.Readable)=} body The request body. If `body` is a
  * stream, `Content-Length` must be set explicitly.
- * @param {Object=} opt_headers The http request headers.
- * @param {Object=} opt_params The querystrings in url.
- * @param {function():string=} opt_sign_function The `Authorization` signature function
- * @param {stream.Writable=} opt_output_stream The http response body.
+ * @param {Object=} headers The http request headers.
+ * @param {Object=} params The querystrings in url.
+ * @param {function():string=} signFunction The `Authorization` signature function
+ * @param {stream.Writable=} outputStream The http response body.
  *
  * @reslove {{http_headers:Object,body:Object}}
  * @reject {Object}
  *
  * @return {Q.defer}
  */
-HttpClient.prototype.sendRequest = function (http_method, path, opt_body,
-                                             opt_headers, opt_params, opt_sign_function,
-                                             opt_output_stream) {
+HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, params,
+    signFunction, outputStream) {
 
-    var body = opt_body || null;
-    var headers = opt_headers || {};
-    var params = opt_params || {};
-
-    var request_url = this._getRequestUrl(path, params);
-    var options = require('url').parse(request_url);
+    var requestUrl = this._getRequestUrl(path, params);
+    var options = require('url').parse(requestUrl);
 
     // Prepare the request headers.
-    var default_headers = {
-        'User-Agent': util.format('bce-sdk-nodejs/%s/%s/%s', require('../package.json').version,
-                                  process.platform, process.version),
-        'x-bce-date': new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
-        'Connection': 'close',
-        // 'Expect': '',
-        // 'Transfer-Encoding': '',
-        'Content-Type': 'application/json; charset=utf-8',
-        'Host': options.host
-    };
-    for (var key in default_headers) {
-        if (!headers.hasOwnProperty(key)) {
-            headers[key] = default_headers[key];
-        }
-    }
-    if (typeof opt_sign_function === 'function') {
-        headers.Authorization = opt_sign_function(this.config.credentials,
-            http_method, path, params, headers);
+    var defaultHeaders = {};
+    defaultHeaders[H.USER_AGENT] = util.format('bce-sdk-nodejs/%s/%s/%s', require('../package.json').version,
+        process.platform, process.version);
+    defaultHeaders[H.X_BCE_DATE] = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+    defaultHeaders[H.CONNECTION] = 'close';
+    defaultHeaders[H.CONTENT_TYPE] = 'application/json; charset=utf-8';
+    defaultHeaders[H.HOST] = options.host;
+
+    headers = u.extend({}, defaultHeaders, headers);
+    if (typeof signFunction === 'function') {
+        headers.Authorization = signFunction(this.config.credentials,
+            httpMethod, path, params, headers);
     }
 
     // Check the content-length
-    if (!headers.hasOwnProperty('Content-Length')) {
-        headers['Content-Length'] = this._guessContentLength(body);
+    if (!headers.hasOwnProperty(H.CONTENT_LENGTH)) {
+        headers[H.CONTENT_LENGTH] = this._guessContentLength(body);
     }
 
     var api = options.protocol === 'https:' ? require('https') : require('http');
-    options.method = http_method;
+    options.method = httpMethod;
     options.headers = headers;
 
     var deferred = Q.defer();
 
     var client = this;
     var req = api.request(options, function (res) {
-        if (opt_output_stream
-            && opt_output_stream instanceof stream.Writable) {
-            res.pipe(opt_output_stream);
+        if (outputStream
+            && outputStream instanceof stream.Writable) {
+            res.pipe(outputStream);
             res.on('end', function () {
-                deferred.resolve({
-                    http_headers: client._fixHeaders(res.headers),
-                    body: {}
-                });
+                deferred.resolve(success(client._fixHeaders(res.headers), {}));
             });
             return;
         }
@@ -129,7 +124,7 @@ HttpClient.prototype._guessContentLength = function (data) {
 };
 
 HttpClient.prototype._fixHeaders = function (headers) {
-    var fixed_headers = {};
+    var fixedHeaders = {};
 
     Object.keys(headers).forEach(function (key) {
         var value = headers[key].trim();
@@ -138,25 +133,25 @@ HttpClient.prototype._fixHeaders = function (headers) {
             if (key === 'etag') {
                 value = value.replace(/"/g, '');
             }
-            fixed_headers[key] = value;
+            fixedHeaders[key] = value;
         }
     });
 
-    return fixed_headers;
+    return fixedHeaders;
 };
 
 HttpClient.prototype._recvResponse = function (res) {
-    var response_headers = this._fixHeaders(res.headers);
-    var status_code = res.statusCode;
+    var responseHeaders = this._fixHeaders(res.headers);
+    var statusCode = res.statusCode;
 
     function parseHttpResponseBody(raw) {
-        var content_type = response_headers['content-type'];
+        var contentType = responseHeaders['content-type'];
 
         if (!raw.length) {
             return {};
         }
-        else if (content_type
-                 && /(application|text)\/json/.test(content_type)) {
+        else if (contentType
+                 && /(application|text)\/json/.test(contentType)) {
             return JSON.parse(raw.toString());
         }
         return raw;
@@ -171,43 +166,30 @@ HttpClient.prototype._recvResponse = function (res) {
     /*eslint-enable*/
     res.on('end', function () {
         var raw = Buffer.concat(payload);
-        var response_body = null;
+        var responseBody = null;
 
         try {
-            response_body = parseHttpResponseBody(raw);
+            responseBody = parseHttpResponseBody(raw);
         }
         catch (e) {
             deferred.reject(e);
             return;
         }
 
-        if (status_code >= 100 && status_code < 200) {
-            deferred.reject({
-                status_code: status_code,
-                message: 'Can not handle 1xx http status code.'
-            });
+        if (statusCode >= 100 && statusCode < 200) {
+            deferred.reject(failure(statusCode, 'Can not handle 1xx http status code.'));
         }
-        else if (status_code < 100 || status_code >= 300) {
-            if (response_body.requestId) {
-                deferred.reject({
-                    status_code: status_code,
-                    message: response_body.message,
-                    code: response_body.code,
-                    request_id: response_body.requestId
-                });
+        else if (statusCode < 100 || statusCode >= 300) {
+            if (responseBody.requestId) {
+                deferred.reject(failure(statusCode, responseBody.message,
+                    responseBody.code, responseBody.requestId));
             }
             else {
-                deferred.reject({
-                    status_code: status_code,
-                    message: response_body
-                });
+                deferred.reject(failure(statusCode, responseBody));
             }
         }
 
-        deferred.resolve({
-            http_headers: response_headers,
-            body: response_body
-        });
+        deferred.resolve(success(responseHeaders, responseBody));
     });
 
     return deferred.promise;
@@ -242,13 +224,37 @@ HttpClient.prototype._sendRequest = function (req, data) {
 
 HttpClient.prototype._getRequestUrl = function (path, params) {
     var uri = encodeURI(path);
-    var query_string = require('querystring').encode(params);
-    if (query_string) {
-        uri += '?' + query_string;
+    var queryString = require('querystring').encode(params);
+    if (queryString) {
+        uri += '?' + queryString;
     }
 
     return this.config.endpoint + uri;
 };
+
+function success(httpHeaders, body) {
+    var response = {};
+
+    response[H.X_HTTP_HEADERS] = httpHeaders;
+    response[H.X_BODY] = body;
+
+    return response;
+}
+
+function failure(statusCode, message, code, requestId) {
+    var response = {};
+
+    response[H.X_STATUS_CODE] = statusCode;
+    response[H.X_MESSAGE] = message;
+    if (code) {
+        response[H.X_CODE] = code;
+    }
+    if (requestId) {
+        response[H.X_REQUEST_ID] = requestId;
+    }
+
+    return response;
+}
 
 module.exports = HttpClient;
 

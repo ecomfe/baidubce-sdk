@@ -9,7 +9,12 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
+ *
+ * @file src/bce_base_client.js
+ * @author leeight
  */
+
+/*eslint-env node*/
 
 var util = require('util');
 
@@ -19,14 +24,14 @@ var config = require('./config');
 
 /**
  * @constructor
- * @param {Object} client_config The bce client configuration.
- * @param {string} service_id The service id.
- * @param {boolean} opt_region_supported The service supported region or not.
+ * @param {Object} config The bce client configuration.
+ * @param {string} serviceId The service id.
+ * @param {boolean=} regionSupported The service supported region or not.
  */
-function BceBaseClient(client_config, service_id, opt_region_supported) {
-    this.config = u.extend({}, config.DEFAULT_CONFIG, client_config);
-    this.service_id = service_id;
-    this.region_supported = !!opt_region_supported;
+function BceBaseClient(config, serviceId, regionSupported) {
+    this.config = u.extend({}, config.DEFAULT_CONFIG, config);
+    this.serviceId = serviceId;
+    this.regionSupported = !!regionSupported;
 
     this.config.endpoint = this._computeEndpoint();
 }
@@ -39,16 +44,16 @@ BceBaseClient.prototype._computeEndpoint = function () {
         return this.config.endpoint;
     }
 
-    if (this.region_supported) {
+    if (this.regionSupported) {
         return util.format('%s://%s.%s.%s',
             this.config.protocol,
-            this.service_id,
+            this.serviceId,
             this.config.region,
             config.DEFAULT_SERVICE_DOMAIN);
     }
     return util.format('%s://%s.%s',
         this.config.protocol,
-        this.service_id,
+        this.serviceId,
         config.DEFAULT_SERVICE_DOMAIN);
 };
 
