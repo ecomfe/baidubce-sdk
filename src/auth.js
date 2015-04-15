@@ -19,6 +19,8 @@
 
 var util = require('util');
 
+var debug = require('debug')('auth');
+
 
 /**
  * @constructor
@@ -57,6 +59,10 @@ Auth.prototype.generateAuthorization = function (method, resource, params,
     var rv = this.headersCanonicalization(headers || {}, headersToSign);
     var canonicalHeaders = rv[0];
     var signedHeaders = rv[1];
+    debug('canonicalUri = %j', canonicalUri);
+    debug('canonicalQueryString = %j', canonicalQueryString);
+    debug('canonicalHeaders = %j', canonicalHeaders);
+    debug('signedHeaders = %j', signedHeaders);
 
     var rawSignature = util.format('%s\n%s\n%s\n%s',
         method, canonicalUri, canonicalQueryString, canonicalHeaders);

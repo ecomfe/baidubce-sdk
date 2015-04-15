@@ -9,31 +9,19 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
- *
- * @file src/headers.js
- * @author leeight
  */
 
-/*eslint-env node*/
-
-exports.CONTENT_TYPE = 'content-type';
-exports.CONTENT_LENGTH = 'content-length';
-exports.CONTENT_MD5 = 'content-md5';
-exports.CONNECTION = 'connection';
-exports.HOST = 'host';
-exports.USER_AGENT = 'user-agent';
-
-exports.AUTHORIZATION = 'authorization';
-exports.X_BCE_DATE = 'x-bce-date';
-exports.X_BCE_ACL = 'x-bce-acl';
-exports.X_BCE_REQUEST_ID = 'x-bce-request-id';
-
-exports.X_HTTP_HEADERS = 'http_headers';
-exports.X_BODY = 'body';
-exports.X_STATUS_CODE = 'status_code';
-exports.X_MESSAGE = 'message';
-exports.X_CODE = 'code';
-exports.X_REQUEST_ID = 'request_id';
+module.exports = {
+    credentials: {
+        ak: '46bd9968a6194b4bbdf0341f2286ccce',
+        sk: 'ec7f4e0174254f6f9020f9680fb1da9f'
+    },
+    connection_timeout_in_mills: 5000,    // 5 seconds
+    // region: 'bj',
+    // region: 'nj',
+    // 有了 endpoint，region 其实就不生效了
+    endpoint: 'http://multimedia.bce-testinternal.baidu.com'
+};
 
 
 

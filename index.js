@@ -16,6 +16,7 @@
 
 exports.Auth = require('./src/auth');
 exports.BosClient = require('./src/bos_client');
+exports.MediaClient = require('./src/media_client');
 exports.HttpClient = require('./src/http_client');
 exports.MimeType = require('./src/mime.types');
 

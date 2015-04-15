@@ -22,6 +22,7 @@ var stream = require('stream');
 
 var u = require('underscore');
 var Q = require('q');
+var debug = require('debug')('http_client');
 
 var H = require('./headers');
 
@@ -65,19 +66,25 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     defaultHeaders[H.HOST] = options.host;
 
     headers = u.extend({}, defaultHeaders, headers);
-    if (typeof signFunction === 'function') {
-        headers.Authorization = signFunction(this.config.credentials,
-            httpMethod, path, params, headers);
-    }
+
+    // if (!headers.hasOwnProperty(H.X_BCE_REQUEST_ID)) {
+    //    headers[H.X_BCE_REQUEST_ID] = this._generateRequestId();
+    // }
 
     // Check the content-length
     if (!headers.hasOwnProperty(H.CONTENT_LENGTH)) {
         headers[H.CONTENT_LENGTH] = this._guessContentLength(body);
     }
 
+    if (typeof signFunction === 'function') {
+        headers[H.AUTHORIZATION] = signFunction(this.config.credentials,
+            httpMethod, path, params, headers);
+    }
+
     var api = options.protocol === 'https:' ? require('https') : require('http');
     options.method = httpMethod;
     options.headers = headers;
+    debug('request headers = %j', headers);
 
     var deferred = Q.defer();
 
@@ -107,6 +114,20 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     }
 
     return deferred.promise;
+};
+
+HttpClient.prototype._generateRequestId = function () {
+    function chunk() {
+        var v = (~~(Math.random() * 0xffff)).toString(16);
+        if (v.length < 4) {
+            v += new Array(4 - v.length + 1).join('0');
+        }
+        return v;
+    }
+
+    return util.format('%s%s-%s-%s-%s-%s%s%s',
+        chunk(), chunk(), chunk(), chunk(),
+        chunk(), chunk(), chunk(), chunk());
 };
 
 HttpClient.prototype._guessContentLength = function (data) {
@@ -202,6 +223,7 @@ HttpClient.prototype._sendRequest = function (req, data) {
     /*eslint-enable*/
 
     if (Buffer.isBuffer(data)) {
+        debug('send body = %j', data.toString());
         req.write(data);
         req.end();
     }
