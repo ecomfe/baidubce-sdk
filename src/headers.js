@@ -16,14 +16,14 @@
 
 /*eslint-env node*/
 
-exports.CONTENT_TYPE = 'content-type';
-exports.CONTENT_LENGTH = 'content-length';
-exports.CONTENT_MD5 = 'content-md5';
-exports.CONNECTION = 'connection';
-exports.HOST = 'host';
-exports.USER_AGENT = 'user-agent';
+exports.CONTENT_TYPE = 'Content-Type';
+exports.CONTENT_LENGTH = 'Content-Length';
+exports.CONTENT_MD5 = 'Content-MD5';
+exports.CONNECTION = 'Connection';
+exports.HOST = 'Host';
+exports.USER_AGENT = 'User-Agent';
 
-exports.AUTHORIZATION = 'authorization';
+exports.AUTHORIZATION = 'Authorization';
 exports.X_BCE_DATE = 'x-bce-date';
 exports.X_BCE_ACL = 'x-bce-acl';
 exports.X_BCE_REQUEST_ID = 'x-bce-request-id';

@@ -52,6 +52,8 @@ function HttpClient(config) {
  */
 HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, params,
     signFunction, outputStream) {
+    debug('headers = %j', headers);
+    debug('params = %j', params);
 
     var requestUrl = this._getRequestUrl(path, params);
     var options = require('url').parse(requestUrl);
@@ -139,6 +141,9 @@ HttpClient.prototype._guessContentLength = function (data) {
     }
     else if (Buffer.isBuffer(data)) {
         return data.length;
+    }
+    else {
+        debug('data type = %j', typeof data);
     }
 
     throw new Error('No Content-Length is specified.');
