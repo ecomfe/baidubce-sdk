@@ -14,6 +14,7 @@
  * @author leeight
  */
 
+exports.Q = require('q');
 exports.Auth = require('./src/auth');
 exports.BosClient = require('./src/bos_client');
 exports.MediaClient = require('./src/media_client');

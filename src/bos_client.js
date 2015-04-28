@@ -48,6 +48,11 @@ const MAX_PART_NUMBER = 10000;
  */
 function BosClient (config) {
     BceBaseClient.call(this, config, 'bos', true);
+
+    /**
+     * @type {HttpClient}
+     */
+    this._httpAgent = null;
 }
 util.inherits(BosClient, BceBaseClient);
 
@@ -201,6 +206,17 @@ BosClient.prototype.putObject = function (bucketName, key, data, options) {
     });
 };
 
+BosClient.prototype.putObjectFromDataUrl = function (bucketName, key, data, options) {
+    data = new Buffer(data, 'base64');
+
+    var headers = {};
+    headers[H.CONTENT_LENGTH] = data.length;
+    headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
+    options = u.extend(headers, options);
+
+    return this.putObject(bucketName, key, data, options);
+};
+
 BosClient.prototype.putObjectFromString = function (bucketName, key, data, options) {
     var headers = {};
     headers[H.CONTENT_LENGTH] = Buffer.byteLength(data);
@@ -351,6 +367,31 @@ BosClient.prototype.uploadPartFromFile = function (bucketName, key, uploadId, pa
         partSize, partFp, partMd5, options);
 };
 
+BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId, partNumber,
+    partSize, dataUrl, options) {
+
+    var data = new Buffer(dataUrl, 'base64');
+    if (data.length !== partSize) {
+        throw new TypeError(util.format('Invalid partSize %d and data length %d',
+            partSize, data.length));
+    }
+
+    var headers = {};
+    headers[H.CONTENT_LENGTH] = partSize;
+    headers[H.CONTENT_TYPE] = 'application/octet-stream';
+    headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
+
+    options = this._checkOptions(u.extend(headers, options));
+    return this._sendRequest('PUT', {
+        bucketName: bucketName,
+        key: key,
+        body: data,
+        headers: options.headers,
+        params: {partNumber: partNumber, uploadId: uploadId},
+        config: options.config
+    });
+};
+
 BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber,
     partSize, partFp, partMd5, options) {
 
@@ -455,8 +496,8 @@ BosClient.prototype._sendRequest = function (httpMethod, varArgs) {
         args.key || ''
     ));
 
-    var httpClient = new HttpClient(config);
-    return httpClient.sendRequest(httpMethod, resource, args.body,
+    this._httpAgent = new HttpClient(config);
+    return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
         args.outputStream
     );

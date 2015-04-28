@@ -22,7 +22,6 @@ var stream = require('stream');
 
 var u = require('underscore');
 var Q = require('q');
-var debug = require('debug')('http_client');
 
 var H = require('./headers');
 
@@ -32,6 +31,12 @@ var H = require('./headers');
  */
 function HttpClient(config) {
     this.config = config;
+
+    /**
+     * http(s) request object
+     * @type {Object}
+     */
+    this._req = null;
 }
 
 
@@ -52,8 +57,6 @@ function HttpClient(config) {
  */
 HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, params,
     signFunction, outputStream) {
-    debug('headers = %j', headers);
-    debug('params = %j', params);
 
     var requestUrl = this._getRequestUrl(path, params);
     var options = require('url').parse(requestUrl);
@@ -86,12 +89,11 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     var api = options.protocol === 'https:' ? require('https') : require('http');
     options.method = httpMethod;
     options.headers = headers;
-    debug('request headers = %j', headers);
 
     var deferred = Q.defer();
 
     var client = this;
-    var req = api.request(options, function (res) {
+    var req = client._req = api.request(options, function (res) {
         if (outputStream
             && outputStream instanceof stream.Writable) {
             res.pipe(outputStream);
@@ -141,9 +143,6 @@ HttpClient.prototype._guessContentLength = function (data) {
     }
     else if (Buffer.isBuffer(data)) {
         return data.length;
-    }
-    else {
-        debug('data type = %j', typeof data);
     }
 
     throw new Error('No Content-Length is specified.');
@@ -228,7 +227,6 @@ HttpClient.prototype._sendRequest = function (req, data) {
     /*eslint-enable*/
 
     if (Buffer.isBuffer(data)) {
-        debug('send body = %j', data.toString());
         req.write(data);
         req.end();
     }
