@@ -148,6 +148,56 @@ client.createBucket(bucket)
     });
 ```
 
+## Browser Usage
+
+Use the `putObjectFromDataUrl` api.
+
+```
+browserify -s baidubce-sdk index.js -o baidubce-sdk.bundle.js
+```
+
+```
+var sdk = require('./baidubce-sdk.bundle');
+var $ = require('jquery');
+
+$('files').on('change', function (evt) {
+    var file = evt.target.files[0];
+    
+    var client = new sdk.BosClient(getBOSConfig());
+    var bucket = getBucket();
+    var key = file.name;
+    
+    var reader = new FileReader();
+    reader.onloaded = function (evt) {
+        if (evt.target.readyState === FileReader.DONE) {
+            var index = evt.target.result.indexOf(',');
+            if (index === -1) {
+                return;
+            }
+            var dataUrl = evt.target.result.substr(index + 1);
+            var ext = key.split(/\./g).pop();
+                var options = {
+                    'Content-Type': sdk.MimeType.guess(ext)
+                };
+                var promise = client.putObjectFromDataUrl(bucket, key, dataUrl, options);
+                client._httpAgent._req.xhr.upload.onprogress = function (evt) {
+                    if (evt.lengthComputable) {
+                        $('#g_progress').val(evt.loaded / evt.total);
+                    }
+                };
+                promise.then(function (res) {
+                    $('#g_progress').val(1);
+                    var url = client.generatePresignedUrl(bucket, key)
+                    $('#g_url').html('<a href="' + url + '" target="_blank">下载地址</a>');
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
+        }
+    };
+    reader.readAsDataURL(file);
+});
+```
 ### Others
 
 More api usages please refer [test/bos_client.spec.js](test/bos_client.spec.js)
