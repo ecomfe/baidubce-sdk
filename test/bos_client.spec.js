@@ -18,6 +18,7 @@ var fs = require('fs');
 var Q = require('q');
 var u = require('underscore');
 
+var config = require('./config');
 var BosClient = require('../src/bos_client');
 
 describe('BosClient', function() {
@@ -35,10 +36,10 @@ describe('BosClient', function() {
 
         var id = Math.floor(Math.random() * 100000) + 900;
         bucket = util.format('test-bucket%d', id);
-        key = util.format('test_object%d', id);
+        key = util.format('test_object %d', id);
         filename = util.format('temp_file%d', id);
 
-        client = new BosClient(require('./config'));
+        client = new BosClient(config);
     });
 
     afterEach(function(done) {
@@ -82,10 +83,7 @@ describe('BosClient', function() {
         client.listBuckets()
             .then(function(response) {
                 expect(response.body.buckets.length).toEqual(0);
-                expect(response.body.owner).toEqual({
-                    id: '992c67ee10be4e85bf444d18b638f9ba',
-                    displayName: 'PASSPORT:105015804',
-                });
+                expect(response.body.owner).toEqual(config.account);
             })
             .catch(fail)
             .fin(done);
@@ -151,6 +149,12 @@ describe('BosClient', function() {
                     {'id': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'},
                 ],
                 'permission': ['FULL_CONTROL']
+            },
+            {
+                'grantee': [
+                    {'id': config.account.id}
+                ],
+                'permission': ['FULL_CONTROL']
             }
         ];
         client.createBucket(bucket)
@@ -162,6 +166,25 @@ describe('BosClient', function() {
             })
             .then(function(response) {
                 expect(response.body.accessControlList).toEqual(grant_list);
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
+    it('putObjectFromDataUrl', function (done) {
+        client.createBucket(bucket)
+            .then(function() {
+                var dataUrl = new Buffer('hello world').toString('base64');
+                return client.putObjectFromDataUrl(bucket, key, dataUrl);
+            })
+            .then(function() {
+                return client.getObjectMetadata(bucket, key);
+            })
+            .then(function(response) {
+                expect(response.http_headers['content-length']).toEqual('11');
+                expect(response.http_headers['content-md5']).toEqual(
+                    require('../src/crypto').md5sum('hello world')
+                );
             })
             .catch(fail)
             .fin(done);

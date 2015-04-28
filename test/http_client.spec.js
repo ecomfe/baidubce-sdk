@@ -83,10 +83,7 @@ describe('HttpClient', function() {
                     expect(response.http_headers['content-type']).toEqual('application/json; charset=utf-8');
                     expect(response.http_headers.hasOwnProperty('x-bce-request-id')).toEqual(true);
                     expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).toEqual(true);
-                    expect(response.body.owner).toEqual({
-                        id: '992c67ee10be4e85bf444d18b638f9ba',
-                        displayName: 'PASSPORT:105015804'
-                    });
+                    expect(response.body.owner).toEqual(config.account);
                     expect(Array.isArray(response.body.buckets)).toEqual(true);
                 },
                 function(e) {
@@ -261,7 +258,7 @@ describe('HttpClient', function() {
                 expect(response.body).toEqual({});
                 expect(output_stream.store.length).toBeGreaterThan(0);
                 var owner = JSON.parse(output_stream.store.toString()).owner;
-                expect(owner).toEqual({"id":"992c67ee10be4e85bf444d18b638f9ba","displayName":"PASSPORT:105015804"});
+                expect(owner).toEqual(config.account);
             })
             .catch(fail)
             .fin(done);

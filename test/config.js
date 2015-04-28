@@ -13,11 +13,15 @@
 
 module.exports = {
     'credentials': {
-        'ak': '4c60a1d7c5c846c79bff4f304240c581',
-        'sk': '42bb4f0b2f274b7eb0b544156a50e564',
+        'ak': 'a9622cb5f13c4003a80f2c00fe451d81',
+        'sk': '668ce0b2164e42e6b40d56a8efda8338',
     },
     'connection_timeout_in_mills': 5000,    // 5 seconds
     'endpoint': 'http://10.105.97.15',
+    'account': {
+      'id': '04e0d2c9e8ef478c951b97714c092f77',
+      'displayName': 'PASSPORT:105016607'
+    }
     // 'endpoint': 'http://localhost:8828',
 };
 

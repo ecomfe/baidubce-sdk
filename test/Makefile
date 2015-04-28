@@ -1,2 +1,2 @@
 all:
-	../node_modules/.bin/jasmine-node --verbose --growl .
+	../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions .

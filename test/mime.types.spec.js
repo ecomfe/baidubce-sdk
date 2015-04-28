@@ -16,6 +16,7 @@ var MimeType = require('../src/mime.types');
 describe('MimeType', function() {
     it('guess', function() {
         expect(MimeType.guess('.txt')).toEqual('text/plain');
+        expect(MimeType.guess('.tXT')).toEqual('text/plain');
         expect(MimeType.guess('txt')).toEqual('text/plain');
         expect(MimeType.guess('')).toEqual('application/octet-stream');
     });

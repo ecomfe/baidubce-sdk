@@ -1008,5 +1008,5 @@ exports.guess = function (ext) {
     if (ext[0] === '.') {
         ext = ext.substr(1);
     }
-    return mimeTypes[ext] || 'application/octet-stream';
+    return mimeTypes[ext.toLowerCase()] || 'application/octet-stream';
 };
