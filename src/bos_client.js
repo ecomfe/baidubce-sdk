@@ -322,7 +322,7 @@ BosClient.prototype.initiateMultipartUpload = function (bucketName, key, options
     options = options || {};
 
     var headers = {};
-    headers[H.CONTENT_TYPE] = MimeType.guess(path.basename(key));
+    headers[H.CONTENT_TYPE] = MimeType.guess(path.extname(key));
     return this._sendRequest('POST', {
         bucketName: bucketName,
         key: key,

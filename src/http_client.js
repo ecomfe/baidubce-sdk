@@ -151,16 +151,18 @@ HttpClient.prototype._guessContentLength = function (data) {
 HttpClient.prototype._fixHeaders = function (headers) {
     var fixedHeaders = {};
 
-    Object.keys(headers).forEach(function (key) {
-        var value = headers[key].trim();
-        if (value) {
-            key = key.toLowerCase();
-            if (key === 'etag') {
-                value = value.replace(/"/g, '');
+    if (headers) {
+        Object.keys(headers).forEach(function (key) {
+            var value = headers[key].trim();
+            if (value) {
+                key = key.toLowerCase();
+                if (key === 'etag') {
+                    value = value.replace(/"/g, '');
+                }
+                fixedHeaders[key] = value;
             }
-            fixedHeaders[key] = value;
-        }
-    });
+        });
+    }
 
     return fixedHeaders;
 };
