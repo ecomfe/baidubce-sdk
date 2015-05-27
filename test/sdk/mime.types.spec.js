@@ -11,7 +11,7 @@
 * specific language governing permissions and limitations under the License.
 */
 
-var MimeType = require('../src/mime.types');
+var MimeType = require('../../src/mime.types');
 
 describe('MimeType', function() {
     it('guess', function() {

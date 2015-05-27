@@ -11,9 +11,9 @@
 * specific language governing permissions and limitations under the License.
 */
 
-var Auth = require('../src/auth');
-var HttpClient = require('../src/http_client');
-var WMStream = require('../src/wm_stream');
+var Auth = require('../../src/auth');
+var HttpClient = require('../../src/http_client');
+var WMStream = require('../../src/wm_stream');
 
 function sign_function(credentials, http_method, path, params, headers) {
     var auth = new Auth(credentials.ak, credentials.sk);
@@ -74,7 +74,7 @@ describe('HttpClient', function() {
     it('sendRequest', function(done) {
         var fail = this.fail.bind(this);
 
-        var config = require('./config');
+        var config = require('../config');
         var client = new HttpClient(config);
 
         client.sendRequest('GET', '/v1', null, null, null, sign_function)
@@ -111,7 +111,7 @@ describe('HttpClient', function() {
         // Prepare the request body
         var body = new Buffer(JSON.stringify({accessControlList: grant_list}));
 
-        var config = require('./config');
+        var config = require('../config');
         var client = new HttpClient(config);
         var path = '/v1/' + bucket;
 
@@ -160,7 +160,7 @@ describe('HttpClient', function() {
         // Prepare the request body
         var body = JSON.stringify({accessControlList: grant_list});
 
-        var config = require('./config');
+        var config = require('../config');
         var client = new HttpClient(config);
         var path = '/v1/' + bucket;
 
@@ -213,7 +213,7 @@ describe('HttpClient', function() {
         body.push(access_control_list);
         body.push(null);
 
-        var config = require('./config');
+        var config = require('../config');
         var client = new HttpClient(config);
         var path = '/v1/' + bucket;
 
@@ -249,7 +249,7 @@ describe('HttpClient', function() {
     it('sendRequestWithOutputStream', function(done) {
         var fail = this.fail.bind(this);
 
-        var config = require('./config');
+        var config = require('../config');
         var client = new HttpClient(config);
 
         var output_stream = new WMStream();

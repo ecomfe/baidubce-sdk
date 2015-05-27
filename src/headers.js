@@ -19,6 +19,9 @@
 exports.CONTENT_TYPE = 'Content-Type';
 exports.CONTENT_LENGTH = 'Content-Length';
 exports.CONTENT_MD5 = 'Content-MD5';
+exports.CONTENT_ENCODING = 'Content-Encoding';
+exports.CONTENT_DISPOSITION = 'Content-Disposition';
+exports.ETAG = 'ETag';
 exports.CONNECTION = 'Connection';
 exports.HOST = 'Host';
 exports.USER_AGENT = 'User-Agent';

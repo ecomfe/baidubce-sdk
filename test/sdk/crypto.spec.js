@@ -13,7 +13,7 @@
 
 var path = require('path');
 
-var crypto = require('../src/crypto');
+var crypto = require('../../src/crypto');
 
 describe('crypto', function() {
     it('md5sum', function() {
@@ -21,9 +21,9 @@ describe('crypto', function() {
     });
 
     it('md5file', function(done) {
-        crypto.md5file(path.join(__dirname, 'Makefile'))
+        crypto.md5file(path.join(__dirname, '..', 'Makefile'))
             .then(function(md5sum) {
-                expect(md5sum).toEqual('58KGo4t3osBDuVpJOXeIjw==');
+                expect(md5sum).toEqual('B89a9ZnS6TfU5EE82PwKKA==');
             })
             .fin(done);
     });

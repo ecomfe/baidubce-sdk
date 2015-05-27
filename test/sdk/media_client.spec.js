@@ -13,7 +13,7 @@
 var u = require('underscore');
 var debug = require('debug')('media_client');
 
-var MediaClient = require('../src/media_client');
+var MediaClient = require('../../src/media_client');
 
 describe('MediaClient', function () {
     var client;
@@ -24,7 +24,7 @@ describe('MediaClient', function () {
             return this.fail.call(this, JSON.stringify(arguments));
         }, this);
 
-        client = new MediaClient(require('./media.config'));
+        client = new MediaClient(require('../media.config'));
     });
 
     afterEach(function () {

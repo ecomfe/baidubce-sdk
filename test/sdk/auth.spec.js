@@ -11,7 +11,7 @@
 * specific language governing permissions and limitations under the License.
 */
 
-var Auth = require('../src/auth');
+var Auth = require('../../src/auth');
 
 describe('Auth', function() {
     it('queryStringCanonicalization', function() {

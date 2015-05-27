@@ -18,8 +18,8 @@ var fs = require('fs');
 var Q = require('q');
 var u = require('underscore');
 
-var config = require('./config');
-var BosClient = require('../src/bos_client');
+var config = require('../config');
+var BosClient = require('../../src/bos_client');
 
 describe('BosClient', function() {
     var client;

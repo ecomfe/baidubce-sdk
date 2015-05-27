@@ -211,7 +211,8 @@ BosClient.prototype.putObjectFromDataUrl = function (bucketName, key, data, opti
 
     var headers = {};
     headers[H.CONTENT_LENGTH] = data.length;
-    headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
+    // 对于浏览器调用API的时候，默认不添加 H.CONTENT_MD5 字段，因为计算起来比较慢
+    // headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
     options = u.extend(headers, options);
 
     return this.putObject(bucketName, key, data, options);
@@ -379,7 +380,8 @@ BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId,
     var headers = {};
     headers[H.CONTENT_LENGTH] = partSize;
     headers[H.CONTENT_TYPE] = 'application/octet-stream';
-    headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
+    // 对于浏览器调用API的时候，默认不添加 H.CONTENT_MD5 字段，因为计算起来比较慢
+    // headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
 
     options = this._checkOptions(u.extend(headers, options));
     return this._sendRequest('PUT', {
@@ -515,12 +517,12 @@ BosClient.prototype._checkOptions = function (options, allowedParams) {
 
 BosClient.prototype._prepareObjectHeaders = function (options) {
     var allowedHeaders = [
-        'Content-Length',
-        'Content-Encoding',
-        'Content-MD5',
-        'Content-Type',
-        'Content-Disposition',
-        'ETag'
+        H.CONTENT_LENGTH,
+        H.CONTENT_ENCODING,
+        H.CONTENT_MD5,
+        H.CONTENT_TYPE,
+        H.CONTENT_DISPOSITION,
+        H.ETAG
     ];
     var metaSize = 0;
     var headers = u.pick(options, function (value, key) {
