@@ -72,6 +72,12 @@ define(function (require) {
 
     function createClient() {
         var client = new sdk.BosClient(getBOSConfig());
+        if (getCurrentMode() === 'very-easy') {
+            // 用户显示的设置了 ak 和 sk，不需要服务器计算
+            return client;
+        }
+
+        // mode === 'easy'
         client.createSignature = function (_, httpMethod, path, params, headers) {
             var deferred = sdk.Q.defer();
             $.ajax({
@@ -239,12 +245,43 @@ define(function (require) {
         };
     }
 
+    function switchMode() {
+        var mode = getCurrentMode();
+
+        $('tr').each(function () {
+            if (this.className !== '') {
+                $(this).hide();
+            }
+        });
+        $('tr.' + mode).show();
+    }
+
+    function getCurrentMode() {
+        var mode = $('input[type=radio]:checked').val();
+        return mode;
+    }
+
+    function toggleLegend() {
+        if ($(this).hasClass('collapse')) {
+            $(this).parent().find('table').show();
+            $(this).html('高级参数配置[-]');
+            $(this).attr('class', 'expand');
+        }
+        else {
+            $(this).parent().find('table').hide();
+            $(this).html('高级参数配置[+]');
+            $(this).attr('class', 'collapse');
+        }
+    }
+
     exports.start = function () {
         if (!isSupportedFileAPI()) {
             $('.warning').show();
         }
 
         $('#file').on('change', handleFileSelect);
+        $('input[type=radio]').on('click', switchMode);
+        $('legend.collapse').on('click', toggleLegend);
         $('#g_host').val(location.protocol + '//' + location.host);
     };
 

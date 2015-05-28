@@ -14,10 +14,19 @@
       width: 100px;
       text-align: right;
     }
+    tr.hard {
+      display: none;
+    }
+    tr.easy {
+      display: none;
+    }
     input {
       width: 300px;
       line-height: 22p;x
       height: 22px;
+    }
+    input[type=radio] {
+      width: auto;
     }
     progress {
       width: 300px;
@@ -26,10 +35,17 @@
       background-color: #c0c0c0;
     }
     .warning {
-        text-align: center;
-        padding: 5px;
-        background: yellow;
-        display: none;
+      text-align: center;
+      padding: 5px;
+      background: yellow;
+      display: none;
+    }
+    legend {
+      font-family: monospace;
+      font-size: 14px;
+    }
+    .collapse, .expand {
+      cursor: pointer;
     }
     </style>
 </head>
@@ -41,18 +57,30 @@
   <fieldset>
     <legend>参数配置</legend>
     <table>
-      <tr><th>AK</th><td> <input id="g_ak" value="46bd9968a6194b4bbdf0341f2286ccce" /></td></tr>
-      <tr><th>SK</th><td> <input id="g_sk" value="ec7f4e0174254f6f9020f9680fb1da9f" /></td></tr>
+      <tr>
+          <th>模式选择</th>
+          <td>
+              <label><input checked type="radio" name="mode" value="very-easy" />Very Easy Mode</label>
+              <label><input type="radio" name="mode" value="easy" />Easy Mode</label>
+          </td>
+      </tr>
       <tr><th>Bucket</th><td> <input id="g_bucket" value="chaichai" /></td></tr>
+      <tr class="very-easy"><th>AK</th><td> <input id="g_ak" value="46bd9968a6194b4bbdf0341f2286ccce" /></td></tr>
+      <tr class="very-easy"><th>SK</th><td> <input id="g_sk" value="ec7f4e0174254f6f9020f9680fb1da9f" /></td></tr>
+      <tr class="easy"><th>签名服务器</th><td> <input id="g_ss_url" value="http://127.0.0.1:1337/ack" /></td></tr>
+      <tr><th>进度</th><td><progress id="g_progress" value="0"></td></tr>
+      <tr><th>文件URL：</th><td id="g_url">-</td></tr>
+      <tr><th>耗时：</th><td id="g_time">0s</td></tr>
+    </table>
+  </fieldset>
+  <fieldset>
+    <legend class="collapse">高级参数配置[+]</legend>
+    <table style="display: none">
       <tr><th>Host</th><td> <input id="g_host" disabled /> (CORS上线之前暂时不支持修改Host)</td></tr>
-      <tr><th>签名服务器</th><td> <input id="g_ss_url" value="http://127.0.0.1:1337/ack" /></td></tr>
       <tr><th>分片的大小</th><td><input min="5" max="1048576" step="1" id="g_part_size" type="number" value="5" /> (Mb)</td></tr>
       <tr><th>分片的数量</th><td><input id="g_chunk_count" type="number" disabled /></td></tr>
       <tr><th>文件大小</th><td><input id="g_file_size" type="number" disabled /></td></tr>
       <tr><th>并发请求数</th><td><input min="2" max="6" step="1" id="g_parallel" type="number" value="2" /></td></tr>
-      <tr><th>进度</th><td><progress id="g_progress" value="0"></td></tr>
-      <tr><th>文件URL：</th><td id="g_url">-</td></tr>
-      <tr><th>耗时：</th><td id="g_time">0s</td></tr>
     </table>
   </fieldset>
   <fieldset>
