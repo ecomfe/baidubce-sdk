@@ -1,60 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>BOS Uploader</title>
-	<meta charset="utf-8" />
+    <title>BOS Uploader</title>
+    <meta charset="utf-8" />
     <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/2-0-4/esl.js"></script>
     <script type="text/javascript">
     require.config({
-    	src: '.'
+      src: '.'
     });
     </script>
     <style type="text/css">
     th {
-    	width: 100px;
-    	text-align: right;
+      width: 100px;
+      text-align: right;
     }
     input {
-    	width: 300px;
-    	line-height: 2;
+      width: 300px;
+      line-height: 22p;x
+      height: 22px;
     }
     progress {
-    	width: 300px;
+      width: 300px;
     }
     input[disabled] {
-    	background-color: #c0c0c0;
+      background-color: #c0c0c0;
     }
     </style>
 </head>
 <body>
 
 <form>
-	<fieldset>
-		<legend>参数配置</legend>
-		<table>
-			<tr><th>AK</th><td> <input id="g_ak" value="46bd9968a6194b4bbdf0341f2286ccce" /></td></tr>
-			<tr><th>SK</th><td> <input id="g_sk" value="ec7f4e0174254f6f9020f9680fb1da9f" /></td></tr>
-			<tr><th>Bucket</th><td> <input id="g_bucket" value="chaichai" /></td></tr>
-			<tr><th>Host</th><td> <input id="g_host" disabled /> (CORS上线之前暂时不支持修改Host)</td></tr>
-			<tr><th>分片的大小</th><td><input min="5" max="1048576" step="1" id="g_part_size" type="number" value="5" /> (Mb)</td></tr>
-			<tr><th>分片的数量</th><td><input id="g_chunk_count" type="number" disabled /></td></tr>
-			<tr><th>文件大小</th><td><input id="g_file_size" type="number" disabled /></td></tr>
-			<tr><th>并发请求数</th><td><input min="2" max="6" step="1" id="g_parallel" type="number" value="2" /></td></tr>
-			<tr><th>进度</th><td><progress id="g_progress" value="0"></td></tr>
-			<tr><th>文件URL：</th><td id="g_url">-</td></tr>
-			<tr><th>耗时：</th><td id="g_time">0s</td></tr>
-		</table>
-	</fieldset>
-	<fieldset>
-		<legend>选择文件</legend>
-		<input type="file" id="file" />
-	</fieldset>
+  <fieldset>
+    <legend>参数配置</legend>
+    <table>
+      <tr><th>AK</th><td> <input id="g_ak" value="46bd9968a6194b4bbdf0341f2286ccce" /></td></tr>
+      <tr><th>SK</th><td> <input id="g_sk" value="ec7f4e0174254f6f9020f9680fb1da9f" /></td></tr>
+      <tr><th>Bucket</th><td> <input id="g_bucket" value="chaichai" /></td></tr>
+      <tr><th>Host</th><td> <input id="g_host" disabled /> (CORS上线之前暂时不支持修改Host)</td></tr>
+      <tr><th>分片的大小</th><td><input min="5" max="1048576" step="1" id="g_part_size" type="number" value="5" /> (Mb)</td></tr>
+      <tr><th>分片的数量</th><td><input id="g_chunk_count" type="number" disabled /></td></tr>
+      <tr><th>文件大小</th><td><input id="g_file_size" type="number" disabled /></td></tr>
+      <tr><th>并发请求数</th><td><input min="2" max="6" step="1" id="g_parallel" type="number" value="2" /></td></tr>
+      <tr><th>进度</th><td><progress id="g_progress" value="0"></td></tr>
+      <tr><th>文件URL：</th><td id="g_url">-</td></tr>
+      <tr><th>耗时：</th><td id="g_time">0s</td></tr>
+    </table>
+  </fieldset>
+  <fieldset>
+    <legend>选择文件</legend>
+    <input type="file" id="file" />
+  </fieldset>
 </form>
 
 </body>
 <script type="text/javascript">
 require(['app'], function (app) {
-	app.start();
+  app.start();
 });
 </script>
 </html>
