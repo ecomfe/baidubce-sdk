@@ -25,9 +25,17 @@
     input[disabled] {
       background-color: #c0c0c0;
     }
+    .warning {
+        text-align: center;
+        padding: 5px;
+        background: yellow;
+        display: none;
+    }
     </style>
 </head>
 <body>
+
+<div class="warning">浏览器不支持<a href="http://caniuse.com/#search=File" target="_blank">HTML5 File API</a>，有些功能可能无法使用。</div>
 
 <form>
   <fieldset>

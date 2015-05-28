@@ -10,6 +10,14 @@ define(function (require) {
 
     var exports = {};
 
+    function isSupportedFileAPI() {
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+            return true;
+        }
+
+        return false;
+    }
+
     function handleFileSelect(evt) {
         var files = evt.target.files;
         if (!files.length) {
@@ -232,6 +240,10 @@ define(function (require) {
     }
 
     exports.start = function () {
+        if (!isSupportedFileAPI()) {
+            $('.warning').show();
+        }
+
         $('#file').on('change', handleFileSelect);
         $('#g_host').val(location.protocol + '//' + location.host);
     };
