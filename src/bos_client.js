@@ -515,8 +515,10 @@ BosClient.prototype.listMultipartUploads = function (bucketName, options) {
 };
 
 BosClient.prototype.createSignature = function (credentials, httpMethod, path, params, headers) {
-    var auth = new Auth(credentials.ak, credentials.sk);
-    return auth.generateAuthorization(httpMethod, path, params, headers);
+    return Q.fcall(function () {
+        var auth = new Auth(credentials.ak, credentials.sk);
+        return auth.generateAuthorization(httpMethod, path, params, headers);
+    });
 };
 
 // --- E N D ---

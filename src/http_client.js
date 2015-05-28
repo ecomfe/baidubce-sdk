@@ -17,6 +17,9 @@
 /*eslint-env node*/
 /*eslint max-params:[0,10]*/
 
+var http = require('http');
+var https = require('https');
+
 var util = require('util');
 var stream = require('stream');
 
@@ -50,7 +53,7 @@ function HttpClient(config) {
  * @param {function():string=} signFunction The `Authorization` signature function
  * @param {stream.Writable=} outputStream The http response body.
  *
- * @reslove {{http_headers:Object,body:Object}}
+ * @resolve {{http_headers:Object,body:Object}}
  * @reject {Object}
  *
  * @return {Q.defer}
@@ -86,15 +89,34 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
         headers[H.CONTENT_LENGTH] = this._guessContentLength(body);
     }
 
-    if (typeof signFunction === 'function') {
-        headers[H.AUTHORIZATION] = signFunction(this.config.credentials,
-            httpMethod, path, params, headers);
-    }
-
-    var api = options.protocol === 'https:' ? require('https') : require('http');
+    var client = this;
     options.method = httpMethod;
     options.headers = headers;
+    if (typeof signFunction === 'function') {
+        var promise = signFunction(this.config.credentials, httpMethod, path, params, headers);
+        if (typeof promise === 'string') {
+            headers[H.AUTHORIZATION] = promise;
+        }
+        else if (isPromise(promise)) {
+            return promise.then(function (authorization) {
+                headers[H.AUTHORIZATION] = authorization;
+                return client._doRequest(options, body, outputStream);
+            });
+        }
+        else {
+            throw new Error('Invalid signature = (' + promise + ')');
+        }
+    }
 
+    return client._doRequest(options, body, outputStream);
+};
+
+function isPromise(obj) {
+    return obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function';
+}
+
+HttpClient.prototype._doRequest = function (options, body, outputStream) {
+    var api = options.protocol === 'https:' ? https : http;
     var deferred = Q.defer();
 
     var client = this;
