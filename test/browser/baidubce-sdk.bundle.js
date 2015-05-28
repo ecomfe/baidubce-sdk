@@ -5040,8 +5040,11 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
             headers[H.AUTHORIZATION] = promise;
         }
         else if (isPromise(promise)) {
-            return promise.then(function (authorization) {
+            return promise.then(function (authorization, xbceDate) {
                 headers[H.AUTHORIZATION] = authorization;
+                if (xbceDate) {
+                    headers[H.X_BCE_DATE] = xbceDate;
+                }
                 return client._doRequest(options, body, outputStream);
             });
         }

@@ -62,6 +62,37 @@ define(function (require) {
         return tasks;
     }
 
+    function createClient() {
+        var client = new sdk.BosClient(getBOSConfig());
+        client.createSignature = function (_, httpMethod, path, params, headers) {
+            var deferred = sdk.Q.defer();
+            $.ajax({
+                // url: 'http://127.0.0.1:1337/ack',
+                url: $('#g_ss_url').val(),
+                jsonp: 'callback',
+                dataType: 'jsonp',
+                data: {
+                    httpMethod: httpMethod,
+                    path: path,
+                    delay: ~~(Math.random() * 10) + 1,
+                    params: JSON.stringify(params || {}),
+                    headers: JSON.stringify(headers || {})
+                },
+                success: function (payload) {
+                    if (payload.statusCode === 200 && payload.signature) {
+                        deferred.resolve(payload.signature, payload.xbceDate);
+                    }
+                    else {
+                        // TODO(leeight) timeout
+                        deferred.reject(new Error('createSignature failed, statusCode = ' + payload.statusCode));
+                    }
+                }
+            });
+            return deferred.promise;
+        };
+        return client;
+    }
+
     function uploadPartFile(state) {
         return function (item, callback) {
             // item.file
@@ -71,7 +102,7 @@ define(function (require) {
             // item.partNumber
             // item.partSize
             var blob = item.file.slice(item.start, item.stop + 1);
-            var client = new sdk.BosClient(getBOSConfig());
+            var client = createClient();
             var key = item.file.name;
             var bucket = $('#g_bucket').val();
 
@@ -89,7 +120,7 @@ define(function (require) {
     function uploadSuperFile(file) {
         var startTime = new Date().getTime();
 
-        var client = new sdk.BosClient(getBOSConfig());
+        var client = createClient();
         var key = file.name;
         var bucket_name = $('#g_bucket').val();
 
@@ -153,7 +184,7 @@ define(function (require) {
     function uploadSingleFile2(file, opt_startByte, opt_stopByte) {
         var startTime = new Date().getTime();
 
-        var client = new sdk.BosClient(getBOSConfig());
+        var client = createClient();
         var key = file.name;
         var ext = key.split(/\./g).pop();
         var bucket = $('#g_bucket').val();
