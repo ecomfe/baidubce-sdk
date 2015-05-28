@@ -3,7 +3,6 @@
  * @author leeight
  */
 
-
 define(function (require) {
     var $ = require('./jquery');
     var sdk = require('./baidubce-sdk.bundle');
@@ -28,7 +27,7 @@ define(function (require) {
         $('#g_url').html('-');
 
         if (file.size <= partSize) {
-            uploadSingleFile(file);
+            uploadSingleFile2(file);
         }
         else {
             uploadSuperFile(file);
@@ -71,36 +70,20 @@ define(function (require) {
             // item.stop
             // item.partNumber
             // item.partSize
-            var reader = new FileReader();
-            reader.onloadend = function (evt) {
-                if (evt.target.readyState === FileReader.DONE) {
-                    var index = evt.target.result.indexOf(',');
-                    if (index === -1) {
-                        callback(new Error('Invalid dataUrl format, start = ' +
-                            item.start + ', stop = ' + item.stop));
-                        return;
-                    }
-
-                    var client = new sdk.BosClient(getBOSConfig());
-                    var key = item.file.name;
-                    var bucket = $('#g_bucket').val();
-
-                    var dataUrl = evt.target.result.substr(index + 1);
-                    client.uploadPartFromDataUrl(bucket, key, item.uploadId,
-                        item.partNumber, item.partSize, dataUrl)
-                    .then(function (res) {
-                        $('#g_progress').val((++ state.completed) / state.totalCount);
-                        callback(null, res);
-                    })
-                    .catch(function (err) {
-                        callback(err);
-                    });
-                }
-            };
-
             var blob = item.file.slice(item.start, item.stop + 1);
-            reader.readAsDataURL(blob);
-        }
+            var client = new sdk.BosClient(getBOSConfig());
+            var key = item.file.name;
+            var bucket = $('#g_bucket').val();
+
+            client.uploadPartFromBlob(bucket, key, item.uploadId, item.partNumber, item.partSize, blob)
+                .then(function (res) {
+                    $('#g_progress').val((++state.completed) / state.totalCount);
+                    callback(null, res);
+                })
+                .catch(function (err) {
+                    callback(err);
+                });
+        };
     }
 
     function uploadSuperFile(file) {
@@ -154,7 +137,7 @@ define(function (require) {
             })
             .then(function () {
                 $('#g_progress').val(1);
-                var url = client.generatePresignedUrl(bucket_name, key)
+                var url = client.generatePresignedUrl(bucket_name, key);
                 $('#g_url').html('<a href="' + url + '" target="_blank">下载地址</a>');
             })
             .catch(function (error) {
@@ -167,57 +150,44 @@ define(function (require) {
             });
     }
 
-    function uploadSingleFile (file, opt_startByte, opt_stopByte) {
-        var client = new sdk.BosClient(getBOSConfig());
-        var key = file.name;
-        var bucket = $('#g_bucket').val();
-
-        var reader = new FileReader();
-        var start = opt_startByte || 0;
-        var stop = opt_stopByte || (file.size - 1);
+    function uploadSingleFile2(file, opt_startByte, opt_stopByte) {
         var startTime = new Date().getTime();
 
-        reader.onloadend = function (evt) {
-            if (evt.target.readyState === FileReader.DONE) {
-                var index = evt.target.result.indexOf(',');
-                if (index === -1) {
-                    return;
-                }
+        var client = new sdk.BosClient(getBOSConfig());
+        var key = file.name;
+        var ext = key.split(/\./g).pop();
+        var bucket = $('#g_bucket').val();
 
-                var dataUrl = evt.target.result.substr(index + 1);
-                var ext = key.split(/\./g).pop();
+        var start = opt_startByte || 0;
+        var stop = opt_stopByte || (file.size - 1);
+        var blob = file.slice(start, stop + 1);
 
-                var mimeType = sdk.MimeType.guess(ext);
-                if (/^text\//.test(mimeType)) {
-                    mimeType += '; charset=UTF-8';
-                }
-                var options = {
-                    'Content-Type': mimeType
-                };
-                var promise = client.putObjectFromDataUrl(bucket, key, dataUrl, options);
-                client._httpAgent._req.xhr.upload.onprogress = function (evt) {
-                    if (evt.lengthComputable) {
-                        $('#g_progress').val(evt.loaded / evt.total);
-                    }
-                };
-                promise.then(function (res) {
-                    console.log(res);
-                    $('#g_progress').val(1);
-                    var url = client.generatePresignedUrl(bucket, key)
-                    $('#g_url').html('<a href="' + url + '" target="_blank">下载地址</a>');
-                })
-                .catch(function (err) {
-                    console.error(err);
-                })
-                .fin(function () {
-                    var endTime = new Date().getTime();
-                    $('#g_time').html(((endTime - startTime) / 1000) + 's');
-                });
+        var mimeType = sdk.MimeType.guess(ext);
+        if (/^text\//.test(mimeType)) {
+            mimeType += '; charset=UTF-8';
+        }
+        var options = {
+            'Content-Type': mimeType
+        };
+        var promise = client.putObjectFromBlob(bucket, key, blob, options);
+        client._httpAgent._req.xhr.upload.onprogress = function (evt) {
+            if (evt.lengthComputable) {
+                $('#g_progress').val(evt.loaded / evt.total);
             }
         };
-
-        var blob = file.slice(start, stop + 1);
-        reader.readAsDataURL(blob);
+        promise.then(function (res) {
+            console.log(res);
+            $('#g_progress').val(1);
+            var url = client.generatePresignedUrl(bucket, key);
+            $('#g_url').html('<a href="' + url + '" target="_blank">下载地址</a>');
+        })
+        .catch(function (err) {
+            console.error(err);
+        })
+        .fin(function () {
+            var endTime = new Date().getTime();
+            $('#g_time').html(((endTime - startTime) / 1000) + 's');
+        });
     }
 
     function getBOSConfig() {

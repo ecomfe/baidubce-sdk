@@ -31,11 +31,11 @@ var BceBaseClient = require('./bce_base_client');
 var MimeType = require('./mime.types');
 var WMStream = require('./wm_stream');
 
-const MIN_PART_SIZE = 5242880;                // 5M
-const MAX_PUT_OBJECT_LENGTH = 5368709120;     // 5G
-const MAX_USER_METADATA_SIZE = 2048;          // 2 * 1024
-const MIN_PART_NUMBER = 1;
-const MAX_PART_NUMBER = 10000;
+// var MIN_PART_SIZE = 5242880;             // 5M
+var MAX_PUT_OBJECT_LENGTH = 5368709120;     // 5G
+var MAX_USER_METADATA_SIZE = 2048;          // 2 * 1024
+var MIN_PART_NUMBER = 1;
+var MAX_PART_NUMBER = 10000;
 
 /**
  * BOS service api
@@ -46,7 +46,7 @@ const MAX_PART_NUMBER = 10000;
  * @param {Object} config The bos client configuration.
  * @extends {BceBaseClient}
  */
-function BosClient (config) {
+function BosClient(config) {
     BceBaseClient.call(this, config, 'bos', true);
 
     /**
@@ -175,7 +175,7 @@ BosClient.prototype.getBucketAcl = function (bucketName, options) {
 
     return this._sendRequest('GET', {
         bucketName: bucketName,
-        params: {'acl': ''},
+        params: {acl: ''},
         config: options.config
     });
 };
@@ -204,6 +204,18 @@ BosClient.prototype.putObject = function (bucketName, key, data, options) {
         headers: options.headers,
         config: options.config
     });
+};
+
+BosClient.prototype.putObjectFromBlob = function (bucketName, key, blob, options) {
+    var headers = {};
+
+    // https://developer.mozilla.org/en-US/docs/Web/API/Blob/size
+    headers[H.CONTENT_LENGTH] = blob.size;
+    // 对于浏览器调用API的时候，默认不添加 H.CONTENT_MD5 字段，因为计算起来比较慢
+    // 而且根据 API 文档，这个字段不是必填的。
+    options = u.extend(headers, options);
+
+    return this.putObject(bucketName, key, blob, options);
 };
 
 BosClient.prototype.putObjectFromDataUrl = function (bucketName, key, data, options) {
@@ -269,7 +281,7 @@ BosClient.prototype.getObject = function (bucketName, key, range, options) {
         bucketName: bucketName,
         key: key,
         headers: {
-            'Range': range ? util.format('bytes=%s', range) : ''
+            Range: range ? util.format('bytes=%s', range) : ''
         },
         config: options.config,
         outputStream: outputStream
@@ -286,7 +298,7 @@ BosClient.prototype.getObjectToFile = function (bucketName, key, filename, range
         bucketName: bucketName,
         key: key,
         headers: {
-            'Range': range ? util.format('bytes=%s', range) : ''
+            Range: range ? util.format('bytes=%s', range) : ''
         },
         config: options.config,
         outputStream: fs.createWriteStream(filename)
@@ -332,7 +344,7 @@ BosClient.prototype.initiateMultipartUpload = function (bucketName, key, options
     return this._sendRequest('POST', {
         bucketName: bucketName,
         key: key,
-        params: {'uploads': ''},
+        params: {uploads: ''},
         headers: headers,
         config: options.config
     });
@@ -344,7 +356,7 @@ BosClient.prototype.abortMultipartUpload = function (bucketName, key, uploadId, 
     return this._sendRequest('DELETE', {
         bucketName: bucketName,
         key: key,
-        params: {'uploadId': uploadId},
+        params: {uploadId: uploadId},
         config: options.config
     });
 };
@@ -372,6 +384,30 @@ BosClient.prototype.uploadPartFromFile = function (bucketName, key, uploadId, pa
     var partFp = fs.createReadStream(filename, {start: start, end: end});
     return this.uploadPart(bucketName, key, uploadId, partNumber,
         partSize, partFp, partMd5, options);
+};
+
+BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, partNumber,
+    partSize, blob, options) {
+    if (blob.size !== partSize) {
+        throw new TypeError(util.format('Invalid partSize %d and data length %d',
+            partSize, blob.size));
+    }
+
+    var headers = {};
+    headers[H.CONTENT_LENGTH] = partSize;
+    headers[H.CONTENT_TYPE] = 'application/octet-stream';
+    // 对于浏览器调用API的时候，默认不添加 H.CONTENT_MD5 字段，因为计算起来比较慢
+    // headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
+
+    options = this._checkOptions(u.extend(headers, options));
+    return this._sendRequest('PUT', {
+        bucketName: bucketName,
+        key: key,
+        body: blob,
+        headers: options.headers,
+        params: {partNumber: partNumber, uploadId: uploadId},
+        config: options.config
+    });
 };
 
 BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId, partNumber,
@@ -548,11 +584,11 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
     if (u.has(headers, H.CONTENT_LENGTH)) {
         var contentLength = headers[H.CONTENT_LENGTH];
         if (contentLength < 0) {
-            throw new TypeError('content_length should not be negative.')
+            throw new TypeError('content_length should not be negative.');
         }
         else if (contentLength > MAX_PUT_OBJECT_LENGTH) { // 5G
             throw new TypeError('Object length should be less than ' + MAX_PUT_OBJECT_LENGTH +
-                '. Use multi-part upload instead.')
+                '. Use multi-part upload instead.');
         }
     }
 

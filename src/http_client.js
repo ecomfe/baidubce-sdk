@@ -146,6 +146,21 @@ HttpClient.prototype._guessContentLength = function (data) {
     else if (typeof data === 'string') {
         return Buffer.byteLength(data);
     }
+    else if (typeof data === 'object') {
+        if (typeof Blob !== 'undefined' && data instanceof Blob) {
+            return data.size;
+        }
+        if (typeof ArrayBuffer !== 'undefined' && data instanceof ArrayBuffer) {
+            return data.byteLength;
+        }
+        if (Buffer.isBuffer(data)) {
+            return data.length;
+        }
+        /*
+        if (typeof FormData !== 'undefined' && data instanceof FormData) {
+        }
+        */
+    }
     else if (Buffer.isBuffer(data)) {
         return data.length;
     }
@@ -227,13 +242,21 @@ HttpClient.prototype._recvResponse = function (res) {
     return deferred.promise;
 };
 
+/*eslint-disable*/
+function isXHR2Compatible(obj) {
+    if (typeof Blob !== 'undefined' && obj instanceof Blob) return true;
+    if (typeof ArrayBuffer !== 'undefined' && obj instanceof ArrayBuffer) return true;
+    if (typeof FormData !== 'undefined' && obj instanceof FormData) return true;
+}
+/*eslint-enable*/
+
 HttpClient.prototype._sendRequest = function (req, data) {
     /*eslint-disable*/
     if (!data) { req.end(); return; }
     if (typeof data === 'string') { data = new Buffer(data); }
     /*eslint-enable*/
 
-    if (Buffer.isBuffer(data)) {
+    if (Buffer.isBuffer(data) || isXHR2Compatible(data)) {
         req.write(data);
         req.end();
     }

@@ -15,18 +15,12 @@
 /*eslint max-params:[0,10]*/
 
 var util = require('util');
-var path = require('path');
-var fs = require('fs');
 
 var u = require('underscore');
-var Q = require('q');
 
-var H = require('./headers');
 var Auth = require('./auth');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
-var MimeType = require('./mime.types');
-var WMStream = require('./wm_stream');
 
 /**
  * Media service api.
@@ -56,7 +50,7 @@ MediaClient.prototype.createPipeline = function (pipelineName, sourceBucket, tar
 
     return this._sendRequest('POST', url, {
         body: body,
-        config: options.config,
+        config: options.config
     });
 };
 
@@ -129,7 +123,7 @@ MediaClient.prototype.getJob = function (jobId, opt_options) {
  */
 MediaClient.prototype.createPreset = function (presetName, container, clip, audio, video,
     opt_encryption, opt_transmux, opt_description, opt_options) {
-    // container: mp4, flv, hls, mp3, m4a 
+    // container: mp4, flv, hls, mp3, m4a
     var url = '/v3/preset';
     var options = opt_options || {};
     var body = {
