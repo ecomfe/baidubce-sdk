@@ -63,8 +63,13 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
 
     // Prepare the request headers.
     var defaultHeaders = {};
-    defaultHeaders[H.USER_AGENT] = util.format('bce-sdk-nodejs/%s/%s/%s', require('../package.json').version,
-        process.platform, process.version);
+    if (typeof navigator === 'object') {
+        defaultHeaders[H.USER_AGENT] = navigator.userAgent;
+    }
+    else {
+        defaultHeaders[H.USER_AGENT] = util.format('bce-sdk-nodejs/%s/%s/%s', require('../package.json').version,
+            process.platform, process.version);
+    }
     defaultHeaders[H.X_BCE_DATE] = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
     defaultHeaders[H.CONNECTION] = 'close';
     defaultHeaders[H.CONTENT_TYPE] = 'application/json; charset=utf-8';

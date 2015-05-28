@@ -24,6 +24,24 @@ define(function (require) {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60 * 1000;
 
     describe('baidubce-sdk', function () {
+        it('generateAuthorization', function () {
+            var auth = new sdk.Auth(config.credentials.ak, config.credentials.sk);
+            var httpMethod = 'POST';
+            var path = '/v1/leeight/2.txt';
+            var params = {uploads: ''};
+            var headers = {
+                'Connection': 'close',
+                'Content-Length': 0,
+                'Content-Type': 'text/plain',
+                'Host': '10.105.97.15',
+                'User-Agent': 'bce-sdk-nodejs/0.0.6/undefined/undefined',
+                'x-bce-date': '2015-05-28T03:35:23Z'
+            };
+            var timestamp = 1432784755;
+            var signature = auth.generateAuthorization(httpMethod, path, params, headers, timestamp);
+            expect(signature).toEqual('bce-auth-v1/46bd9968a6194b4bbdf0341f2286ccce/2015-05-28T03:45:55Z/1800/content-length;content-type;host;x-bce-date/b7ab499d661899ffa2d8a1ff64edb61f3ab971b95f8cc75120a7cd4fd10389e8');
+        });
+
         it('putObject', function (done) {
             var client = new sdk.BosClient(config);
 
@@ -111,6 +129,8 @@ define(function (require) {
                     var dataUrl = '5L2g5aW977yM5LiW55WMKGhlbGxvIHdvcmxkKQ==';
                     return client.uploadPartFromDataUrl(bucket, key, uploadId,
                         partNumber, partSize, dataUrl).then(function (p2) {
+                        expect(p1.http_headers.etag).toEqual('8ab420d03f1bad39feb6b4794f695e88');
+                        expect(p2.http_headers.etag).toEqual('7fbabe5283ea825cc522da88f787fd28');
                         return [p1, p2];
                     });
                 })
