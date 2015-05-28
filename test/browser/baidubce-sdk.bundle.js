@@ -4101,6 +4101,8 @@ module.exports = Auth;
 /*eslint-env node*/
 
 var util = require('util');
+var EventEmitter = require('events').EventEmitter;
+
 
 var u = require('underscore');
 
@@ -4113,12 +4115,15 @@ var config = require('./config');
  * @param {boolean=} regionSupported The service supported region or not.
  */
 function BceBaseClient(config, serviceId, regionSupported) {
+    EventEmitter.call(this);
+
     this.config = u.extend({}, config.DEFAULT_CONFIG, config);
     this.serviceId = serviceId;
     this.regionSupported = !!regionSupported;
 
     this.config.endpoint = this._computeEndpoint();
 }
+util.inherits(BceBaseClient, EventEmitter);
 
 /**
  * @return {string} The bce client endpoint.
@@ -4154,7 +4159,7 @@ module.exports = BceBaseClient;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./config":11,"underscore":6,"util":67}],10:[function(require,module,exports){
+},{"./config":11,"events":38,"underscore":6,"util":67}],10:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -4700,7 +4705,13 @@ BosClient.prototype._sendRequest = function (httpMethod, varArgs) {
         args.key || ''
     ));
 
-    this._httpAgent = new HttpClient(config);
+    var client = this;
+    var agent = this._httpAgent = new HttpClient(config);
+    u.each(['progress', 'error', 'abort'], function (eventName) {
+        agent.on(eventName, function (evt) {
+            client.emit(eventName, evt);
+        });
+    });
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
         args.outputStream
@@ -4947,9 +4958,9 @@ exports.X_REQUEST_ID = 'request_id';
 
 var http = require('http');
 var https = require('https');
-
 var util = require('util');
 var stream = require('stream');
+var EventEmitter = require('events').EventEmitter;
 
 var u = require('underscore');
 var Q = require('q');
@@ -4961,6 +4972,8 @@ var H = require('./headers');
  * @param {Object} config The http client configuration.
  */
 function HttpClient(config) {
+    EventEmitter.call(this);
+
     this.config = config;
 
     /**
@@ -4969,6 +4982,7 @@ function HttpClient(config) {
      */
     this._req = null;
 }
+util.inherits(HttpClient, EventEmitter);
 
 
 /**
@@ -5060,6 +5074,14 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
 
         deferred.resolve(client._recvResponse(res));
     });
+
+    if (req.xhr && typeof req.xhr.upload === 'object') {
+        u.each(['progress', 'error', 'abort'], function (eventName) {
+            req.xhr.upload.addEventListener(eventName, function (evt) {
+                client.emit(eventName, evt);
+            }, false);
+        });
+    }
 
     req.on('error', function (error) {
         deferred.reject(error);
@@ -5274,7 +5296,7 @@ module.exports = HttpClient;
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"../package.json":7,"./headers":13,"_process":47,"buffer":20,"http":39,"https":43,"q":5,"querystring":51,"stream":63,"underscore":6,"url":65,"util":67}],15:[function(require,module,exports){
+},{"../package.json":7,"./headers":13,"_process":47,"buffer":20,"events":38,"http":39,"https":43,"q":5,"querystring":51,"stream":63,"underscore":6,"url":65,"util":67}],15:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *

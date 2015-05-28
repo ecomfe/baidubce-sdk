@@ -169,25 +169,25 @@ define(function (require) {
         var options = {
             'Content-Type': mimeType
         };
-        var promise = client.putObjectFromBlob(bucket, key, blob, options);
-        client._httpAgent._req.xhr.upload.onprogress = function (evt) {
+        client.on('progress', function (evt) {
             if (evt.lengthComputable) {
                 $('#g_progress').val(evt.loaded / evt.total);
             }
-        };
-        promise.then(function (res) {
-            console.log(res);
-            $('#g_progress').val(1);
-            var url = client.generatePresignedUrl(bucket, key);
-            $('#g_url').html('<a href="' + url + '" target="_blank">下载地址</a>');
-        })
-        .catch(function (err) {
-            console.error(err);
-        })
-        .fin(function () {
-            var endTime = new Date().getTime();
-            $('#g_time').html(((endTime - startTime) / 1000) + 's');
         });
+        return client.putObjectFromBlob(bucket, key, blob, options)
+            .then(function (res) {
+                console.log(res);
+                $('#g_progress').val(1);
+                var url = client.generatePresignedUrl(bucket, key);
+                $('#g_url').html('<a href="' + url + '" target="_blank">下载地址</a>');
+            })
+            .catch(function (err) {
+                console.error(err);
+            })
+            .fin(function () {
+                var endTime = new Date().getTime();
+                $('#g_time').html(((endTime - startTime) / 1000) + 's');
+            });
     }
 
     function getBOSConfig() {

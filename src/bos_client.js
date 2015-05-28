@@ -542,7 +542,13 @@ BosClient.prototype._sendRequest = function (httpMethod, varArgs) {
         args.key || ''
     ));
 
-    this._httpAgent = new HttpClient(config);
+    var client = this;
+    var agent = this._httpAgent = new HttpClient(config);
+    u.each(['progress', 'error', 'abort'], function (eventName) {
+        agent.on(eventName, function (evt) {
+            client.emit(eventName, evt);
+        });
+    });
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
         args.outputStream

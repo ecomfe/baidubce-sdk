@@ -19,9 +19,9 @@
 
 var http = require('http');
 var https = require('https');
-
 var util = require('util');
 var stream = require('stream');
+var EventEmitter = require('events').EventEmitter;
 
 var u = require('underscore');
 var Q = require('q');
@@ -33,6 +33,8 @@ var H = require('./headers');
  * @param {Object} config The http client configuration.
  */
 function HttpClient(config) {
+    EventEmitter.call(this);
+
     this.config = config;
 
     /**
@@ -41,6 +43,7 @@ function HttpClient(config) {
      */
     this._req = null;
 }
+util.inherits(HttpClient, EventEmitter);
 
 
 /**
@@ -132,6 +135,14 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
 
         deferred.resolve(client._recvResponse(res));
     });
+
+    if (req.xhr && typeof req.xhr.upload === 'object') {
+        u.each(['progress', 'error', 'abort'], function (eventName) {
+            req.xhr.upload.addEventListener(eventName, function (evt) {
+                client.emit(eventName, evt);
+            }, false);
+        });
+    }
 
     req.on('error', function (error) {
         deferred.reject(error);

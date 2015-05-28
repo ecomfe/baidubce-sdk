@@ -17,6 +17,8 @@
 /*eslint-env node*/
 
 var util = require('util');
+var EventEmitter = require('events').EventEmitter;
+
 
 var u = require('underscore');
 
@@ -29,12 +31,15 @@ var config = require('./config');
  * @param {boolean=} regionSupported The service supported region or not.
  */
 function BceBaseClient(config, serviceId, regionSupported) {
+    EventEmitter.call(this);
+
     this.config = u.extend({}, config.DEFAULT_CONFIG, config);
     this.serviceId = serviceId;
     this.regionSupported = !!regionSupported;
 
     this.config.endpoint = this._computeEndpoint();
 }
+util.inherits(BceBaseClient, EventEmitter);
 
 /**
  * @return {string} The bce client endpoint.
