@@ -21,6 +21,7 @@ var util = require('util');
 
 var debug = require('debug')('auth');
 
+var H = require('./headers');
 
 /**
  * @constructor
@@ -110,12 +111,12 @@ Auth.prototype.queryStringCanonicalization = function (params) {
  */
 Auth.prototype.headersCanonicalization = function (headers, headersToSign) {
     if (!headersToSign || !headersToSign.length) {
-        headersToSign = ['host', 'content-md5', 'content-length', 'content-type'];
+        headersToSign = [H.HOST, H.CONTENT_MD5, H.CONTENT_LENGTH, H.CONTENT_TYPE];
     }
 
     var headersMap = {};
     headersToSign.forEach(function (item) {
-        headersMap[item] = true;
+        headersMap[item.toLowerCase()] = true;
     });
 
     var canonicalHeaders = [];

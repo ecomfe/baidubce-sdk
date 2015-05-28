@@ -48,14 +48,16 @@ define(function (require) {
             var bucket = 'leeight';
             var key = '1.txt';
             // data:text/plain;base64
-            var dataUrl = '5L2g5aW977yM5LiW55WMKGhlbGxvIHdvcmxkKQ==';
+            var text = (Math.random() * Number.MAX_VALUE).toString(16);
+            var dataUrl = btoa(text);
             var options = {'Content-Type': 'text/plain'};
             client.putObjectFromDataUrl(bucket, key, dataUrl, options)
                 .then(function () {
-                    return $.get(client.generatePresignedUrl(bucket, key));
+                    var url = client.generatePresignedUrl(bucket, key) + '&.timestamp=' + Date.now();
+                    return $.get(url);
                 })
                 .then(function (data) {
-                    expect(data).toEqual('你好，世界(hello world)');
+                    expect(data).toEqual(text);
                 })
                 .catch(fail)
                 .fin(done);
@@ -67,7 +69,10 @@ define(function (require) {
             var bucket = 'leeight';
             var key = '2.txt';
             var uploadId = null;
-            client.initiateMultipartUpload(bucket, key)
+            var options = {
+                'Content-Type': 'text/plain; charset=UTF-8'
+            };
+            client.initiateMultipartUpload(bucket, key, options)
                 .then(function (response) {
                     uploadId = response.body.uploadId;
                     expect(uploadId).not.toBe(undefined);
@@ -107,7 +112,10 @@ define(function (require) {
             var bucket = 'leeight';
             var key = '2.txt';
             var uploadId = null;
-            client.initiateMultipartUpload(bucket, key)
+            var options = {
+                'Content-Type': 'text/plain; charset=UTF-8'
+            };
+            client.initiateMultipartUpload(bucket, key, options)
                 .then(function (response) {
                     uploadId = response.body.uploadId;
                     expect(uploadId).not.toBe(undefined);

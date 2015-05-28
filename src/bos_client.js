@@ -228,9 +228,15 @@ BosClient.prototype.putObjectFromString = function (bucketName, key, data, optio
 };
 
 BosClient.prototype.putObjectFromFile = function (bucketName, key, filename, options) {
+    options = options || {};
+
     var headers = {};
     headers[H.CONTENT_LENGTH] = fs.statSync(filename).size;
-    headers[H.CONTENT_TYPE] = MimeType.guess(path.extname(filename));
+
+    // 因为Firefox会在发起请求的时候自动给 Content-Type 添加 charset 属性
+    // 导致我们计算签名的时候使用的 Content-Type 值跟服务器收到的不一样，为了
+    // 解决这个问题，我们需要显式的声明Charset
+    headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(filename));
     options = u.extend(headers, options);
 
     var fp = fs.createReadStream(filename);
@@ -322,7 +328,7 @@ BosClient.prototype.initiateMultipartUpload = function (bucketName, key, options
     options = options || {};
 
     var headers = {};
-    headers[H.CONTENT_TYPE] = MimeType.guess(path.extname(key));
+    headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(key));
     return this._sendRequest('POST', {
         bucketName: bucketName,
         key: key,

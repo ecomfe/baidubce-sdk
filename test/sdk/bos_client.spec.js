@@ -183,7 +183,7 @@ describe('BosClient', function() {
             .then(function(response) {
                 expect(response.http_headers['content-length']).toEqual('11');
                 expect(response.http_headers['content-md5']).toEqual(
-                    require('../src/crypto').md5sum('hello world')
+                    require('../../src/crypto').md5sum('hello world')
                 );
             })
             .catch(fail)
@@ -201,7 +201,7 @@ describe('BosClient', function() {
             .then(function(response) {
                 expect(response.http_headers['content-length']).toEqual('11');
                 expect(response.http_headers['content-md5']).toEqual(
-                    require('../src/crypto').md5sum('hello world')
+                    require('../../src/crypto').md5sum('hello world')
                 );
             })
             .catch(fail)
@@ -219,7 +219,7 @@ describe('BosClient', function() {
             .then(function(response) {
                 expect(response.http_headers['content-length']).toEqual('' + fs.lstatSync(__filename).size);
                 expect(response.http_headers['content-type']).toEqual('application/javascript');
-                return require('../src/crypto').md5file(__filename)
+                return require('../../src/crypto').md5file(__filename)
                     .then(function(md5sum) {
                         expect(response.http_headers['content-md5']).toEqual(md5sum);
                     });
@@ -323,7 +323,7 @@ describe('BosClient', function() {
             })
             .then(function() {
                 return client.copyObject(bucket, key, target_bucket_name, key, {
-                    'ETag': require('../src/crypto').md5sum('Hello World', null, 'hex')
+                    'ETag': require('../../src/crypto').md5sum('Hello World', null, 'hex')
                 });
             })
             .then(function() {
@@ -355,7 +355,7 @@ describe('BosClient', function() {
             })
             .then(function() {
                 return client.copyObject(bucket, key, target_bucket_name, key, {
-                    'ETag': require('../src/crypto').md5sum('Hello World', null, 'hex'),
+                    'ETag': require('../../src/crypto').md5sum('Hello World', null, 'hex'),
                     'x-bce-meta-bar1': 'foo1',
                     'x-bce-meta-bar2': 'foo2',
                     'x-bce-meta-bar3': 'foo3',
@@ -438,7 +438,7 @@ describe('BosClient', function() {
             .then(function(response) {
                 fs.unlinkSync(filename);
                 expect(response.body.eTag).toEqual(
-                    '-' + require('../src/crypto').md5sum(etags, null, 'hex')
+                    '-' + require('../../src/crypto').md5sum(etags, null, 'hex')
                 );
             })
             .catch(fail)
