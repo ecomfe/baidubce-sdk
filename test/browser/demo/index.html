@@ -36,7 +36,7 @@
               <label><input type="radio" name="mode" value="easy" />Easy Mode</label>
           </td>
       </tr>
-      <tr><th>Bucket</th><td> <input id="g_bucket" value="chaichai" /></td></tr>
+      <tr><th>Bucket</th><td> <input id="g_bucket" value="leeight" /></td></tr>
       <tr class="very-easy"><th>AK</th><td> <input id="g_ak" value="46bd9968a6194b4bbdf0341f2286ccce" /></td></tr>
       <tr class="very-easy"><th>SK</th><td> <input id="g_sk" value="ec7f4e0174254f6f9020f9680fb1da9f" /></td></tr>
       <tr class="easy"><th>签名服务器</th><td> <input id="g_ss_url" value="http://127.0.0.1:1337/ack" /></td></tr>
@@ -49,7 +49,9 @@
     <legend class="collapse">高级参数配置[+]</legend>
     <table style="display: none">
       <tr><th>Host</th><td> <input id="g_host" disabled /> (CORS上线之前暂时不支持修改Host)</td></tr>
+      <!--
       <tr><th>分片的大小</th><td><input min="5" max="1048576" step="1" id="g_part_size" type="number" value="5" /> (Mb)</td></tr>
+      -->
       <tr><th>分片的数量</th><td><input id="g_chunk_count" type="number" disabled /></td></tr>
       <tr><th>文件大小</th><td><input id="g_file_size" type="number" disabled /></td></tr>
       <tr><th>并发请求数</th><td><input min="2" max="6" step="1" id="g_parallel" type="number" value="2" /></td></tr>
@@ -59,7 +61,9 @@
 
 <fieldset id="dropzone">
   <legend>选择文件或者把文件，文件夹拖进来</legend>
-  <input type="file" id="file" />
+  <button id="upload"><i class="fa fa-cloud-upload"></i> Upload</button>
+  <button id="camera"><i class="fa fa-video-camera"></i> Record Video</button>
+  <input type="file" id="file" multiple hidden/>
 </fieldset>
 
 <br/>
