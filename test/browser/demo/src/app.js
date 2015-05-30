@@ -6,10 +6,10 @@
 define(function (require) {
     var $ = require('jquery');
 
+    var _filters = require('./tpl/filters');
     var uploader = require('./uploader');
     var fileList = require('./file-list');
-    var _filters = require('./tpl/filters');
-
+    var dnd = require('./dnd');
 
     var exports = {};
 
@@ -28,6 +28,7 @@ define(function (require) {
         _filters.init();
         uploader.init();
         fileList.init();
+        dnd.init();
     };
 
     return exports;
