@@ -6,48 +6,16 @@
     <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/2-0-4/esl.js"></script>
     <script type="text/javascript">
     require.config({
-      src: '.'
+      baseUrl: 'src',
+      packages: [
+        {name: 'baidubce-sdk', location: '../dep/baidubce-sdk/0.0.0', main: 'baidubce-sdk.bundle'},
+        {name: 'jquery', location: '../dep/jquery/0.0.0', main: 'jquery'},
+        {name: 'async', location: '../dep/async/0.0.0', main: 'async'},
+        {name: 'etpl', location: '../dep/etpl/3.0.0/src', main: 'etpl'}
+      ]
     });
     </script>
-    <style type="text/css">
-    th {
-      width: 100px;
-      text-align: right;
-    }
-    tr.hard {
-      display: none;
-    }
-    tr.easy {
-      display: none;
-    }
-    input {
-      width: 300px;
-      line-height: 22p;x
-      height: 22px;
-    }
-    input[type=radio] {
-      width: auto;
-    }
-    progress {
-      width: 300px;
-    }
-    input[disabled] {
-      background-color: #c0c0c0;
-    }
-    .warning {
-      text-align: center;
-      padding: 5px;
-      background: yellow;
-      display: none;
-    }
-    legend {
-      font-family: monospace;
-      font-size: 14px;
-    }
-    .collapse, .expand {
-      cursor: pointer;
-    }
-    </style>
+    <link rel="stylesheet" type="text/css" href="index.css">
 </head>
 <body>
 
@@ -88,6 +56,19 @@
     <input type="file" id="file" />
   </fieldset>
 </form>
+
+<br/>
+
+<table class="file-list">
+  <thead>
+    <th>名称</th>
+    <th>类型</th>
+    <th>大小</th>
+    <th>时间</th>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
 
 </body>
 <script type="text/javascript">

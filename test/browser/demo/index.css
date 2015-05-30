@@ -1,0 +1,55 @@
+th {
+  width: 100px;
+  text-align: right;
+}
+tr.hard {
+  display: none;
+}
+tr.easy {
+  display: none;
+}
+input {
+  width: 300px;
+  line-height: 22p;x
+  height: 22px;
+}
+input[type=radio] {
+  width: auto;
+}
+progress {
+  width: 300px;
+}
+input[disabled] {
+  background-color: #c0c0c0;
+}
+.warning {
+  text-align: center;
+  padding: 5px;
+  background: yellow;
+  display: none;
+}
+legend {
+  font-family: monospace;
+  font-size: 14px;
+}
+.collapse, .expand {
+  cursor: pointer;
+}
+
+/** file browser */
+.file-list {
+  background-color: transparent;
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+}
+.file-list thead {
+  background-color: #f6f8f8;
+  border-radius: 2px 2px 0 0;
+  padding: 10px 15px;
+  border-bottom: 1px solid transparent;
+}
+
+.file-list thead th {
+  text-align: center;
+}

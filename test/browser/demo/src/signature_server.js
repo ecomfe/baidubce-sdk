@@ -9,13 +9,16 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
+ *
+ * @file demo/src/signature_server.js
+ * @author leeight
  */
 
 var http = require('http');
 var url = require('url');
 var util = require('util');
 
-var Auth = require('../../../src/auth');
+var Auth = require('../../../../src/auth');
 
 var kCredentials = {
     ak: '46bd9968a6194b4bbdf0341f2286ccce',

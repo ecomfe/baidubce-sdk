@@ -4,19 +4,13 @@
  */
 
 define(function (require) {
-    var $ = require('./jquery');
-    var sdk = require('./baidubce-sdk.bundle');
-    var async = require('./async');
+    var $ = require('jquery');
+    var sdk = require('baidubce-sdk');
+    var async = require('async');
+
+    var Klient = require('./client');
 
     var exports = {};
-
-    function isSupportedFileAPI() {
-        if (window.File && window.FileReader && window.FileList && window.Blob) {
-            return true;
-        }
-
-        return false;
-    }
 
     function handleFileSelect(evt) {
         var files = evt.target.files;
@@ -70,43 +64,6 @@ define(function (require) {
         return tasks;
     }
 
-    function createClient() {
-        var client = new sdk.BosClient(getBOSConfig());
-        if (getCurrentMode() === 'very-easy') {
-            // 用户显示的设置了 ak 和 sk，不需要服务器计算
-            return client;
-        }
-
-        // mode === 'easy'
-        client.createSignature = function (_, httpMethod, path, params, headers) {
-            var deferred = sdk.Q.defer();
-            $.ajax({
-                // url: 'http://127.0.0.1:1337/ack',
-                url: $('#g_ss_url').val(),
-                jsonp: 'callback',
-                dataType: 'jsonp',
-                data: {
-                    httpMethod: httpMethod,
-                    path: path,
-                    delay: ~~(Math.random() * 10) + 1,
-                    params: JSON.stringify(params || {}),
-                    headers: JSON.stringify(headers || {})
-                },
-                success: function (payload) {
-                    if (payload.statusCode === 200 && payload.signature) {
-                        deferred.resolve(payload.signature, payload.xbceDate);
-                    }
-                    else {
-                        // TODO(leeight) timeout
-                        deferred.reject(new Error('createSignature failed, statusCode = ' + payload.statusCode));
-                    }
-                }
-            });
-            return deferred.promise;
-        };
-        return client;
-    }
-
     function uploadPartFile(state) {
         return function (item, callback) {
             // item.file
@@ -116,7 +73,7 @@ define(function (require) {
             // item.partNumber
             // item.partSize
             var blob = item.file.slice(item.start, item.stop + 1);
-            var client = createClient();
+            var client = Klient.createInstance();
             var key = item.file.name;
             var bucket = $('#g_bucket').val();
 
@@ -134,7 +91,7 @@ define(function (require) {
     function uploadSuperFile(file) {
         var startTime = new Date().getTime();
 
-        var client = createClient();
+        var client = Klient.createInstance();
         var key = file.name;
         var bucket_name = $('#g_bucket').val();
 
@@ -198,7 +155,7 @@ define(function (require) {
     function uploadSingleFile2(file, opt_startByte, opt_stopByte) {
         var startTime = new Date().getTime();
 
-        var client = createClient();
+        var client = Klient.createInstance();
         var key = file.name;
         var ext = key.split(/\./g).pop();
         var bucket = $('#g_bucket').val();
@@ -235,16 +192,6 @@ define(function (require) {
             });
     }
 
-    function getBOSConfig() {
-        return {
-            credentials: {
-                ak: $('#g_ak').val(),
-                sk: $('#g_sk').val()
-            },
-            endpoint: $('#g_host').val()
-        };
-    }
-
     function switchMode() {
         var mode = getCurrentMode();
 
@@ -274,11 +221,7 @@ define(function (require) {
         }
     }
 
-    exports.start = function () {
-        if (!isSupportedFileAPI()) {
-            $('.warning').show();
-        }
-
+    exports.init = function () {
         $('#file').on('change', handleFileSelect);
         $('input[type=radio]').on('click', switchMode);
         $('legend.collapse').on('click', toggleLegend);
