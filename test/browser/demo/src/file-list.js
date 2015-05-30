@@ -120,10 +120,22 @@ define(function (require) {
         }
     }
 
+    function deleteObjects(e) {
+        var row = $(this).parents('tr');
+        var bucketName = $(this).data('bucket');
+        var key = $(this).data('key');
+        var client = Klient.createInstance();
+        client.deleteObject(bucketName, key)
+            .then(function (res) {
+                row.remove();
+            });
+    }
+
     exports.init = function () {
         loadDirectory();
         $(window).on('hashchange', loadDirectory);
         $('.file-list').on('click', '.load-more button', loadMoreObjects);
+        $('.file-list').on('click', '.fa-trash-o', deleteObjects);
     };
 
     return exports;

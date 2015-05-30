@@ -160,7 +160,7 @@ BosClient.prototype.setBucketAcl = function (bucketName, acl, options) {
     options = options || {};
 
     var headers = {};
-    headers[H.CONTENT_TYPE] = 'application/json; charset=utf-8';
+    headers[H.CONTENT_TYPE] = 'application/json; charset=UTF-8';
     return this._sendRequest('PUT', {
         bucketName: bucketName,
         body: JSON.stringify({accessControlList: acl}),
@@ -363,7 +363,7 @@ BosClient.prototype.abortMultipartUpload = function (bucketName, key, uploadId, 
 
 BosClient.prototype.completeMultipartUpload = function (bucketName, key, uploadId, partList, options) {
     var headers = {};
-    headers[H.CONTENT_TYPE] = 'application/json; charset=utf-8';
+    headers[H.CONTENT_TYPE] = 'application/json; charset=UTF-8';
     options = this._checkOptions(u.extend(headers, options));
 
     return this._sendRequest('POST', {

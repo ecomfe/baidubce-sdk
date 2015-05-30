@@ -5,7 +5,7 @@
     <!-- for: ${contents} as ${row} -->
     <tr>
         <td><a target="_blank" href="/v1/${name}/${row.key}">${row.key}</a></td>
-        <td>&nbsp;</td>
+        <td><i class="fa fa-trash-o" title="删除" data-bucket="${name}" data-key="${row.key}"></i></td>
         <td>文件</td>
         <td>${*row.size|filesize}</td>
         <td>${row.lastModified|relativeTime}</td>

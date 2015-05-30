@@ -4323,7 +4323,7 @@ BosClient.prototype.setBucketAcl = function (bucketName, acl, options) {
     options = options || {};
 
     var headers = {};
-    headers[H.CONTENT_TYPE] = 'application/json; charset=utf-8';
+    headers[H.CONTENT_TYPE] = 'application/json; charset=UTF-8';
     return this._sendRequest('PUT', {
         bucketName: bucketName,
         body: JSON.stringify({accessControlList: acl}),
@@ -4526,7 +4526,7 @@ BosClient.prototype.abortMultipartUpload = function (bucketName, key, uploadId, 
 
 BosClient.prototype.completeMultipartUpload = function (bucketName, key, uploadId, partList, options) {
     var headers = {};
-    headers[H.CONTENT_TYPE] = 'application/json; charset=utf-8';
+    headers[H.CONTENT_TYPE] = 'application/json; charset=UTF-8';
     options = this._checkOptions(u.extend(headers, options));
 
     return this._sendRequest('POST', {
@@ -4843,7 +4843,7 @@ var Q = require('q');
 
 exports.md5sum = function (data, enc, digest) {
     if (!Buffer.isBuffer(data)) {
-        data = new Buffer(data, enc || 'utf-8');
+        data = new Buffer(data, enc || 'UTF-8');
     }
 
     var md5 = require('crypto').createHash('md5');
@@ -5017,7 +5017,7 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     }
     defaultHeaders[H.X_BCE_DATE] = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
     defaultHeaders[H.CONNECTION] = 'close';
-    defaultHeaders[H.CONTENT_TYPE] = 'application/json; charset=utf-8';
+    defaultHeaders[H.CONTENT_TYPE] = 'application/json; charset=UTF-8';
     defaultHeaders[H.HOST] = options.host;
 
     headers = u.extend({}, defaultHeaders, headers);
@@ -5193,6 +5193,7 @@ HttpClient.prototype._recvResponse = function (res) {
             payload.push(chunk);
         }
         else {
+            // xhr2返回的内容是 string，不是 Buffer，导致 Buffer.concat 的时候报错了
             payload.push(new Buffer(chunk));
         }
     });

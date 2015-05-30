@@ -22,7 +22,7 @@ var Q = require('q');
 
 exports.md5sum = function (data, enc, digest) {
     if (!Buffer.isBuffer(data)) {
-        data = new Buffer(data, enc || 'utf-8');
+        data = new Buffer(data, enc || 'UTF-8');
     }
 
     var md5 = require('crypto').createHash('md5');

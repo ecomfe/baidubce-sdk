@@ -78,7 +78,7 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     }
     defaultHeaders[H.X_BCE_DATE] = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
     defaultHeaders[H.CONNECTION] = 'close';
-    defaultHeaders[H.CONTENT_TYPE] = 'application/json; charset=utf-8';
+    defaultHeaders[H.CONTENT_TYPE] = 'application/json; charset=UTF-8';
     defaultHeaders[H.HOST] = options.host;
 
     headers = u.extend({}, defaultHeaders, headers);
