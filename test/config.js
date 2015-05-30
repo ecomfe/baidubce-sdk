@@ -19,8 +19,8 @@ module.exports = {
     'connection_timeout_in_mills': 5000,    // 5 seconds
     'endpoint': 'http://10.105.97.15',
     'account': {
-      'id': '04e0d2c9e8ef478c951b97714c092f77',
-      'displayName': 'PASSPORT:105016607'
+        'id': '04e0d2c9e8ef478c951b97714c092f77',
+        'displayName': 'PASSPORT:105016607'
     }
     // 'endpoint': 'http://localhost:8828',
 };

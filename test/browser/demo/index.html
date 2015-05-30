@@ -11,7 +11,10 @@
         {name: 'baidubce-sdk', location: '../dep/baidubce-sdk/0.0.0', main: 'baidubce-sdk.bundle'},
         {name: 'jquery', location: '../dep/jquery/0.0.0', main: 'jquery'},
         {name: 'async', location: '../dep/async/0.0.0', main: 'async'},
-        {name: 'etpl', location: '../dep/etpl/3.0.0/src', main: 'etpl'}
+        {name: 'etpl', location: '../dep/etpl/3.0.0/src', main: 'main'},
+        {name: 'humanize', location: '../dep/humanize/0.0.9/src', main: 'main'},
+        {name: 'moment', location: '../dep/moment/2.7.0/src', main: 'moment'},
+        {name: 'underscore', location: '../dep/underscore/1.6.0/src', main: 'underscore'}
       ]
     });
     </script>
@@ -59,16 +62,23 @@
 
 <br/>
 
+<div class="panel">
 <table class="file-list">
   <thead>
     <th>名称</th>
+    <th></th>
     <th>类型</th>
     <th>大小</th>
     <th>时间</th>
   </thead>
-  <tbody>
-  </tbody>
+  <tbody></tbody>
+  <tfoot style="display: none">
+    <tr>
+      <td colspan="5" class="load-more"><button>加载更多...</button></td>
+    </tr>
+  </tfoot>
 </table>
+</div>
 
 </body>
 <script type="text/javascript">

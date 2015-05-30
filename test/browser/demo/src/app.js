@@ -7,6 +7,9 @@ define(function (require) {
     var $ = require('jquery');
 
     var uploader = require('./uploader');
+    var fileList = require('./file-list');
+    var _filters = require('./tpl/filters');
+
 
     var exports = {};
 
@@ -22,7 +25,9 @@ define(function (require) {
         if (!isSupportedFileAPI()) {
             $('.warning').show();
         }
+        _filters.init();
         uploader.init();
+        fileList.init();
     };
 
     return exports;

@@ -51,5 +51,21 @@ legend {
 }
 
 .file-list thead th {
+  padding: 8px 15px;
+  text-align: left;
+}
+.file-list td {
+  padding: 8px 15px;
+  border-top: 1px solid #eaeff0;
+}
+.file-list .no-content,
+.file-list .load-more {
   text-align: center;
+}
+
+.panel {
+  margin-bottom: 20px;
+  background-color: #fff;
+  border: 1px solid transparent;
+  box-shadow: 0 1px 1px rgba(0,0,0,.05);
 }
