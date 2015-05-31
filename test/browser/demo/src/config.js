@@ -19,6 +19,30 @@ define(function (require) {
 
     var exports = {};
 
+    // 分片上传的时候，并行的请求数目（带宽有限的情况下，太多了也没啥用）
+    exports.kParallel = 2;
+
+    // 超过了 5M 就需要分片上传（这个不是 BOS 的限制，而是我自己定义的逻辑）
+    exports.kMinFileSize = 5 * 1024 * 1024;
+
+    /**
+     * @return {{bucket:string, prefix:string}}
+     */
+    exports.getOptions = function () {
+        var match = /#\/([^\/]+)((\/[^\/]+)+)?/.exec(location.hash);
+        var bucketName = match ? match[1] : null;
+        var prefix = (match ? match[2] : '') || '';
+
+        if (prefix && prefix[0] === '/') {
+            prefix = prefix.substr(1);
+        }
+        if (prefix && !/\/$/.test(prefix)) {
+            prefix = prefix + '/';
+        }
+
+        return {bucketName: bucketName, prefix: prefix};
+    };
+
     exports.get = function () {
         var config = {
             bos: {

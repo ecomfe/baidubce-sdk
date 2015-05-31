@@ -14,17 +14,12 @@
 define(function (require) {
     var exports = {};
 
-    // 超过了 5M 就需要分片上传（这个不是 BOS 的限制，而是我自己定义的逻辑）
-    var kMinFileSize = 5 * 1024 * 1024;
-
-    // 分片上传的时候，并行的请求数目（带宽有限的情况下，太多了也没啥用）
-    var kParallel = 2;
-
     var sdk = require('baidubce-sdk');
     var u = require('underscore');
     var async = require('async');
 
     var Klient = require('./client');
+    var config = require('./config');
 
     function uploadSingleFile(client, bucketName, key, blob, options) {
         var ext = key.split(/\./g).pop();
@@ -42,7 +37,7 @@ define(function (require) {
 
     function getTasks(file, uploadId, bucketName, key) {
         var leftSize = file.size;
-        var minPartSize = kMinFileSize;
+        var minPartSize = config.kMinFileSize;
         var offset = 0;
         var partNumber = 1;
 
@@ -115,7 +110,7 @@ define(function (require) {
                     loaded: 0,
                     total: tasks.length
                 };
-                async.mapLimit(tasks, kParallel, uploadPartFile(state, client), function (err, results) {
+                async.mapLimit(tasks, config.kParallel, uploadPartFile(state, client), function (err, results) {
                     if (err) {
                         deferred.reject(err);
                     }
@@ -142,19 +137,18 @@ define(function (require) {
         options = options || {};
         var client = opt_client || Klient.createInstance();
 
-        if (blob.size > kMinFileSize) {
+        if (blob.size > config.kMinFileSize) {
             return uploadSuperFile(client, bucketName, key, blob, options);
         }
-        else {
-            client.on('progress', function (evt) {
-                client.emit('bosprogress', {
-                    lengthComputable: evt.lengthComputable,
-                    loaded: evt.loaded,
-                    total: evt.total
-                });
+
+        client.on('progress', function (evt) {
+            client.emit('bosprogress', {
+                lengthComputable: evt.lengthComputable,
+                loaded: evt.loaded,
+                total: evt.total
             });
-            return uploadSingleFile(client, bucketName, key, blob, options);
-        }
+        });
+        return uploadSingleFile(client, bucketName, key, blob, options);
     };
 
     return exports;

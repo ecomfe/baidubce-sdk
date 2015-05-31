@@ -22,6 +22,7 @@ define(function (require) {
     var etpl = require('etpl');
     var u = require('underscore');
 
+    var config = require('./config');
     var Klient = require('./client');
     var kPageCount = 10;
 
@@ -32,34 +33,27 @@ define(function (require) {
         $('.file-list tbody').html(html);
     }
 
-    function getListObjectsOptions() {
-        var match = /#\/([^\/]+)((\/[^\/]+)+)?/.exec(location.hash);
-        var bucketName = match ? match[1] : null;
-        var prefix = (match ? match[2] : '') || '';
-
-        if (prefix && prefix[0] === '/') {
-            prefix = prefix.substr(1);
-        }
-        if (prefix && !/\/$/.test(prefix)) {
-            prefix = prefix + '/';
-        }
-
-        var options = {
+    function getOptions() {
+        var options = u.extend({
             maxKeys: kPageCount,
             marker: '',
-            delimiter: '/',
-            prefix: prefix,
-            bucketName: bucketName
-        };
+            delimiter: '/'
+        }, config.getOptions());
 
         return options;
     }
 
+    var working = false;
     function loadDirectory() {
+        if (working) {
+            return;
+        }
+        working = true;
+
         var client = Klient.createInstance();
         if (location.hash.length > 2) {
             // listObjects
-            var options = getListObjectsOptions();
+            var options = getOptions();
             var bucketName = options.bucketName;
             delete options.bucketName;
             if (bucketName) {
@@ -71,6 +65,9 @@ define(function (require) {
                             button.parents('tfoot').show();
                             button.data('next-marker', res.body.nextMarker);
                         }
+                    })
+                    .fin(function () {
+                        working = false;
                     });
                 return;
             }
@@ -85,6 +82,9 @@ define(function (require) {
                     item.is_dir = true;
                 });
                 renderBody('TPL_list_buckets', {rows: buckets});
+            })
+            .fin(function () {
+                working = false;
             });
     }
 
@@ -94,7 +94,7 @@ define(function (require) {
         var nextMarker = button.data('next-marker');
 
         // listObjects
-        var options = getListObjectsOptions();
+        var options = getOptions();
         var bucketName = options.bucketName;
         delete options.bucketName;
         options.marker = nextMarker;
@@ -130,6 +130,10 @@ define(function (require) {
                 row.remove();
             });
     }
+
+    exports.refresh = function () {
+        loadDirectory();
+    };
 
     exports.init = function () {
         loadDirectory();

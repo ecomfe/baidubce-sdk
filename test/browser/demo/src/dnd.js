@@ -16,6 +16,18 @@ define(function (require) {
 
     var $ = require('jquery');
     var u = require('underscore');
+    var async = require('async');
+
+    var config = require('./config');
+    var Klient = require('./client');
+    var fileList = require('./file-list');
+    var TaskManager = require('./task_manager');
+    var Task = require('./task');
+
+    /**
+     * @type {TaskManager}
+     */
+    var gTM = null;
 
     function onDragOver(e) {
         e.preventDefault();
@@ -28,6 +40,11 @@ define(function (require) {
 
     function onDropFiles(e) {
         e.preventDefault();
+
+        gTM = new TaskManager();
+        gTM.startup().then(function () {
+            console.log('gTM.done');
+        });
 
         u.each(e.originalEvent.dataTransfer.items, function (item) {
             var entry = item.webkitGetAsEntry();
@@ -44,6 +61,11 @@ define(function (require) {
         if (entry.isFile) {
             entry.file(function (file) {
                 console.log('File: ', path + file.name);
+
+                var options = config.getOptions();
+                var bucketName = options.bucketName;
+                var key = options.prefix + path + file.name;
+                gTM.addTask(new Task(bucketName, key, file, options));
             });
         }
         else if (entry.isDirectory) {

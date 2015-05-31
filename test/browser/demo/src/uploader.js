@@ -5,11 +5,11 @@
 
 define(function (require) {
     var $ = require('jquery');
-    var sdk = require('baidubce-sdk');
     var async = require('async');
 
     var Klient = require('./client');
     var helper = require('./helper');
+    var config = require('./config');
 
     var exports = {};
 
@@ -33,8 +33,7 @@ define(function (require) {
     }
 
     function upload(file, callback) {
-        var partSize = 5 * 1024 * 1024;
-        var chunkCount = Math.ceil(file.size * 1.0 / partSize);
+        var chunkCount = Math.ceil(file.size * 1.0 / config.kMinFileSize);
 
         $('#g_file_size').val(file.size);
         $('#g_chunk_count').val(chunkCount);
