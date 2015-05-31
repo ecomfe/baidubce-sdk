@@ -10,6 +10,7 @@ define(function (require) {
     var Klient = require('./client');
     var helper = require('./helper');
     var config = require('./config');
+    var fileList = require('./file-list');
 
     var exports = {};
 
@@ -60,6 +61,7 @@ define(function (require) {
                 callback(error);
             })
             .fin(function () {
+                fileList.refresh();
                 callback(null);
             });
     }
