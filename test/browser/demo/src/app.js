@@ -11,6 +11,7 @@ define(function (require) {
     var fileList = require('./file-list');
     var dnd = require('./dnd');
     var clipboard = require('./clipboard');
+    var video = require('./video');
 
     var exports = {};
 
@@ -31,6 +32,7 @@ define(function (require) {
         fileList.init();
         dnd.init();
         clipboard.init();
+        video.init();
     };
 
     return exports;
