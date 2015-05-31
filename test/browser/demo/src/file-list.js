@@ -125,7 +125,7 @@ define(function (require) {
         var bucketName = $(this).data('bucket');
         var key = $(this).data('key');
         var client = Klient.createInstance();
-        client.deleteObject(bucketName, key)
+        client.deleteObject(bucketName, '' + key)
             .then(function (res) {
                 row.remove();
             });

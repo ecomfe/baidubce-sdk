@@ -34,7 +34,8 @@ define(function (require) {
                 return;
             }
 
-            var key = prefix + Date.now();
+            var ext = blob.type.split('/').pop();
+            var key = prefix + Date.now() + '.' + ext;
             var options = {
                 'Content-Type': blob.type + '; charset=UTF-8'
             };
