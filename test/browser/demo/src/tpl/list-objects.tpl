@@ -5,7 +5,10 @@
     <!-- for: ${contents} as ${row} -->
     <tr>
         <td><a target="_blank" href="/v1/${name}/${row.key}">${row.key}</a></td>
-        <td><i class="fa fa-trash-o" title="删除" data-bucket="${name}" data-key="${row.key}"></i></td>
+        <td>
+            <i class="fa fa-trash-o" title="删除" data-bucket="${name}" data-key="${row.key}"></i>
+            <a class="fa" href="/v1/${name}/${row.key}?responseContentDisposition=attachment"><i class="fa fa-download" title="下载"></i></a>
+        </td>
         <td>文件</td>
         <td>${*row.size|filesize}</td>
         <td>${row.lastModified|relativeTime}</td>
