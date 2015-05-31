@@ -22,14 +22,14 @@ define(function (require) {
     var config = require('./config');
 
     function uploadSingleFile(client, bucketName, key, blob, options) {
-        var ext = key.split(/\./g).pop();
-        var mimeType = sdk.MimeType.guess(ext);
-        if (/^text\//.test(mimeType)) {
-            mimeType += '; charset=UTF-8';
+        if (!options['Content-Type']) {
+            var ext = key.split(/\./g).pop();
+            var mimeType = sdk.MimeType.guess(ext);
+            if (/^text\//.test(mimeType)) {
+                mimeType += '; charset=UTF-8';
+            }
+            options['Content-Type'] = mimeType;
         }
-        u.extend(options, {
-            'Content-Type': mimeType
-        });
 
         return client.putObjectFromBlob(bucketName, key, blob, options);
     }
@@ -90,13 +90,15 @@ define(function (require) {
     }
 
     function uploadSuperFile(client, bucketName, key, blob, options) {
-        var ext = key.split(/\./g).pop();
-        // Firefox在POST的时候，Content-Type 一定会有Charset的，因此
-        // 这里不管3721，都加上.
-        var mimeType = sdk.MimeType.guess(ext) + '; charset=UTF-8';
-        u.extend(options, {
-            'Content-Type': mimeType
-        });
+        if (!options['Content-Type']) {
+            var ext = key.split(/\./g).pop();
+            // Firefox在POST的时候，Content-Type 一定会有Charset的，因此
+            // 这里不管3721，都加上.
+            var mimeType = sdk.MimeType.guess(ext) + '; charset=UTF-8';
+            u.extend(options, {
+                'Content-Type': mimeType
+            });
+        }
 
         var uploadId = null;
         return client.initiateMultipartUpload(bucketName, key, options)

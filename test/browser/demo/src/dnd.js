@@ -16,10 +16,8 @@ define(function (require) {
 
     var $ = require('jquery');
     var u = require('underscore');
-    var async = require('async');
 
     var config = require('./config');
-    var Klient = require('./client');
     var fileList = require('./file-list');
     var TaskManager = require('./task_manager');
     var Task = require('./task');
@@ -42,16 +40,31 @@ define(function (require) {
         e.preventDefault();
 
         gTM = new TaskManager();
-        gTM.startup().then(function () {
-            console.log('gTM.done');
-        });
+        gTM.startup().then(u.bind(fileList.refresh, fileList));
 
-        u.each(e.originalEvent.dataTransfer.items, function (item) {
-            var entry = item.webkitGetAsEntry();
-            if (entry) {
-                traverseFileTree(entry);
-            }
-        });
+        var dataTransfer = e.originalEvent.dataTransfer;
+        // https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer
+        if (dataTransfer.items) {
+            // Chrome
+            u.each(dataTransfer.items, function (item) {
+                var getAsEntry = item.getAsEntry || item.webkitGetAsEntry;
+                if (typeof getAsEntry === 'function') {
+                    var entry = getAsEntry.call(item);
+                    if (entry) {
+                        traverseFileTree(entry);
+                    }
+                }
+            });
+        }
+        else if (dataTransfer.files) {
+            // Firefox
+            u.each(dataTransfer.files, function (file) {
+                var options = config.getOptions();
+                var bucketName = options.bucketName;
+                var key = options.prefix + file.name;
+                gTM.addTask(new Task(bucketName, key, file, options));
+            });
+        }
 
         return false;
     }
@@ -60,8 +73,7 @@ define(function (require) {
         path = path || '';
         if (entry.isFile) {
             entry.file(function (file) {
-                console.log('File: ', path + file.name);
-
+                // console.log('File: ', path + file.name);
                 var options = config.getOptions();
                 var bucketName = options.bucketName;
                 var key = options.prefix + path + file.name;

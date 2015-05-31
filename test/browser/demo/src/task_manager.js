@@ -65,9 +65,10 @@ define(function (require) {
         var task = this.tasks.shift();
         if (task && typeof task.run === 'function') {
             this.running ++;
-            task.run()
-                .done(u.bind(this.runTaskSuccess, this))
-                .catch(u.bind(this.runTaskFailure, this));
+            task.run().then(
+                u.bind(this.runTaskSuccess, this),
+                u.bind(this.runTaskFailure, this)
+            );
         }
     };
 
@@ -78,6 +79,7 @@ define(function (require) {
     TaskManager.prototype.runTaskSuccess = function () {
         this.running--;
         this.runNext();
+
     };
 
     /**

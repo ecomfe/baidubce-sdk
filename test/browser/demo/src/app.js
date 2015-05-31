@@ -10,6 +10,7 @@ define(function (require) {
     var uploader = require('./uploader');
     var fileList = require('./file-list');
     var dnd = require('./dnd');
+    var clipboard = require('./clipboard');
 
     var exports = {};
 
@@ -29,6 +30,7 @@ define(function (require) {
         uploader.init();
         fileList.init();
         dnd.init();
+        clipboard.init();
     };
 
     return exports;
