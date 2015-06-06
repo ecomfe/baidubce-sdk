@@ -1105,12 +1105,8 @@
         next();
     };
 
-    // Node.js
-    if (typeof module !== 'undefined' && module.exports) {
-        module.exports = async;
-    }
     // AMD / RequireJS
-    else if (typeof define !== 'undefined' && define.amd) {
+    if (typeof define !== 'undefined' && define.amd) {
         define([], function () {
             return async;
         });

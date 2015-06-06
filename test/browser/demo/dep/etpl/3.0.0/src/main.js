@@ -1630,11 +1630,7 @@
     var etpl = new Engine();
     etpl.Engine = Engine;
 
-    if (typeof exports === 'object' && typeof module === 'object') {
-        // For CommonJS
-        exports = module.exports = etpl;
-    }
-    else if (typeof define === 'function' && define.amd) {
+    if (typeof define === 'function' && define.amd) {
         // For AMD
         define(etpl);
     }

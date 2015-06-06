@@ -20,7 +20,8 @@ define(
 
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState === 4) {
-                        if (xhr.status >= 200 && xhr.status < 300) {
+                        // xhr.status === 0 说明请求是 file://
+                        if (xhr.status === 0 || (xhr.status >= 200 && xhr.status < 300)) {
                             var source = xhr.responseText;
                             var moduleConfig = module.config();
                             if (moduleConfig.autoCompile

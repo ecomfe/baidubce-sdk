@@ -102,10 +102,7 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     options.headers = headers;
     if (typeof signFunction === 'function') {
         var promise = signFunction(this.config.credentials, httpMethod, path, params, headers);
-        if (typeof promise === 'string') {
-            headers[H.AUTHORIZATION] = promise;
-        }
-        else if (isPromise(promise)) {
+        if (isPromise(promise)) {
             return promise.then(function (authorization, xbceDate) {
                 headers[H.AUTHORIZATION] = authorization;
                 if (xbceDate) {
@@ -113,6 +110,9 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
                 }
                 return client._doRequest(options, body, outputStream);
             });
+        }
+        else if (util.isString(promise)) {
+            headers[H.AUTHORIZATION] = promise;
         }
         else {
             throw new Error('Invalid signature = (' + promise + ')');

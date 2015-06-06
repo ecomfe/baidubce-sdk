@@ -3,9 +3,11 @@
 <head>
     <title>BOS Uploader</title>
     <meta charset="utf-8" />
-    <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/2-0-4/esl.js"></script>
+    <script src="esl.source.js"></script>
     <script type="text/javascript">
-    require.config({
+    // require 在 electron 里面已经被占用了，所以我们用 esl，其实也就是 globalRequire
+    esl.config({
+      waitSeconds: 2,
       baseUrl: 'src',
       packages: [
         {name: 'baidubce-sdk', location: '../dep/baidubce-sdk/0.0.0', main: 'baidubce-sdk.bundle'},
@@ -94,7 +96,7 @@
 
 </body>
 <script type="text/javascript">
-require(['app'], function (app) {
+esl(['app'], function (app) {
   app.start();
 });
 </script>

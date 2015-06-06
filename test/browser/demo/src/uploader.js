@@ -102,7 +102,10 @@ define(function (require) {
         });
         $('input[type=radio]').on('click', switchMode);
         $('legend.collapse').on('click', toggleLegend);
-        $('#g_host').val(location.protocol + '//' + location.host);
+        $('#g_host').val(
+            location.protocol === 'file:'
+            ? 'http://10.105.97.15'
+            : location.protocol + '//' + location.host);
     };
 
     return exports;

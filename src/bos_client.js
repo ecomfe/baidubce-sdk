@@ -595,8 +595,8 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
             throw new TypeError('content_length should not be negative.');
         }
         else if (contentLength > MAX_PUT_OBJECT_LENGTH) { // 5G
-            throw new TypeError('Object length should be less than ' + MAX_PUT_OBJECT_LENGTH +
-                '. Use multi-part upload instead.');
+            throw new TypeError('Object length should be less than ' + MAX_PUT_OBJECT_LENGTH
+                + '. Use multi-part upload instead.');
         }
     }
 

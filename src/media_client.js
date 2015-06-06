@@ -9,10 +9,14 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
+ *
+ * @file src/media_client.js
+ * @author leeight
  */
 
 /*eslint-env node*/
 /*eslint max-params:[0,10]*/
+/*eslint-disable fecs-camelcase*/
 
 var util = require('util');
 
@@ -120,6 +124,7 @@ MediaClient.prototype.getJob = function (jobId, opt_options) {
  * @param {boolean=} opt_transmux 是否仅执行容器格式转换.
  * @param {string=} opt_description 转码模板描述.
  * @param {Object=} opt_options Media Client 的配置.
+ * @return {Q.promise}
  */
 MediaClient.prototype.createPreset = function (presetName, container, clip, audio, video,
     opt_encryption, opt_transmux, opt_description, opt_options) {
