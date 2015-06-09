@@ -44,6 +44,10 @@ define(function (require) {
 
         // mode === 'easy'
         client.createSignature = function (_, httpMethod, path, params, headers) {
+            if (/\bed=([\w\.]+)\b/.test(location.search)) {
+                headers.Host = RegExp.$1;
+            }
+
             var deferred = sdk.Q.defer();
             $.ajax({
                 // url: 'http://127.0.0.1:1337/ack',

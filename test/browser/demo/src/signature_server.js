@@ -21,8 +21,8 @@ var util = require('util');
 var Auth = require('../../../../src/auth');
 
 var kCredentials = {
-    ak: '46bd9968a6194b4bbdf0341f2286ccce',
-    sk: 'ec7f4e0174254f6f9020f9680fb1da9f'
+    ak: '4c60a1d7c5c846c79bff4f304240c581',
+    sk: '42bb4f0b2f274b7eb0b544156a50e564'
 };
 
 function safeParse(text) {
