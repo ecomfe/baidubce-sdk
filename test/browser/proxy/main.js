@@ -43,7 +43,9 @@ http.createServer(function (req, res) {
 
     proxy.web(req, res, {
         target: target,
-        // host: host
+        // bos server 限定了 Request Header 里面的 Host
+        // 因此不能随便设置了，必须跟请求的服务保持一致
+        host: host
     });
 }).listen(8964);
 

@@ -28,6 +28,17 @@ define(function (require) {
 
         if (appcfg.mode === 'very-easy') {
             // 用户显示的设置了 ak 和 sk，不需要服务器计算
+            if (/\bed=([\w\.]+)\b/.test(location.search)) {
+                // 如果 url 参数里面存在 ?ed=1 那么说明是本地开发模式，需要在计算
+                // 签名的时候使用真正的Host，而不是当前页面的域名
+                client.createSignature = function (credentials, httpMethod, path, params, headers) {
+                    // 修复 Host 的内容
+                    headers.Host = RegExp.$1;
+
+                    var auth = new sdk.Auth(credentials.ak, credentials.sk);
+                    return auth.generateAuthorization(httpMethod, path, params, headers);
+                };
+            }
             return client;
         }
 
