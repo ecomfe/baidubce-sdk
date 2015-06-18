@@ -40,7 +40,7 @@ define(function (require) {
         excel: ['xls', 'xlsx'],
         word: ['doc', 'docx'],
         powerpoint: ['ppt', 'pptx'],
-        image: ['jpg', 'jpeg', 'gif', 'png'],
+        image: ['jpg', 'jpeg', 'gif', 'png', 'psd'],
         audio: ['wav', 'aac'],
         archive: ['zip', 'tgz', 'tar', 'rar', 'tar.gz', 'gz', '7z'],
         video: ['rm', 'rmvb', 'mp4', 'avi', 'flv', 'mpg', 'webm'],

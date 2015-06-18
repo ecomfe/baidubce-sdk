@@ -43,7 +43,8 @@ define(function (require) {
         etpl.addFilter('fa_icon', function (value) {
             var match = /\.([a-z0-9]+)$/i.exec(value);
             if (match && match[1]) {
-                return ('fa-file-' + kExts2Type[match[1].toLowerCase()] + '-o') || 'fa-file';
+                var type = kExts2Type[match[1].toLowerCase()];
+                return type ? 'fa-file-' + type + '-o' : 'fa-file';
             }
             return 'fa-file';
         });

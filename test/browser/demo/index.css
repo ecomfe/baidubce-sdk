@@ -123,6 +123,45 @@ legend {
   box-shadow: 0 1px 1px rgba(0,0,0,.05);
 }
 
+.upload-panel {
+  width: 500px;
+  height: 300px;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  border: 1px solid #ddd;
+  margin-bottom: 0;
+}
+
+.upload-panel table {
+  table-layout: fixed;
+}
+
+.upload-panel td {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.upload-panel header {
+  background: #23b7e5;
+  color: #fff;
+  overflow: hidden;
+  padding: 8px 10px;
+}
+
+.upload-panel .item-list {
+  height: 460px;
+  overflow: hidden;
+  overflow-y: scroll;
+}
+
+.upload-panel .progress {
+  height: 10px;
+  margin-bottom: 0;
+  margin-top: 5px;
+}
+
 .fa {
   cursor: pointer;
 }

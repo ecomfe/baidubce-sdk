@@ -11,6 +11,7 @@ define(function (require) {
     var helper = require('./helper');
     var config = require('./config');
     var fileList = require('./file-list');
+    var up = require('./upload_panel');
 
     var exports = {};
 
@@ -22,7 +23,9 @@ define(function (require) {
 
         $('#g_time').val('0s');
         var startTime = new Date().getTime();
-        async.eachLimit(files, 1, upload, function (err) {
+        up.show();
+        var items = up.addFiles(files);
+        async.eachLimit(items, 1, upload, function (err) {
             if (!err) {
                 var endTime = new Date().getTime();
                 $('#g_time').html(((endTime - startTime) / 1000) + 's');
@@ -55,7 +58,9 @@ define(function (require) {
             });
     }
 
-    function upload(file, callback) {
+    function upload(item, callback) {
+        var uuid = item.uuid;
+        var file = item.file;
         var chunkCount = Math.ceil(file.size * 1.0 / config.kMinFileSize);
 
         $('#g_file_size').val(file.size);
@@ -71,17 +76,18 @@ define(function (require) {
 
         client.on('bosprogress', function (evt) {
             if (evt.lengthComputable) {
-                $('#g_progress').val(evt.loaded / evt.total);
+                up.progress(uuid, evt.loaded / evt.total);
+                // $('#g_progress').val(evt.loaded / evt.total);
             }
         });
         helper.upload(bucketName, key, file, null, client)
             .then(function () {
-                $('#g_progress').val(1);
+                up.progress(uuid, 1);
                 var url = client.generatePresignedUrl(bucketName, key);
                 $('#g_url').html('<a href="' + url + '" target="_blank">下载地址</a>');
             })
             .catch(function (error) {
-                $('#g_progress').val(1);
+                up.progress(uuid, 1);
                 callback(error);
             })
             .fin(function () {

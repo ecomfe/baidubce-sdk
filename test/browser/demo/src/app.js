@@ -13,6 +13,7 @@ define(function (require) {
     var clipboard = require('./clipboard');
     var video = require('./video');
     var crumb = require('./crumb');
+    var up = require('./upload_panel');
 
     var exports = {};
 
@@ -35,6 +36,7 @@ define(function (require) {
         clipboard.init();
         video.init();
         crumb.init();
+        up.init();
     };
 
     return exports;
