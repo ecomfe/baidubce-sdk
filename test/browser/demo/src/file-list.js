@@ -18,10 +18,10 @@ define(function (require) {
     require('etpl/tpl!./tpl/list-buckets.tpl');
     require('etpl/tpl!./tpl/list-objects.tpl');
 
-    var $ = require('jquery');
     var etpl = require('etpl');
     var u = require('underscore');
 
+    var log = require('./log');
     var config = require('./config');
     var Klient = require('./client');
     var kPageCount = 10;
@@ -45,10 +45,13 @@ define(function (require) {
 
     function stripPrefix(res) {
         if (res.body.prefix) {
-            res.body.contents.forEach(function (item) {
+            u.each(res.body.contents, function (item) {
                 item.key = item.key.replace(res.body.prefix, '');
             });
-            res.body.commonPrefixes.forEach(function (item) {
+            res.body.contents = u.filter(res.body.contents, function (item) {
+                return !!item.key;
+            });
+            u.each(res.body.commonPrefixes, function (item) {
                 item.prefix = item.prefix.replace(res.body.prefix, '');
             });
         }
@@ -72,10 +75,13 @@ define(function (require) {
                     .then(function (res) {
                         stripPrefix(res);
                         renderBody('TPL_list_objects', res.body);
+                        var button = $('.file-list tfoot button');
                         if (res.body.isTruncated) {
-                            var button = $('.file-list tfoot button');
                             button.parents('tfoot').show();
                             button.data('next-marker', res.body.nextMarker);
+                        }
+                        else {
+                            button.parents('tfoot').hide();
                         }
                     })
                     .fin(function () {
@@ -94,6 +100,9 @@ define(function (require) {
                     item.is_dir = true;
                 });
                 renderBody('TPL_list_buckets', {rows: buckets});
+
+                var button = $('.file-list tfoot button');
+                button.parents('tfoot').hide();
             })
             .fin(function () {
                 working = false;
@@ -144,6 +153,20 @@ define(function (require) {
             });
     }
 
+    function setBucketAccess(e) {
+        // console.log(e);
+        var acl = $(this).data('acl');
+        var bucketName = $(this).parent().data('bucket-name');
+        var client = Klient.createInstance();
+        client.setBucketCannedAcl(bucketName, acl)
+            .then(function (response) {
+                log.ok('设置成功');
+            })
+            .catch(function (error) {
+                log.fatal(JSON.stringify(error));
+            });
+    }
+
     exports.refresh = function () {
         loadDirectory();
     };
@@ -153,6 +176,7 @@ define(function (require) {
         $(window).on('hashchange', loadDirectory);
         $('.file-list').on('click', '.load-more button', loadMoreObjects);
         $('.file-list').on('click', '.fa-trash-o', deleteObjects);
+        $(document).on('click', '.dropdown-menu li[data-acl]', setBucketAccess);
     };
 
     return exports;

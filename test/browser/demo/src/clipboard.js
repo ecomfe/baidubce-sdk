@@ -14,7 +14,6 @@
 define(function (require) {
     var exports = {};
 
-    var $ = require('jquery');
     var u = require('underscore');
 
     var config = require('./config');

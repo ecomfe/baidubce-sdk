@@ -17,7 +17,6 @@
 define(function (require) {
     var exports = {};
 
-    var $ = require('jquery');
     var sdk = require('baidubce-sdk');
 
     var config = require('./config');

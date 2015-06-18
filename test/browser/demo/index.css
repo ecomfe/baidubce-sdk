@@ -88,6 +88,7 @@ legend {
   border-collapse: collapse;
   border-spacing: 0;
   width: 100%;
+  table-layout: fixed;
 }
 .file-list thead {
   background-color: #f6f8f8;
@@ -114,6 +115,15 @@ legend {
 .file-list .no-content,
 .file-list .load-more {
   text-align: center;
+}
+
+.file-list .dropdown-menu > li > a {
+  font-size: 12px;
+}
+
+.log {
+  width: 500px;
+  margin: 0 auto;
 }
 
 .panel {

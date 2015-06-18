@@ -4,8 +4,6 @@
  */
 
 define(function (require) {
-    var $ = require('jquery');
-
     var config = require('./config');
 
     var exports = {};

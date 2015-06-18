@@ -4,7 +4,6 @@
  */
 
 define(function (require) {
-    var $ = require('jquery');
     var async = require('async');
 
     var Klient = require('./client');

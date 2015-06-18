@@ -15,7 +15,6 @@ define(function (require) {
     var exports = {};
 
     var u = require('underscore');
-    var $ = require('jquery');
     var MultiStreamRecorder = require('msr');
 
     var config = require('./config');

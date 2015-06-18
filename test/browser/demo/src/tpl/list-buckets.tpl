@@ -6,7 +6,17 @@
     <!-- else -->
     <td><i class="fa ${row.name|fa_icon}"></i> ${row.name}</td>
     <!-- /if -->
-    <td>&nbsp;</td>
+    <td>
+        <div class="dropdown">
+            <i class="fa fa-chevron-circle-down" data-toggle="dropdown"></i>
+            <ul class="dropdown-menu" data-bucket-name="${row.name}">
+                <li class="dropdown-header">设置访问权限</li>
+                <li data-acl="private"><a href="javascript:void(0)">私有</a></li>
+                <li data-acl="public-read"><a href="javascript:void(0)">公共（只读）</a></li>
+                <li data-acl="public-read-write"><a href="javascript:void(0)">公共（读写）</a></li>
+            </ul>
+        </div>
+    </td>
     <td>文件夹</td>
     <td>-</td>
     <td>${row.creationDate|relativeTime}</td>

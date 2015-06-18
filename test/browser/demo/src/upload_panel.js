@@ -14,7 +14,6 @@
 define(function (require) {
     require('etpl/tpl!./tpl/upload-panel-item.tpl');
 
-    var $ = require('jquery');
     var u = require('underscore');
     var etpl = require('etpl');
 

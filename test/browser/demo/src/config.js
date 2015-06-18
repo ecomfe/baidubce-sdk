@@ -15,8 +15,6 @@
  */
 
 define(function (require) {
-    var $ = require('jquery');
-
     var exports = {};
 
     // 分片上传的时候，并行的请求数目（带宽有限的情况下，太多了也没啥用）
