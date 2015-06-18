@@ -9,7 +9,7 @@
     <script type="text/javascript">
     // require 在 electron 里面已经被占用了，所以我们用 esl，其实也就是 globalRequire
     esl.config({
-      waitSeconds: 2,
+      waitSeconds: 10,
       baseUrl: 'src',
       packages: [
         {name: 'baidubce-sdk', location: '../dep/baidubce-sdk/0.0.0', main: 'baidubce-sdk.bundle'},
