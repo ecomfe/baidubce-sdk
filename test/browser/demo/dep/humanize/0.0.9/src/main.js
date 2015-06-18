@@ -251,11 +251,11 @@ define(function () {
     var today = (new Date(d.getFullYear(), d.getMonth(), d.getDate())).getTime() / 1000;
 
     if (timestamp < today && timestamp >= today - oneDay) {
-      return 'yesterday';
+      return '昨天';
     } else if (timestamp >= today && timestamp < today + oneDay) {
-      return 'today';
+      return '今天';
     } else if (timestamp >= today + oneDay && timestamp < today + 2 * oneDay) {
-      return 'tomorrow';
+      return '明天';
     }
 
     return humanize.date(format, timestamp);
@@ -273,50 +273,50 @@ define(function () {
 
     // within 2 seconds
     if (timeDiff < 2 && timeDiff > -2) {
-      return (timeDiff >= 0 ? 'just ' : '') + 'now';
+      return '刚刚';
     }
 
     // within a minute
     if (timeDiff < 60 && timeDiff > -60) {
-      return (timeDiff >= 0 ? Math.floor(timeDiff) + ' seconds ago' : 'in ' + Math.floor(-timeDiff) + ' seconds');
+      return (timeDiff >= 0 ? Math.floor(timeDiff) + '秒前' : Math.floor(-timeDiff) + '秒后');
     }
 
     // within 2 minutes
     if (timeDiff < 120 && timeDiff > -120) {
-      return (timeDiff >= 0 ? 'about a minute ago' : 'in about a minute');
+      return (timeDiff >= 0 ? '大约1分钟前' : '大约1分钟前');
     }
 
     // within an hour
     if (timeDiff < 3600 && timeDiff > -3600) {
-      return (timeDiff >= 0 ? Math.floor(timeDiff / 60) + ' minutes ago' : 'in ' + Math.floor(-timeDiff / 60) + ' minutes');
+      return (timeDiff >= 0 ? Math.floor(timeDiff / 60) + '分钟前' : Math.floor(-timeDiff / 60) + '分钟后');
     }
 
     // within 2 hours
     if (timeDiff < 7200 && timeDiff > -7200) {
-      return (timeDiff >= 0 ? 'about an hour ago' : 'in about an hour');
+      return (timeDiff >= 0 ? '大约1小时前' : '大约1小时后');
     }
 
     // within 24 hours
     if (timeDiff < 86400 && timeDiff > -86400) {
-      return (timeDiff >= 0 ? Math.floor(timeDiff / 3600) + ' hours ago' : 'in ' + Math.floor(-timeDiff / 3600) + ' hours');
+      return (timeDiff >= 0 ? Math.floor(timeDiff / 3600) + '小时前' : Math.floor(-timeDiff / 3600) + '小时后');
     }
 
     // within 2 days
     var days2 = 2 * 86400;
     if (timeDiff < days2 && timeDiff > -days2) {
-      return (timeDiff >= 0 ? '1 day ago' : 'in 1 day');
+      return (timeDiff >= 0 ? '一天前' : '一天后');
     }
 
     // within 29 days
     var days29 = 29 * 86400;
     if (timeDiff < days29 && timeDiff > -days29) {
-      return (timeDiff >= 0 ? Math.floor(timeDiff / 86400) + ' days ago' : 'in ' + Math.floor(-timeDiff / 86400) + ' days');
+      return (timeDiff >= 0 ? Math.floor(timeDiff / 86400) + '天前' : Math.floor(-timeDiff / 86400) + '天后');
     }
 
     // within 60 days
     var days60 = 60 * 86400;
     if (timeDiff < days60 && timeDiff > -days60) {
-      return (timeDiff >= 0 ? 'about a month ago' : 'in about a month');
+      return (timeDiff >= 0 ? '大约一个月前' : '一个月后');
     }
 
     var currTimeYears = parseInt(humanize.date('Y', currTime), 10);
@@ -327,15 +327,15 @@ define(function () {
     // within a year
     var monthDiff = currTimeMonths - timestampMonths;
     if (monthDiff < 12 && monthDiff > -12) {
-      return (monthDiff >= 0 ? monthDiff + ' months ago' : 'in ' + (-monthDiff) + ' months');
+      return (monthDiff >= 0 ? monthDiff + '个月前' : (-monthDiff) + '个月后');
     }
 
     var yearDiff = currTimeYears - timestampYears;
     if (yearDiff < 2 && yearDiff > -2) {
-      return (yearDiff >= 0 ? 'a year ago' : 'in a year');
+      return (yearDiff >= 0 ? '一年前' : '一年以后');
     }
 
-    return (yearDiff >= 0 ? yearDiff + ' years ago' : 'in ' + (-yearDiff) + ' years');
+    return (yearDiff >= 0 ? yearDiff + '年前' : (-yearDiff) + '年后');
   };
 
   /**

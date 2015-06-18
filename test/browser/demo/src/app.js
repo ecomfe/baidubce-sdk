@@ -12,6 +12,7 @@ define(function (require) {
     var dnd = require('./dnd');
     var clipboard = require('./clipboard');
     var video = require('./video');
+    var crumb = require('./crumb');
 
     var exports = {};
 
@@ -33,6 +34,7 @@ define(function (require) {
         dnd.init();
         clipboard.init();
         video.init();
+        crumb.init();
     };
 
     return exports;

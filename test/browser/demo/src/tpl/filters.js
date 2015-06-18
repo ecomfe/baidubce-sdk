@@ -16,6 +16,8 @@ define(function (require) {
     var humanize = require('humanize');
     var moment = require('moment');
 
+    var config = require('../config');
+
     var exports = {};
 
     exports.init = function () {
@@ -25,6 +27,9 @@ define(function (require) {
         });
         etpl.addFilter('filesize', function (source) {
             return humanize.filesize(source);
+        });
+        etpl.addFilter('i18n', function (value) {
+            return config.kWorkGroupMap[value] || value;
         });
     };
 

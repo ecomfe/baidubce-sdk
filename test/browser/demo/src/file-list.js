@@ -43,6 +43,17 @@ define(function (require) {
         return options;
     }
 
+    function stripPrefix(res) {
+        if (res.body.prefix) {
+            res.body.contents.forEach(function (item) {
+                item.key = item.key.replace(res.body.prefix, '');
+            });
+            res.body.commonPrefixes.forEach(function (item) {
+                item.prefix = item.prefix.replace(res.body.prefix, '');
+            });
+        }
+    }
+
     var working = false;
     function loadDirectory() {
         if (working) {
@@ -59,6 +70,7 @@ define(function (require) {
             if (bucketName) {
                 client.listObjects(bucketName, options)
                     .then(function (res) {
+                        stripPrefix(res);
                         renderBody('TPL_list_objects', res.body);
                         if (res.body.isTruncated) {
                             var button = $('.file-list tfoot button');
@@ -104,6 +116,7 @@ define(function (require) {
                 .then(function (res) {
                     if (res.body.contents.length
                         || res.body.commonPrefixes.length) {
+                        stripPrefix(res);
                         var html = etpl.render('TPL_list_objects', res.body);
                         $('.file-list tbody').append(html);
                     }

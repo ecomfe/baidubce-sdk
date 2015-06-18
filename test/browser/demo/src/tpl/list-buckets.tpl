@@ -2,7 +2,7 @@
 <!-- for: ${rows} as ${row} -->
 <tr>
     <!-- if: ${row.is_dir} -->
-    <td><a href="#/${row.name}">${row.name}/</a></td>
+    <td><a href="#/${row.name}">${row.name|i18n}/</a></td>
     <!-- else -->
     <td>${row.name}</td>
     <!-- /if -->

@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>BOS Uploader</title>
+    <title>百度开放云 - 工作组</title>
+    <link rel="icon" type="image/x-icon" href="./img/fi.ico">
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="esl.source.js"></script>
     <script type="text/javascript">
     // require 在 electron 里面已经被占用了，所以我们用 esl，其实也就是 globalRequire
@@ -21,79 +23,117 @@
       ]
     });
     </script>
-    <link rel="stylesheet" type="text/css" href="dep/font-awesome/4.3.0/css/font-awesome.css">
-    <link rel="stylesheet" type="text/css" href="index.css">
+    <link rel="stylesheet" type="text/css" href="dep/font-awesome/4.3.0/css/font-awesome.css" />
+    <link rel="stylesheet" type="text/css" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="index.css" />
 </head>
 <body>
 
-<header>
-  <a href="http://wiki.baidu.com/display/BCE2014/BOS+WEB+SDK">About BOS WEB SDK</a>
-</header>
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#"><i class="fa fa-cloud"></i>
+百度开放云</a>
+    </div>
 
-<div class="warning">浏览器不支持<a href="http://caniuse.com/#search=File" target="_blank">HTML5 File API</a>，有些功能可能无法使用。</div>
+    <div class="collapse navbar-collapse">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="http://wiki.baidu.com/display/BCE2014/BOS+WEB+SDK">关于BOS WEB SDK</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
 
-<form>
-  <fieldset>
-    <legend>参数配置</legend>
-    <table>
-      <tr>
-          <th>模式选择</th>
-          <td>
-              <label><input checked type="radio" name="mode" value="very-easy" />Very Easy Mode</label>
-              <label><input type="radio" name="mode" value="easy" />Easy Mode</label>
-          </td>
-      </tr>
-      <tr><th>Bucket</th><td> <input id="g_bucket" value="omnidocker" /></td></tr>
-      <tr class="very-easy"><th>AK</th><td> <input id="g_ak" value="4c60a1d7c5c846c79bff4f304240c581" /></td></tr>
-      <tr class="very-easy"><th>SK</th><td> <input id="g_sk" value="42bb4f0b2f274b7eb0b544156a50e564" /></td></tr>
-      <tr class="easy"><th>签名服务器</th><td> <input id="g_ss_url" value="http://127.0.0.1:1337/ack" /></td></tr>
-      <tr><th>进度</th><td><progress id="g_progress" value="0"></td></tr>
-      <tr><th>文件URL：</th><td id="g_url">-</td></tr>
-      <tr><th>耗时：</th><td id="g_time">0s</td></tr>
-    </table>
-  </fieldset>
-  <fieldset style="display: none">
-    <legend class="collapse">高级参数配置[+]</legend>
-    <table style="display: none">
-      <tr><th>Host</th><td> <input id="g_host" disabled /> (CORS上线之前暂时不支持修改Host)</td></tr>
-      <!--
-      <tr><th>分片的大小</th><td><input min="5" max="1048576" step="1" id="g_part_size" type="number" value="5" /> (Mb)</td></tr>
-      -->
-      <tr><th>分片的数量</th><td><input id="g_chunk_count" type="number" disabled /></td></tr>
-      <tr><th>文件大小</th><td><input id="g_file_size" type="number" disabled /></td></tr>
-      <tr><th>并发请求数</th><td><input min="2" max="6" step="1" id="g_parallel" type="number" value="2" /></td></tr>
-    </table>
-  </fieldset>
-</form>
-
-<fieldset id="dropzone">
-  <legend>选择文件、把文件/文件夹拖进来、截图直接 Ctrl + V</legend>
-  <button id="upload"><i class="fa fa-cloud-upload"></i> Upload</button>
-  <button id="camera"><i class="fa fa-video-camera"></i> Record Video</button>
-  <button id="screen" disabled><i class="fa fa-desktop"></i> Share Screen</button>
-  <input type="file" id="file" multiple hidden/>
-</fieldset>
-
-<br/>
-
-<div class="panel">
-<table class="file-list">
-  <thead>
-    <th>名称</th>
-    <th></th>
-    <th>类型</th>
-    <th>大小</th>
-    <th>时间</th>
-  </thead>
-  <tbody></tbody>
-  <tfoot style="display: none">
-    <tr>
-      <td colspan="5" class="load-more"><button>加载更多...</button></td>
-    </tr>
-  </tfoot>
-</table>
+<div class="container">
+  <button id="upload" class="btn btn-primary btn-success" type="button">
+    <i class="fa fa-cloud-upload"></i> 上传文件
+  </button>
+  <button id="addDirectory" class="btn btn-primary btn-info" type="button">
+    <i class="fa fa-plus"></i> 新建文件夹
+  </button>
 </div>
 
+<div class="container">
+  <div class="crumb">
+    <a href="#"><i class="fa fa-home"></i> 根目录</a>
+  </div>
+</div>
+
+<div class="container">
+  <div id="dropzone" class="panel">
+    <table class="file-list table table-striped">
+      <thead>
+        <th>名称</th>
+        <th></th>
+        <th>类型</th>
+        <th>大小</th>
+        <th>时间</th>
+      </thead>
+      <tbody></tbody>
+      <tfoot style="display: none">
+        <tr>
+          <td colspan="5" class="load-more"><button>加载更多...</button></td>
+        </tr>
+      </tfoot>
+    </table>
+    <div class="overlay hide">
+      <div class="msg">将文件拖拽到这里上传</div>
+    </div>
+  </div>
+</div>
+
+<br />
+
+<div class="container" style="display: none">
+  <div class="warning">浏览器不支持<a href="http://caniuse.com/#search=File" target="_blank">HTML5 File API</a>，有些功能可能无法使用。</div>
+
+  <form>
+    <fieldset>
+      <legend>参数配置</legend>
+      <table>
+        <tr>
+            <th>模式选择</th>
+            <td>
+                <label><input checked type="radio" name="mode" value="very-easy" />Very Easy Mode</label>
+                <label><input type="radio" name="mode" value="easy" />Easy Mode</label>
+            </td>
+        </tr>
+        <tr><th>Bucket</th><td> <input id="g_bucket" value="omnidocker" /></td></tr>
+        <tr class="very-easy"><th>AK</th><td> <input id="g_ak" value="4c60a1d7c5c846c79bff4f304240c581" /></td></tr>
+        <tr class="very-easy"><th>SK</th><td> <input id="g_sk" value="42bb4f0b2f274b7eb0b544156a50e564" /></td></tr>
+        <tr class="easy"><th>签名服务器</th><td> <input id="g_ss_url" value="http://127.0.0.1:1337/ack" /></td></tr>
+        <tr><th>进度</th><td><progress id="g_progress" value="0"></td></tr>
+        <tr><th>文件URL：</th><td id="g_url">-</td></tr>
+        <tr><th>耗时：</th><td id="g_time">0s</td></tr>
+      </table>
+    </fieldset>
+    <fieldset style="display: none">
+      <legend class="collapse">高级参数配置[+]</legend>
+      <table style="display: none">
+        <tr><th>Host</th><td> <input id="g_host" disabled /> (CORS上线之前暂时不支持修改Host)</td></tr>
+        <!--
+        <tr><th>分片的大小</th><td><input min="5" max="1048576" step="1" id="g_part_size" type="number" value="5" /> (Mb)</td></tr>
+        -->
+        <tr><th>分片的数量</th><td><input id="g_chunk_count" type="number" disabled /></td></tr>
+        <tr><th>文件大小</th><td><input id="g_file_size" type="number" disabled /></td></tr>
+        <tr><th>并发请求数</th><td><input min="2" max="6" step="1" id="g_parallel" type="number" value="2" /></td></tr>
+      </table>
+    </fieldset>
+  </form>
+
+  <fieldset style="display: none">
+    <legend>选择文件、把文件/文件夹拖进来、截图直接 Ctrl + V</legend>
+    <button id="camera"><i class="fa fa-video-camera"></i> Record Video</button>
+    <button id="screen" disabled><i class="fa fa-desktop"></i> Share Screen</button>
+    <input type="file" id="file" multiple hidden/>
+  </fieldset>
+</div>
+
+<footer>
+  <div class="container">
+    <p><span>由百度开放云提供技术支持</span></p>
+  </div>
+</footer>
 </body>
 <script type="text/javascript">
 esl(['app'], function (app) {

@@ -33,6 +33,28 @@ define(function (require) {
         });
     }
 
+    function addDirectory() {
+        var name = prompt('请输入文件夹的名字：');
+        if (!name) {
+            return;
+        }
+        var opts = config.getOptions();
+        var bucketName = opts.bucketName;
+        var key = opts.prefix + name + '/';
+        var file = new Blob([]);
+
+        var client = Klient.createInstance();
+        helper.upload(bucketName, key, file, null, client)
+            .then(function () {
+            })
+            .catch(function (error) {
+                console.error(error);
+            })
+            .fin(function () {
+                fileList.refresh();
+            });
+    }
+
     function upload(file, callback) {
         var chunkCount = Math.ceil(file.size * 1.0 / config.kMinFileSize);
 
@@ -43,7 +65,9 @@ define(function (require) {
 
         var client = Klient.createInstance();
         var key = file.name;
-        var bucketName = $('#g_bucket').val();
+        var opts = config.getOptions();
+        var bucketName = opts.bucketName;
+        key = opts.prefix + key;
 
         client.on('bosprogress', function (evt) {
             if (evt.lengthComputable) {
@@ -99,6 +123,9 @@ define(function (require) {
         $('#file').on('change', handleFileSelect);
         $('#upload').on('click', function (e) {
             $('#file').click();
+        });
+        $('#addDirectory').on('click', function (e) {
+            addDirectory();
         });
         $('input[type=radio]').on('click', switchMode);
         $('legend.collapse').on('click', toggleLegend);

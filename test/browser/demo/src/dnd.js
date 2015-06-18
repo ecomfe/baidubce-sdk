@@ -29,11 +29,11 @@ define(function (require) {
 
     function onDragOver(e) {
         e.preventDefault();
-        $(this).css('background', 'yellow');
+        $(this).find('.overlay').removeClass('hide');
     }
 
     function onDragLeave(e) {
-        $(this).css('background', 'white');
+        $(this).find('.overlay').addClass('hide');
     }
 
     function onDropFiles(e) {

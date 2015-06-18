@@ -25,6 +25,16 @@ define(function (require) {
     // 超过了 5M 就需要分片上传（这个不是 BOS 的限制，而是我自己定义的逻辑）
     exports.kMinFileSize = 5 * 1024 * 1024;
 
+    exports.kWorkGroupMap = {
+        'group-0': '零号工作组',
+        'group-1': '一号工作组',
+        'group-2': '二号工作组',
+        'group-3': '三号工作组',
+        'group-4': '四号工作组',
+        'group-5': '五号工作组',
+        'group-6': '六号工作组'
+    };
+
     /**
      * @return {{bucket:string, prefix:string}}
      */

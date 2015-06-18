@@ -40,13 +40,47 @@ legend {
   cursor: pointer;
 }
 
+.container {
+  margin-bottom: 10px;
+}
+
+.hide {
+  display: none;
+}
+
+.crumb {
+  padding: 8px 15px;
+  box-shadow: 1px 1px 3px 1px #e5e8e3;
+}
+
 #dropzone {
-  border: 3px dashed #000;
-  padding: 15px 5px;
+  position: relative;
+  border: 1px solid #ddd;
 }
-#dropzone video {
-  display: block;
+#dropzone .overlay {
+  /*display: none;*/
+  font-weight: bold;
+  border: 2px dashed #333;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-content: center;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: rgba(255, 255, 255, .5);
 }
+#dropzone .msg {
+  width: 100%;
+  text-align: center;
+}
+
 
 /** file browser */
 .file-list {
@@ -93,4 +127,12 @@ legend {
 }
 .fa:hover {
   font-weight: bold;
+}
+
+footer p {
+  text-align: center;
+}
+footer p span {
+  background: url(./img/fi.ico) left center no-repeat;
+  padding-left: 20px;
 }
