@@ -160,7 +160,7 @@ define(function (require) {
         var client = Klient.createInstance();
         client.setBucketCannedAcl(bucketName, acl)
             .then(function (response) {
-                log.ok('设置成功');
+                log.ok('成功设置『' + bucketName + '』访问权限为『' + acl + '』');
             })
             .catch(function (error) {
                 log.fatal(JSON.stringify(error));

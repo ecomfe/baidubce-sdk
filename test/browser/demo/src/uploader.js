@@ -11,6 +11,7 @@ define(function (require) {
     var config = require('./config');
     var fileList = require('./file-list');
     var up = require('./upload_panel');
+    var log = require('./log');
 
     var exports = {};
 
@@ -48,9 +49,10 @@ define(function (require) {
         var client = Klient.createInstance();
         helper.upload(bucketName, key, file, null, client)
             .then(function () {
+                log.ok('文件夹『' + name + '』创建成功');
             })
             .catch(function (error) {
-                console.error(error);
+                log.fatal(JSON.stringify(error));
             })
             .fin(function () {
                 fileList.refresh();
@@ -88,6 +90,7 @@ define(function (require) {
             .catch(function (error) {
                 up.progress(uuid, 1);
                 callback(error);
+                log.fatal(JSON.stringify(error));
             })
             .fin(function () {
                 fileList.refresh();
