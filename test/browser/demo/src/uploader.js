@@ -41,12 +41,25 @@ define(function (require) {
         if (!name) {
             return;
         }
+
+        var client = Klient.createInstance();
+
         var opts = config.getOptions();
         var bucketName = opts.bucketName;
+        if (!bucketName) {
+            client.createBucket(name)
+                .then(function (response) {
+                    log.ok('文件夹『' + name + '』创建成功');
+                    fileList.refresh();
+                })
+                .catch(function (error) {
+                    log.fatal(JSON.stringify(error));
+                });
+            return;
+        }
         var key = opts.prefix + name + '/';
         var file = new Blob([]);
 
-        var client = Klient.createInstance();
         helper.upload(bucketName, key, file, null, client)
             .then(function () {
                 log.ok('文件夹『' + name + '』创建成功');

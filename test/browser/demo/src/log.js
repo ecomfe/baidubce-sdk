@@ -22,7 +22,7 @@ define(function (require) {
             + msg + '</div>');
         setTimeout(function () {
             $('.log').html('');
-        }, 2000);
+        }, 5000);
     }
 
     exports.ok = function (msg) {

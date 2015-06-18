@@ -12,9 +12,11 @@ define(function (require) {
         var opts = config.getOptions();
         var bucketName = opts.bucketName;
         if (!bucketName) {
+            $('#upload').attr('disabled', true);
             $('.crumb').html('<a href="#"><i class="fa fa-home"></i> 根目录</a>');
         }
         else {
+            $('#upload').attr('disabled', false);
             var paths = [];
             paths.push({
                 path: '#/' + bucketName,
