@@ -2,9 +2,9 @@
 <!-- for: ${rows} as ${row} -->
 <tr>
     <!-- if: ${row.is_dir} -->
-    <td><a href="#/${row.name}">${row.name|i18n}/</a></td>
+    <td><i class="fa fa-folder-o"></i> <a href="#/${row.name}">${row.name|i18n}/</a></td>
     <!-- else -->
-    <td>${row.name}</td>
+    <td><i class="fa ${row.name|fa_icon}"></i> ${row.name}</td>
     <!-- /if -->
     <td>&nbsp;</td>
     <td>文件夹</td>

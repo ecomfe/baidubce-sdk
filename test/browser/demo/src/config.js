@@ -35,6 +35,19 @@ define(function (require) {
         'group-6': '六号工作组'
     };
 
+    // file-${type}-o
+    exports.kType2Exts = {
+        excel: ['xls', 'xlsx'],
+        word: ['doc', 'docx'],
+        powerpoint: ['ppt', 'pptx'],
+        image: ['jpg', 'jpeg', 'gif', 'png'],
+        audio: ['wav', 'aac'],
+        archive: ['zip', 'tgz', 'tar', 'rar', 'tar.gz', 'gz', '7z'],
+        video: ['rm', 'rmvb', 'mp4', 'avi', 'flv', 'mpg', 'webm'],
+        pdf: ['pdf'],
+        code: ['js', 'css', 'html', 'htm', 'h', 'cpp', 'java', 'txt', 'cs', 'ts']
+    };
+
     /**
      * @return {{bucket:string, prefix:string}}
      */

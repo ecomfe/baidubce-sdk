@@ -100,12 +100,13 @@ legend {
   padding: 8px 15px;
   text-align: left;
 }
+/*
 .file-list tr .fa {
   display: none;
 }
 .file-list tr:hover .fa {
   display: inline-block;
-}
+}*/
 .file-list td {
   padding: 8px 15px;
   border-top: 1px solid #eaeff0;

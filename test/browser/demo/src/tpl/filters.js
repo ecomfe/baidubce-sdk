@@ -20,7 +20,16 @@ define(function (require) {
 
     var exports = {};
 
+    var kExts2Type = {};
+
     exports.init = function () {
+        for (var type in config.kType2Exts) {
+            var exts = config.kType2Exts[type];
+            for (var i = 0; i < exts.length; i ++) {
+                kExts2Type[exts[i]] = type;
+            }
+        }
+
         etpl.addFilter('relativeTime', function (source) {
             var timestamp = moment(source).unix();
             return humanize.relativeTime(timestamp);
@@ -30,6 +39,13 @@ define(function (require) {
         });
         etpl.addFilter('i18n', function (value) {
             return config.kWorkGroupMap[value] || value;
+        });
+        etpl.addFilter('fa_icon', function (value) {
+            var match = /\.([a-z0-9]+)$/i.exec(value);
+            if (match && match[1]) {
+                return ('fa-file-' + kExts2Type[match[1].toLowerCase()] + '-o') || 'fa-file';
+            }
+            return 'fa-file';
         });
     };
 
