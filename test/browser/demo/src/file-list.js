@@ -200,6 +200,7 @@ define(function (require) {
         $(window).on('hashchange', loadDirectory);
         $('.file-list').on('click', '.load-more button', loadMoreObjects);
         $('.file-list').on('click', '.fa-trash-o', deleteObjects);
+        $('#refreshList').click(loadDirectory);
         $(document).on('click', '.dropdown-menu li[data-acl]', setBucketAccess);
     };
 

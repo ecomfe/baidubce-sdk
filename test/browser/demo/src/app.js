@@ -30,12 +30,6 @@ define(function (require) {
             $('.warning').show();
         }
 
-        var appcfg = config.get();
-        var credentials = appcfg.bos.credentials;
-        if (!credentials.ak || !credentials.sk) {
-            pref.show();
-        }
-
         _filters.init();
         uploader.init();
         fileList.init();
@@ -45,6 +39,12 @@ define(function (require) {
         crumb.init();
         up.init();
         pref.init();
+
+        var appcfg = config.get();
+        var credentials = appcfg.bos.credentials;
+        if (!credentials.ak || !credentials.sk) {
+            pref.show();
+        }
     };
 
     return exports;
