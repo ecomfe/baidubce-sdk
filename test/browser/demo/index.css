@@ -117,8 +117,30 @@ legend {
   text-align: center;
 }
 
+.file-list .dropdown {
+  display: inline-block;
+}
+
 .file-list .dropdown-menu > li > a {
   font-size: 12px;
+}
+
+.file-list .fa-lock,
+.file-list .fa-unlock,
+.file-list .fa-unlock-alt {
+  width: 12px;
+}
+
+.private {
+  color: rgb(213, 64, 64);
+}
+
+.public-read-write {
+  color: green;
+}
+
+.public-read {
+  color: blue;
 }
 
 .log {

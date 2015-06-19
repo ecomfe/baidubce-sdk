@@ -8,7 +8,13 @@
     <!-- /if -->
     <td>
         <div class="dropdown">
-            <i class="fa fa-chevron-circle-down" data-toggle="dropdown"></i>
+            <!-- if: ${row.acl} === 'public-read-write' -->
+            <i class="fa fa-unlock public-read-write" title="公共（读写）" data-toggle="dropdown"></i>
+            <!-- elif: ${row.acl} === 'public-read' -->
+            <i class="fa fa-unlock-alt public-read" title="公共（只读）" data-toggle="dropdown"></i>
+            <!-- else: -->
+            <i class="fa fa-lock private" title="私有" data-toggle="dropdown"></i>
+            <!-- /if -->
             <ul class="dropdown-menu" data-bucket-name="${row.name}">
                 <li class="dropdown-header">设置访问权限</li>
                 <li data-acl="private"><a href="javascript:void(0)">私有</a></li>

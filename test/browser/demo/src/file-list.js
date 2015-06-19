@@ -19,9 +19,12 @@ define(function (require) {
     require('etpl/tpl!./tpl/list-objects.tpl');
 
     var etpl = require('etpl');
+    var sdk = require('baidubce-sdk');
     var u = require('underscore');
+    var async = require('async');
 
     var log = require('./log');
+    var acl = require('./acl');
     var config = require('./config');
     var Klient = require('./client');
     var kPageCount = 10;
@@ -95,14 +98,31 @@ define(function (require) {
         // listBuckets
         client.listBuckets()
             .then(function (res) {
-                var buckets = res.body.buckets;
-                u.each(buckets, function (item) {
-                    item.is_dir = true;
-                });
-                renderBody('TPL_list_buckets', {rows: buckets});
-
                 var button = $('.file-list tfoot button');
                 button.parents('tfoot').hide();
+
+                var buckets = res.body.buckets;
+                var deferred = sdk.Q.defer();
+                async.mapLimit(buckets, 2,
+                    function (bucket, callback) {
+                        bucket.is_dir = true;
+                        client.getBucketAcl(bucket.name)
+                            .then(function (res) {
+                                bucket.acl = acl.getAcl(res.body.accessControlList);
+                                callback(null, bucket);
+                            })
+                            .catch(function (err) {
+                                callback(null, bucket);
+                            });
+                    },
+                    function (_, results) {
+                        deferred.resolve(results);
+                    });
+
+                return deferred.promise;
+            })
+            .then(function (buckets) {
+                renderBody('TPL_list_buckets', {rows: buckets});
             })
             .fin(function () {
                 working = false;
@@ -161,6 +181,7 @@ define(function (require) {
         client.setBucketCannedAcl(bucketName, acl)
             .then(function (response) {
                 log.ok('成功设置『' + bucketName + '』访问权限为『' + acl + '』');
+                loadDirectory();
             })
             .catch(function (error) {
                 log.fatal(JSON.stringify(error));
