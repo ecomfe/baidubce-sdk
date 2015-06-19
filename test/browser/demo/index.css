@@ -171,6 +171,7 @@ legend {
   width: 500px;
   height: 300px;
   position: fixed;
+  z-index: 500;
   bottom: 0;
   right: 0;
   border: 1px solid #ddd;

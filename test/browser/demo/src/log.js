@@ -41,6 +41,10 @@ define(function (require) {
         log(msg, 'danger');
     };
 
+    exports.exception = function (error) {
+        exports.fatal(JSON.stringify(error));
+    };
+
     return exports;
 });
 

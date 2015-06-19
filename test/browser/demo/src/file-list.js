@@ -124,6 +124,9 @@ define(function (require) {
             .then(function (buckets) {
                 renderBody('TPL_list_buckets', {rows: buckets});
             })
+            .catch(function (error) {
+                log.exception(error);
+            })
             .fin(function () {
                 working = false;
             });
@@ -184,7 +187,7 @@ define(function (require) {
                 loadDirectory();
             })
             .catch(function (error) {
-                log.fatal(JSON.stringify(error));
+                log.exception(error);
             });
     }
 

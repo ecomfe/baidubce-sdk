@@ -15,6 +15,8 @@
  */
 
 define(function (require) {
+    var store = require('store');
+
     var exports = {};
 
     // 分片上传的时候，并行的请求数目（带宽有限的情况下，太多了也没啥用）
@@ -68,8 +70,8 @@ define(function (require) {
         var config = {
             bos: {
                 credentials: {
-                    ak: $('#g_ak').val(),
-                    sk: $('#g_sk').val()
+                    ak: store.get('ak') || '',
+                    sk: store.get('sk') || ''
                 },
                 endpoint: $('#g_host').val()
             },

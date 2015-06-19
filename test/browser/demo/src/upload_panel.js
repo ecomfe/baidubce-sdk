@@ -51,15 +51,15 @@ define(function (require) {
     };
 
     exports.init = function () {
-      $('.upload-panel .fa-close').on('click', exports.hide);
+        $('.upload-panel .fa-close').on('click', exports.hide);
     };
 
     exports.show = function () {
-      $('.upload-panel').show('slow');
+        $('.upload-panel').show('slow');
     };
 
     exports.hide = function () {
-      $('.upload-panel').hide('slow');
+        $('.upload-panel').hide('slow');
     };
 
     return exports;

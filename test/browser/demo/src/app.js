@@ -12,6 +12,8 @@ define(function (require) {
     var video = require('./video');
     var crumb = require('./crumb');
     var up = require('./upload_panel');
+    var pref = require('./pref');
+    var config = require('./config');
 
     var exports = {};
 
@@ -27,6 +29,13 @@ define(function (require) {
         if (!isSupportedFileAPI()) {
             $('.warning').show();
         }
+
+        var appcfg = config.get();
+        var credentials = appcfg.bos.credentials;
+        if (!credentials.ak || !credentials.sk) {
+            pref.show();
+        }
+
         _filters.init();
         uploader.init();
         fileList.init();
@@ -35,6 +44,7 @@ define(function (require) {
         video.init();
         crumb.init();
         up.init();
+        pref.init();
     };
 
     return exports;

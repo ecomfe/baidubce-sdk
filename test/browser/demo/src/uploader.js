@@ -21,17 +21,11 @@ define(function (require) {
             return false;
         }
 
-        $('#g_time').val('0s');
-        var startTime = new Date().getTime();
         up.show();
         var items = up.addFiles(files);
         async.eachLimit(items, 1, upload, function (err) {
-            if (!err) {
-                var endTime = new Date().getTime();
-                $('#g_time').html(((endTime - startTime) / 1000) + 's');
-            }
-            else {
-                console.error(err);
+            if (err) {
+                log.exception(err);
             }
         });
     }
@@ -53,7 +47,7 @@ define(function (require) {
                     fileList.refresh();
                 })
                 .catch(function (error) {
-                    log.fatal(JSON.stringify(error));
+                    log.exception(error);
                 });
             return;
         }
@@ -65,7 +59,7 @@ define(function (require) {
                 log.ok('文件夹『' + name + '』创建成功');
             })
             .catch(function (error) {
-                log.fatal(JSON.stringify(error));
+                log.exception(error);
             })
             .fin(function () {
                 fileList.refresh();
@@ -79,8 +73,6 @@ define(function (require) {
 
         $('#g_file_size').val(file.size);
         $('#g_chunk_count').val(chunkCount);
-        $('#g_progress').val(0);
-        $('#g_url').html('-');
 
         var client = Klient.createInstance();
         var key = file.name;
@@ -91,19 +83,17 @@ define(function (require) {
         client.on('bosprogress', function (evt) {
             if (evt.lengthComputable) {
                 up.progress(uuid, evt.loaded / evt.total);
-                // $('#g_progress').val(evt.loaded / evt.total);
             }
         });
         helper.upload(bucketName, key, file, null, client)
             .then(function () {
                 up.progress(uuid, 1);
-                var url = client.generatePresignedUrl(bucketName, key);
-                $('#g_url').html('<a href="' + url + '" target="_blank">下载地址</a>');
+                // var url = client.generatePresignedUrl(bucketName, key);
             })
             .catch(function (error) {
                 up.progress(uuid, 1);
                 callback(error);
-                log.fatal(JSON.stringify(error));
+                log.exception(error);
             })
             .fin(function () {
                 fileList.refresh();

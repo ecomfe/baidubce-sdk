@@ -38,7 +38,7 @@ define(function (require) {
 
             var html = [];
             var l = paths.length;
-            for (var i = 0; i < l; i ++) {
+            for (i = 0; i < l; i ++) {
                 var item = paths[i];
                 if ((i + 1) === l) {
                     html.push('<strong>' + item.text + '</strong>');

@@ -1,0 +1,21 @@
+{
+    "name": "store",
+    "description": "A localStorage wrapper for all browsers without using cookies or flash. Uses localStorage, globalStorage, and userData behavior under the hood",
+    "version": "1.3.9",
+    "main": "store",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/ecomfe/dep-store.git"
+    },
+    "maintainers": [
+        {
+            "name": "Firede",
+            "email": "firede@firede.us"
+        }
+    ],
+    "license": "MIT",
+    "readmeFilename": "README.md",
+    "bugs": {
+        "url": "https://github.com/ecomfe/dep-lodash/issues"
+    }
+}
