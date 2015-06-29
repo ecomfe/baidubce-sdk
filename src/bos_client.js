@@ -66,7 +66,7 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
         '/v1',
         bucketName || '',
         key || ''
-    ));
+    )).replace(/\\/g, '/');
 
     headers = headers || {};
     headers.Host = require('url').parse(config.endpoint).host;
@@ -540,7 +540,7 @@ BosClient.prototype._sendRequest = function (httpMethod, varArgs) {
         '/v1',
         args.bucketName || '',
         args.key || ''
-    ));
+    )).replace(/\\/g, '/');
 
     var client = this;
     var agent = this._httpAgent = new HttpClient(config);

@@ -25,6 +25,7 @@ var EventEmitter = require('events').EventEmitter;
 
 var u = require('underscore');
 var Q = require('q');
+var debug = require('debug')('HttpClient');
 
 var H = require('./headers');
 
@@ -108,11 +109,13 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
                 if (xbceDate) {
                     headers[H.X_BCE_DATE] = xbceDate;
                 }
+                debug('options = %j', options);
                 return client._doRequest(options, body, outputStream);
             });
         }
-        else if (util.isString(promise)) {
+        else if (typeof promise === 'string'){
             headers[H.AUTHORIZATION] = promise;
+            debug('options = %j', options);
         }
         else {
             throw new Error('Invalid signature = (' + promise + ')');
