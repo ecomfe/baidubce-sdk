@@ -21,6 +21,13 @@ module.exports = {
     'account': {
         'id': '04e0d2c9e8ef478c951b97714c092f77',
         'displayName': 'PASSPORT:105016607'
+    },
+    'bcc': {
+        'endpoint': 'http://bcc.bce-api.baidu.com',
+        'credentials': {
+            'ak': '97559b0876464e6989e628edeb892e8f',
+            'sk': '3e3b467ab329490a9cac428fe3f60b48'
+        }
     }
     // 'endpoint': 'http://localhost:8828',
 };
