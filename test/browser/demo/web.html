@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>百度开放云</title>
+    <link rel="icon" type="image/x-icon" href="./img/fi.ico">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="src/web.js"></script>
+</head>
+<body>
+    <div id="uploader"></div>
+</body>
+<script type="text/javascript">
+(function () {
+
+var client = new BosWebClient({
+    credentials: {
+        ak: '4c60a1d7c5c846c79bff4f304240c581',
+        sk: '42bb4f0b2f274b7eb0b544156a50e564'
+    },
+    relayUrl: 'http://172.18.19.22:8964/sdk.html?ed=10.105.97.15',
+    endpoint: 'http://172.18.19.22:8964'
+});
+
+client.on('ready', function (data) {
+    console.log(data);
+});
+client.on('uploadSuccess', function (data) {
+    console.log(data);
+});
+client.on('uploadFailure', function (data) {
+    console.log(data);
+});
+client.on('fileChange', function (data) {
+    console.log(data);
+    client.setBucketName('explorer');
+    client.setObjectName('/sdf/df/df.gif');
+    client.upload();
+});
+
+client.init($('#uploader'));
+
+})();
+</script>
+</html>
