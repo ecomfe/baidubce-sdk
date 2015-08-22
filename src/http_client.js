@@ -101,6 +101,11 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     var client = this;
     options.method = httpMethod;
     options.headers = headers;
+
+    // 通过browserify打包后，在Safari下并不能有效处理server的content-type
+    // 参考ISSUE：https://github.com/jhiesey/stream-http/issues/8
+    options.mode = 'prefer-fast';
+
     if (typeof signFunction === 'function') {
         var promise = signFunction(this.config.credentials, httpMethod, path, params, headers);
         if (isPromise(promise)) {
