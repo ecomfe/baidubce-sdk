@@ -194,4 +194,9 @@ $('files').on('change', function (evt) {
 ```
 ### Others
 
-More api usages please refer [test/bos_client.spec.js](test/bos_client.spec.js)
+More api usages please refer
+
+* [test/bos_client.spec.js](test/bos_client.spec.js)
+* [test/bcs_client.spec.js](test/bcs_client.spec.js)
+* [test/bcc_client.spec.js](test/bcc_client.spec.js)
+
