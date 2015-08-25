@@ -31,7 +31,7 @@ exports.md5sum = function (data, enc, digest) {
     return md5.digest(digest || 'base64');
 };
 
-exports.md5stream = function (stream) {
+exports.md5stream = function (stream, digest) {
     var deferred = Q.defer();
 
     var md5 = require('crypto').createHash('md5');
@@ -39,14 +39,14 @@ exports.md5stream = function (stream) {
         md5.update(chunk);
     });
     stream.on('end', function () {
-        deferred.resolve(md5.digest('base64'));
+        deferred.resolve(md5.digest(digest || 'base64'));
     });
 
     return deferred.promise;
 };
 
-exports.md5file = function (filename) {
-    return exports.md5stream(fs.createReadStream(filename));
+exports.md5file = function (filename, digest) {
+    return exports.md5stream(fs.createReadStream(filename), digest);
 };
 
 

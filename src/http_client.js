@@ -66,6 +66,7 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     signFunction, outputStream) {
 
     var requestUrl = this._getRequestUrl(path, params);
+    debug('httpMethod = %s, requestUrl = %s', httpMethod, requestUrl);
     var options = require('url').parse(requestUrl);
 
     // Prepare the request headers.
@@ -105,6 +106,11 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     // 通过browserify打包后，在Safari下并不能有效处理server的content-type
     // 参考ISSUE：https://github.com/jhiesey/stream-http/issues/8
     options.mode = 'prefer-fast';
+
+    // rejectUnauthorized: If true, the server certificate is verified against the list of supplied CAs.
+    // An 'error' event is emitted if verification fails.
+    // Verification happens at the connection level, before the HTTP request is sent.
+    options.rejectUnauthorized = false;
 
     if (typeof signFunction === 'function') {
         var promise = signFunction(this.config.credentials, httpMethod, path, params, headers);
@@ -334,11 +340,15 @@ HttpClient.prototype._sendRequest = function (req, data) {
     }
 };
 
+HttpClient.prototype.buildQueryString = function (params) {
+    return require('querystring').stringify(params);
+};
+
 HttpClient.prototype._getRequestUrl = function (path, params) {
     var uri = encodeURI(path);
-    var queryString = require('querystring').encode(params);
-    if (queryString) {
-        uri += '?' + queryString;
+    var qs = this.buildQueryString(params);
+    if (qs) {
+        uri += '?' + qs;
     }
 
     return this.config.endpoint + uri;

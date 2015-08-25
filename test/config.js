@@ -28,6 +28,13 @@ module.exports = {
             'ak': '97559b0876464e6989e628edeb892e8f',
             'sk': '3e3b467ab329490a9cac428fe3f60b48'
         }
+    },
+    'bcs': {
+        'endpoint': 'https://bs.baidu.com',
+        'credentials': {
+            'ak': process.env.BCS_AK,
+            'sk': process.env.BCS_SK
+        }
     }
     // 'endpoint': 'http://localhost:8828',
 };
