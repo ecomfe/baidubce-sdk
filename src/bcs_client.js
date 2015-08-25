@@ -257,7 +257,7 @@ BcsClient.prototype._sendRequest = function (httpMethod, varArgs) {
         resource += args.bucketName;
     }
     if (args.key) {
-        resource += '/' + encodeURIComponent(args.key);
+        resource += '/' + args.key;
     }
 
     var signature = this.createSignature(config.credentials,

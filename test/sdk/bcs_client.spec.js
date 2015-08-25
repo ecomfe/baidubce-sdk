@@ -38,6 +38,21 @@ describe('BcsClient', function () {
         client.deleteBucket('bcs-client-testcase').fin(done);
     });
 
+    it('putObjectFromString', function (done) {
+        var bucket = 'adtest';
+        var object = 'this/is/the/path/a.txt';
+        client.putObjectFromString(bucket, object, 'Hello world')
+            .then(function (response) {
+                expect(response.http_headers['etag']).toEqual('3e25960a79dbc69b674cd4ec67a72c62');
+                return client.deleteObject(bucket, object);
+            })
+            .then(function (response) {
+                expect(response.body).toEqual({});
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
     it('createBucket', function (done) {
         var bucket = 'bcs-client-testcase';
         var object = 'a.txt';
