@@ -11,13 +11,20 @@
  * specific language governing permissions and limitations under the License.
  */
 
+var fs = require('fs');
+var url = require('url');
+var path = require('path');
 var http = require('http');
+
 var httpProxy = require('http-proxy');
 
 // 10.32.249.237   qasandbox.bcetest.baidu.com
 // 10.107.37.49    rdsandbox.bcetest.baidu.com
-var kDefaultTarget = 'http://10.105.97.15';
-var kDefaultHost = '10.105.97.15';
+// var kDefaultTarget = 'http://10.105.97.15';
+// var kDefaultHost = '10.105.97.15';
+var kDefaultTarget = 'http://bs.baidu.com';
+var kDefaultHost = 'bs.baidu.com';
+var kWebRoot = '/Users/leeight/hd/local/case/inf/bos/baidubce-sdk/test/browser/demo';
 
 var proxy = httpProxy.createProxyServer({});
 proxy.on('proxyReq', function (proxyReq, req, res, options) {
@@ -31,15 +38,18 @@ proxy.on('error', function (e) {
 
 console.log("Listening on port 8964")
 http.createServer(function (req, res) {
-    console.log(req.url);
-
     var target = kDefaultTarget;
     var host = kDefaultHost;
 
-    if (!/^\/v1/.test(req.url)) {
+    var pathname = url.parse(req.url).pathname;
+    if (req.method === 'GET'
+        && req.url.indexOf('sign=') === -1
+        && fs.existsSync(path.join(kWebRoot, pathname))) {
         target = 'http://127.0.0.1:8080';
         host = '127.0.0.1:8080';
     }
+
+    console.log('[%s] %s%s', req.method, target, req.url);
 
     proxy.web(req, res, {
         target: target,

@@ -69,6 +69,43 @@ BcsClient.prototype.createBucket = function (bucketName, options) {
     });
 };
 
+BcsClient.prototype.setBucketAcl = function (bucketName, acl, options) {
+    options = options || {};
+
+    var headers = {};
+    headers[H.CONTENT_TYPE] = 'application/json; charset=UTF-8';
+    return this._sendRequest('PUT', {
+        bucketName: bucketName,
+        body: JSON.stringify({accessControlList: acl}),
+        headers: headers,
+        params: {acl: ''},
+        config: options.config
+    });
+};
+
+BcsClient.prototype.setBucketCannedAcl = function (bucketName, cannedAcl, options) {
+    options = options || {};
+
+    var headers = {};
+    headers[H.X_BCE_ACL] = cannedAcl;
+    return this._sendRequest('PUT', {
+        bucketName: bucketName,
+        headers: headers,
+        params: {acl: ''},
+        config: options.config
+    });
+};
+
+BcsClient.prototype.getBucketAcl = function (bucketName, options) {
+    options = options || {};
+
+    return this._sendRequest('GET', {
+        bucketName: bucketName,
+        params: {acl: '1'},
+        config: options.config
+    });
+};
+
 BcsClient.prototype.deleteBucket = function (bucketName, options) {
     options = options || {};
 

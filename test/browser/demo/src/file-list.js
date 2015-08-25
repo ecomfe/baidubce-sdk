@@ -17,6 +17,8 @@
 define(function (require) {
     require('etpl/tpl!./tpl/list-buckets.tpl');
     require('etpl/tpl!./tpl/list-objects.tpl');
+    require('etpl/tpl!./tpl/list-bcs-buckets.tpl');
+    require('etpl/tpl!./tpl/list-bcs-objects.tpl');
 
     var etpl = require('etpl');
     var sdk = require('baidubce-sdk');
@@ -76,9 +78,23 @@ define(function (require) {
             if (bucketName) {
                 client.listObjects(bucketName, options)
                     .then(function (res) {
-                        stripPrefix(res);
-                        renderBody('TPL_list_objects', res.body);
                         var button = $('.file-list tfoot button');
+
+                        if (res.body.object_list) {
+                            renderBody('TPL_list_bcs_objects', res.body);
+                            res.body.isTruncated = (res.body.object_total >= res.body.limit);
+                            if (res.body.isTruncated) {
+                                var start = parseInt(button.data('next-marker'), 10);
+                                if (isNaN(start)) {
+                                    start = 0;
+                                }
+                                res.body.nextMarker = start + res.body.object_total;
+                            }
+                        }
+                        else {
+                            stripPrefix(res);
+                            renderBody('TPL_list_objects', res.body);
+                        }
                         if (res.body.isTruncated) {
                             button.parents('tfoot').show();
                             button.data('next-marker', res.body.nextMarker);
@@ -86,6 +102,9 @@ define(function (require) {
                         else {
                             button.parents('tfoot').hide();
                         }
+                    })
+                    .catch(function (error) {
+                        log.exception(error);
                     })
                     .fin(function () {
                         working = false;
@@ -101,28 +120,39 @@ define(function (require) {
                 var button = $('.file-list tfoot button');
                 button.parents('tfoot').hide();
 
-                var buckets = res.body.buckets;
+                var tpl = null;
+                var buckets = null;
                 var deferred = sdk.Q.defer();
-                async.mapLimit(buckets, 2,
-                    function (bucket, callback) {
-                        bucket.is_dir = true;
-                        client.getBucketAcl(bucket.name)
-                            .then(function (res) {
-                                bucket.acl = acl.getAcl(res.body.accessControlList);
-                                callback(null, bucket);
-                            })
-                            .catch(function (err) {
-                                callback(null, bucket);
-                            });
-                    },
-                    function (_, results) {
-                        deferred.resolve(results);
-                    });
+
+                if (u.isArray(res.body)) {
+                    tpl = 'TPL_list_bcs_buckets';
+                    buckets = res.body;
+                    deferred.resolve({tpl: tpl, buckets: buckets});
+                }
+                else {
+                    tpl = 'TPL_list_buckets';
+                    buckets = res.body.buckets;
+                    async.mapLimit(buckets, 2,
+                        function (bucket, callback) {
+                            bucket.is_dir = true;
+                            client.getBucketAcl(bucket.name)
+                                .then(function (res) {
+                                    bucket.acl = acl.getAcl(res.body.accessControlList);
+                                    callback(null, bucket);
+                                })
+                                .catch(function (err) {
+                                    callback(null, bucket);
+                                });
+                        },
+                        function (_, results) {
+                            deferred.resolve({tpl: tpl, buckets: results});
+                        });
+                }
 
                 return deferred.promise;
             })
-            .then(function (buckets) {
-                renderBody('TPL_list_buckets', {rows: buckets});
+            .then(function (rv) {
+                renderBody(rv.tpl, {rows: rv.buckets});
             })
             .catch(function (error) {
                 log.exception(error);
@@ -141,25 +171,46 @@ define(function (require) {
         var options = getOptions();
         var bucketName = options.bucketName;
         delete options.bucketName;
-        options.marker = nextMarker;
+        if (u.isNumber(parseInt(nextMarker, 10))) {
+            // bcs 用 start
+            options.start = nextMarker;
+        }
+        else {
+            // bos 用 marker
+            options.marker = nextMarker;
+        }
         if (bucketName) {
             var client = Klient.createInstance();
             client.listObjects(bucketName, options)
                 .then(function (res) {
-                    if (res.body.contents.length
+                    var html;
+                    if (res.body.object_list) {
+                        html = etpl.render('TPL_list_bcs_objects', res.body);
+                        res.body.isTruncated = (res.body.object_total >= res.body.limit);
+                        if (res.body.isTruncated) {
+                            var start = parseInt(button.data('next-marker'), 10);
+                            if (isNaN(start)) {
+                                start = 0;
+                            }
+                            res.body.nextMarker = start + res.body.object_total;
+                        }
+                    }
+                    else if (res.body.contents.length
                         || res.body.commonPrefixes.length) {
                         stripPrefix(res);
-                        var html = etpl.render('TPL_list_objects', res.body);
+                        html = etpl.render('TPL_list_objects', res.body);
+                    }
+
+                    if (html) {
                         $('.file-list tbody').append(html);
                     }
 
-                    if (!res.body.isTruncated) {
-                        // 隐藏按钮
-                        button.parents('tfoot').hide();
+                    if (res.body.isTruncated) {
+                        button.parents('tfoot').show();
+                        button.data('next-marker', res.body.nextMarker);
                     }
                     else {
-                        // 有内容 并且 isTruncated === true
-                        button.data('next-marker', res.body.nextMarker);
+                        button.parents('tfoot').hide();
                     }
                 });
         }

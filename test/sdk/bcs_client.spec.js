@@ -61,6 +61,34 @@ describe('BcsClient', function () {
             .fin(done);
     });
 
+    it('getBucketAcl', function (done) {
+        var bucket = 'bcs-client-testcase';
+        client.createBucket(bucket)
+            .then(function (response) {
+                return client.getBucketAcl(bucket);
+            })
+            .then(function (response) {
+                expect(response.body).toEqual({
+                    "statements": [
+                        {
+                            "action": [
+                                "*"
+                            ],
+                            "effect": "allow",
+                            "resource": [
+                                "bcs-client-testcase/"
+                            ],
+                            "user": [
+                                "liyubei"
+                            ]
+                        }
+                    ]
+                });
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
     it('listObjects with pagination', function (done) {
         var bucket = 'bcs-client-testcase';
         client.createBucket(bucket)

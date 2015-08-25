@@ -75,6 +75,13 @@ define(function (require) {
                 },
                 endpoint: $('#g_host').val()
             },
+            bcs: {
+                credentials: {
+                    ak: store.get('ak') || '',
+                    sk: store.get('sk') || ''
+                },
+                endpoint: $('#g_host').val()
+            },
             ss_url: $('#g_ss_url').val(),
             mode: $('input[type=radio]:checked').val()
         };

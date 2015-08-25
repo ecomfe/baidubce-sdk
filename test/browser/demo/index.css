@@ -90,6 +90,10 @@ legend {
   width: 100%;
   table-layout: fixed;
 }
+.file-list .progress {
+  height: 10px;
+  margin-bottom: 0;
+}
 .file-list thead {
   background-color: #f6f8f8;
   border-radius: 2px 2px 0 0;
@@ -129,6 +133,10 @@ legend {
 .file-list .fa-unlock,
 .file-list .fa-unlock-alt {
   width: 12px;
+}
+
+.file-list .bucket-usage {
+  vertical-align: middle;
 }
 
 .private {

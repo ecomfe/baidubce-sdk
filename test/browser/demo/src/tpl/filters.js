@@ -30,8 +30,8 @@ define(function (require) {
             }
         }
 
-        etpl.addFilter('relativeTime', function (source) {
-            var timestamp = moment(source).unix();
+        etpl.addFilter('relativeTime', function (source, raw) {
+            var timestamp = raw ? source : moment(source).unix();
             return humanize.relativeTime(timestamp);
         });
         etpl.addFilter('filesize', function (source) {

@@ -23,6 +23,12 @@ define(function (require) {
 
     exports.createInstance = function () {
         var appcfg = config.get();
+        if (location.host === 'bs.baidu.com'
+            || /\benv=bcs\b/.test(location.search)) {
+            var client = new sdk.BcsClient(appcfg.bcs);
+            return client;
+        }
+
         var client = new sdk.BosClient(appcfg.bos);
 
         if (appcfg.mode === 'very-easy') {
