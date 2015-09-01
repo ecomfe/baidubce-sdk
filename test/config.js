@@ -35,6 +35,14 @@ module.exports = {
             'ak': process.env.BCS_AK,
             'sk': process.env.BCS_SK
         }
+    },
+    'face': {
+        // 'endpoint': 'http://face.bj.baidubce.com/v1',
+        'endpoint': 'http://nmg02-bce-test15.nmg02.baidu.com:8750/v1'
+        'credentials': {
+            'ak': process.env.FACE_AK,
+            'sk': process.env.FACE_SK
+        }
     }
     // 'endpoint': 'http://localhost:8828',
 };
