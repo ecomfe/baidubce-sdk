@@ -2,6 +2,14 @@
 
 Baidu Cloud Engine Node.js SDK
 
+1. BS (Baidu Cloud Storage)
+2. BOS (Baidu Object Storage)
+3. BCC (Baidu Cloud Compute)
+4. BFR (Baidu Face Recognition)
+5. Media
+
+<http://bce.baidu.com/index.html>
+
 ## Install
 
 ```
@@ -199,4 +207,5 @@ More api usages please refer
 * [test/bos_client.spec.js](test/bos_client.spec.js)
 * [test/bcs_client.spec.js](test/bcs_client.spec.js)
 * [test/bcc_client.spec.js](test/bcc_client.spec.js)
+* [test/face_client.spec.js](test/face_client.spec.js)
 
