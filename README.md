@@ -204,8 +204,8 @@ $('files').on('change', function (evt) {
 
 More api usages please refer
 
-* [test/bos_client.spec.js](test/bos_client.spec.js)
-* [test/bcs_client.spec.js](test/bcs_client.spec.js)
-* [test/bcc_client.spec.js](test/bcc_client.spec.js)
-* [test/face_client.spec.js](test/face_client.spec.js)
+* [test/sdk/bos_client.spec.js](test/sdk/bos_client.spec.js)
+* [test/sdk/bcs_client.spec.js](test/sdk/bcs_client.spec.js)
+* [test/sdk/bcc_client.spec.js](test/sdk/bcc_client.spec.js)
+* [test/sdk/face_client.spec.js](test/sdk/face_client.spec.js)
 
