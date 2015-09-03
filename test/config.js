@@ -37,8 +37,8 @@ module.exports = {
         }
     },
     'face': {
-        // 'endpoint': 'http://face.bj.baidubce.com/v1',
-        'endpoint': 'http://nmg02-bce-test15.nmg02.baidu.com:8750/v1'
+        // 'endpoint': 'http://face.bj.baidubce.com',
+        'endpoint': 'http://nmg02-bce-test15.nmg02.baidu.com:8750',
         'credentials': {
             'ak': process.env.FACE_AK,
             'sk': process.env.FACE_SK

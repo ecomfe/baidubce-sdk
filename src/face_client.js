@@ -20,8 +20,11 @@
 var util = require('util');
 
 var u = require('underscore');
+var Q = require('q');
+var debug = require('debug')('FaceClient');
 
 var H = require('./headers');
+var Auth = require('./auth');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
 
@@ -115,6 +118,8 @@ FaceClient.prototype.createPerson = function (appId, groupName, personName, face
         };
     });
 
+    debug('Create Person Faces = %j', faces);
+
     var url = '/v1/app/' + appId + '/person';
     return this._sendRequest('POST', url, {
         body: JSON.stringify({
@@ -130,12 +135,12 @@ FaceClient.prototype.deletePerson = function (appId, personName, options) {
     options = options || {};
 
     var url = '/v1/app/' + appId + '/person/' + personName;
-    return this._sendRequest('GET', url, {
+    return this._sendRequest('DELETE', url, {
         config: options.config
     });
 };
 
-FaceClient.prototype.deletePerson = function (appId, personName, faces, options) {
+FaceClient.prototype.updatePerson = function (appId, personName, faces, options) {
     options = options || {};
 
     faces = faces.map(function (item) {
@@ -215,6 +220,13 @@ FaceClient.prototype.verify = function (appId, personName, data, options) {
         params: {verify: ''},
         body: JSON.stringify(body),
         config: options.config
+    });
+};
+
+FaceClient.prototype.createSignature = function (credentials, httpMethod, path, params, headers) {
+    return Q.fcall(function () {
+        var auth = new Auth(credentials.ak, credentials.sk);
+        return auth.generateAuthorization(httpMethod, path, params, headers);
     });
 };
 
@@ -304,6 +316,7 @@ FaceClient.prototype._prepareObjectHeaders = function (options) {
 
     return headers;
 };
+
 
 module.exports = FaceClient;
 
