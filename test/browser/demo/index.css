@@ -222,6 +222,12 @@ legend {
   font-weight: bold;
 }
 
+/* 人脸识别 group list */
+.dropdown-menu .fa.fa-times-circle {
+  float: right;
+  margin-top: 3px;
+}
+
 footer p {
   text-align: center;
 }

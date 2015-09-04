@@ -21,6 +21,20 @@ define(function (require) {
 
     var config = require('./config');
 
+    exports.createFaceClient = function () {
+        var appcfg = config.get();
+        var client = new sdk.FaceClient(appcfg.face);
+        client.createSignature = function (credentials, httpMethod, path, params, headers) {
+            // 修复 Host 的内容
+            if (credentials.host) {
+                headers.Host = credentials.host;
+            }
+            var auth = new sdk.Auth(credentials.ak, credentials.sk);
+            return auth.generateAuthorization(httpMethod, path, params, headers);
+        };
+        return client;
+    };
+
     exports.createInstance = function () {
         var appcfg = config.get();
         if (location.host === 'bs.baidu.com'

@@ -20,10 +20,10 @@ var httpProxy = require('http-proxy');
 
 // 10.32.249.237   qasandbox.bcetest.baidu.com
 // 10.107.37.49    rdsandbox.bcetest.baidu.com
-// var kDefaultTarget = 'http://10.105.97.15';
-// var kDefaultHost = '10.105.97.15';
-var kDefaultTarget = 'http://bs.baidu.com';
-var kDefaultHost = 'bs.baidu.com';
+var kDefaultTarget = 'http://10.105.97.15';
+var kDefaultHost = '10.105.97.15';
+// var kDefaultTarget = 'http://bs.baidu.com';
+// var kDefaultHost = 'bs.baidu.com';
 var kWebRoot = '/Users/leeight/hd/local/case/inf/bos/baidubce-sdk/test/browser/demo';
 
 var proxy = httpProxy.createProxyServer({});
@@ -42,7 +42,13 @@ http.createServer(function (req, res) {
     var host = kDefaultHost;
 
     var pathname = url.parse(req.url).pathname;
-    if (req.method === 'GET'
+    // /-/
+    if (/^\/-\//.test(req.url)) {
+        host = req.url.split('/')[2];
+        target = 'http://' + host;
+        req.url = '/' + req.url.split('/').slice(3).join('/');
+    }
+    else if (req.method === 'GET'
         && req.url.indexOf('sign=') === -1
         && fs.existsSync(path.join(kWebRoot, pathname))) {
         target = 'http://127.0.0.1:8080';

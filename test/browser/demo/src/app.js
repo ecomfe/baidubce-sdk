@@ -13,6 +13,7 @@ define(function (require) {
     var crumb = require('./crumb');
     var up = require('./upload_panel');
     var pref = require('./pref');
+    var face = require('./face');
     var config = require('./config');
 
     var exports = {};
@@ -39,6 +40,7 @@ define(function (require) {
         crumb.init();
         up.init();
         pref.init();
+        face.init();
 
         var appcfg = config.get();
         var credentials = appcfg.bos.credentials;

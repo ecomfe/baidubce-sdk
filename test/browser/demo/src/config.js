@@ -71,7 +71,8 @@ define(function (require) {
             bos: {
                 credentials: {
                     ak: store.get('ak') || '',
-                    sk: store.get('sk') || ''
+                    sk: store.get('sk') || '',
+                    host: '10.105.97.15'
                 },
                 endpoint: $('#g_host').val()
             },
@@ -81,6 +82,15 @@ define(function (require) {
                     sk: store.get('sk') || ''
                 },
                 endpoint: $('#g_host').val()
+            },
+            face: {
+                // 'endpoint': 'http://face.bj.baidubce.com',
+                endpoint: '/-/nmg02-bce-test15.nmg02.baidu.com:8750',
+                credentials: {
+                    ak: store.get('ak') || '',
+                    sk: store.get('sk') || '',
+                    host: 'nmg02-bce-test15.nmg02.baidu.com:8750'
+                }
             },
             ss_url: $('#g_ss_url').val(),
             mode: $('input[type=radio]:checked').val()
