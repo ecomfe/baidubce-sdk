@@ -36,7 +36,7 @@ define(function (require) {
 
     function renderBody(templateName, data) {
         var html = etpl.render(templateName, data);
-        $('.file-list tbody').html(html);
+        $('#dropzone').html(html);
     }
 
     function getOptions() {

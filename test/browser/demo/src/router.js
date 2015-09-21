@@ -54,7 +54,9 @@ define(function (require) {
             u.each(currentModules, function (module) {
                 if (typeof module.enter === 'function') {
                     try {
-                        module.enter({});
+                        module.enter({
+                            path: exports.getPath(true)
+                        });
                     }
                     catch (ex) {
                         console.error(ex);
@@ -64,7 +66,7 @@ define(function (require) {
         }
     }
 
-    exports.getPath = function () {
+    exports.getPath = function (raw) {
         if (!location.hash) {
             return '';
         }
@@ -76,7 +78,7 @@ define(function (require) {
         }
         else {
             chunks.shift();
-            return '#/' + chunks.join('/');
+            return (!raw ? '#/' : '') + chunks.join('/');
         }
     };
 

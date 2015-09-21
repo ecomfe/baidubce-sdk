@@ -80,6 +80,9 @@ legend {
   width: 100%;
   text-align: center;
 }
+#dropzone .loading {
+  padding: 10px;
+}
 
 
 /** file browser */
@@ -137,6 +140,16 @@ legend {
 
 .file-list .bucket-usage {
   vertical-align: middle;
+}
+
+/* ocr */
+.ocr {
+  padding: 10px 0;
+  text-align: center;
+}
+
+.ocr img {
+  margin: 0 auto;
 }
 
 .private {

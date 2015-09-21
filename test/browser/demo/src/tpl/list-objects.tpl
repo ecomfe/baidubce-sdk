@@ -1,4 +1,5 @@
-<!-- target: TPL_list_objects -->
+<!-- target: TPL_list_objects(master=TPL_bos) -->
+<!-- block: body -->
 <!-- if: ${contents.length} <= 0 && (!${commonPrefixes} || ${commonPrefixes.length} <= 0) -->
     <tr><td colspan="5" class="no-content">暂无内容.</td></tr>
 <!-- else -->
@@ -31,3 +32,4 @@
     </tr>
     <!-- /for -->
 <!-- /if -->
+<!-- /block -->

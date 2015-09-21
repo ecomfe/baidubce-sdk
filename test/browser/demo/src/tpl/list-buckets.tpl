@@ -1,4 +1,5 @@
-<!-- target: TPL_list_buckets -->
+<!-- target: TPL_list_buckets(master=TPL_bos) -->
+<!-- block: body -->
 <!-- for: ${rows} as ${row} -->
 <tr>
     <!-- if: ${row.is_dir} -->
@@ -28,3 +29,4 @@
     <td>${row.creationDate|relativeTime}</td>
 </tr>
 <!-- /for -->
+<!-- /block -->

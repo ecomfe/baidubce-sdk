@@ -14,18 +14,18 @@ define(function (require) {
         var bucketName = opts.bucketName;
         if (!bucketName) {
             $('#upload').attr('disabled', true);
-            $('.crumb').html('<a href="#"><i class="fa fa-home"></i> 根目录</a>');
+            $('.crumb').html('<a href="#/!bos/"><i class="fa fa-home"></i> 根目录</a>');
         }
         else {
             $('#upload').attr('disabled', false);
             var paths = [];
             paths.push({
-                path: '#/' + bucketName,
+                path: '#/!bos/' + bucketName,
                 text: config.kWorkGroupMap[bucketName] || bucketName
             });
 
             var dirs = opts.prefix.split('/');
-            var path = '#/' + bucketName;
+            var path = '#/!bos/' + bucketName;
             for (var i = 0; i < dirs.length; i ++) {
                 var dir = dirs[i];
                 if (dir) {

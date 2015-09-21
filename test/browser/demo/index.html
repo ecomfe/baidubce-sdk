@@ -74,6 +74,9 @@
       <li><a href="#">Separated link</a></li>
     </ul>
   </div>
+  <button id="ocrBtn" class="btn btn-primary btn-info" type="button">
+    <i class="fa fa-magnet"></i> OCR
+  </button>
   <button id="refreshList" class="btn btn-default pull-right" title="刷新">
     <i class="fa fa-refresh"></i>
   </button>
@@ -87,29 +90,7 @@
 
 <div class="container">
   <div id="dropzone" class="panel">
-    <table class="file-list table table-striped">
-      <colgroup>
-        <col width="50%" />
-        <col width="10%" />
-        <col width="10%" />
-        <col width="10%" />
-        <col width="20%" />
-      </colgroup>
-
-      <thead>
-        <th>名称</th>
-        <th></th>
-        <th>类型</th>
-        <th>大小</th>
-        <th>时间</th>
-      </thead>
-      <tbody></tbody>
-      <tfoot style="display: none">
-        <tr>
-          <td colspan="5" class="load-more"><button class="btn btn-default btn-sm">加载更多...</button></td>
-        </tr>
-      </tfoot>
-    </table>
+    <div class="loading">努力加载中...</div>
     <div class="overlay hide">
       <div class="msg">将文件拖拽到这里上传</div>
     </div>
