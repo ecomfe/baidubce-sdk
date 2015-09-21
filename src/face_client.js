@@ -258,66 +258,6 @@ FaceClient.prototype._sendRequest = function (httpMethod, resource, varArgs) {
     );
 };
 
-FaceClient.prototype._checkOptions = function (options, allowedParams) {
-    var rv = {};
-
-    rv.config = options.config || {};
-    rv.headers = this._prepareObjectHeaders(options);
-    rv.params = u.pick(options, allowedParams || []);
-
-    return rv;
-};
-
-FaceClient.prototype._prepareObjectHeaders = function (options) {
-    var allowedHeaders = [
-        H.CONTENT_LENGTH,
-        H.CONTENT_ENCODING,
-        H.CONTENT_MD5,
-        H.CONTENT_TYPE,
-        H.CONTENT_DISPOSITION,
-        H.ETAG
-    ];
-    var metaSize = 0;
-    var headers = u.pick(options, function (value, key) {
-        if (allowedHeaders.indexOf(key) !== -1) {
-            return true;
-        }
-        else if (/^x\-bce\-meta\-/.test(key)) {
-            metaSize += Buffer.byteLength(key) + Buffer.byteLength('' + value);
-            return true;
-        }
-    });
-
-    if (metaSize > MAX_USER_METADATA_SIZE) {
-        throw new TypeError('Metadata size should not be greater than ' + MAX_USER_METADATA_SIZE + '.');
-    }
-
-    if (u.has(headers, H.CONTENT_LENGTH)) {
-        var contentLength = headers[H.CONTENT_LENGTH];
-        if (contentLength < 0) {
-            throw new TypeError('content_length should not be negative.');
-        }
-        else if (contentLength > MAX_PUT_OBJECT_LENGTH) { // 5G
-            throw new TypeError('Object length should be less than ' + MAX_PUT_OBJECT_LENGTH
-                + '. Use multi-part upload instead.');
-        }
-    }
-
-    if (u.has(headers, 'ETag')) {
-        var etag = headers.ETag;
-        if (!/^"/.test(etag)) {
-            headers.ETag = util.format('"%s"', etag);
-        }
-    }
-
-    if (!u.has(headers, H.CONTENT_TYPE)) {
-        headers[H.CONTENT_TYPE] = 'application/octet-stream';
-    }
-
-    return headers;
-};
-
-
 module.exports = FaceClient;
 
 

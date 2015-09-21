@@ -9,3 +9,6 @@ bcs:
 
 face:
 	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/face_client.spec.js
+
+ocr:
+	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/ocr_client.spec.js

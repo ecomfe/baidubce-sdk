@@ -20,6 +20,7 @@ exports.BosClient = require('./src/bos_client');
 exports.BcsClient = require('./src/bcs_client');
 exports.BccClient = require('./src/bcc_client');
 exports.FaceClient = require('./src/face_client');
+exports.OCRClient = require('./src/ocr_client');
 exports.MediaClient = require('./src/media_client');
 exports.HttpClient = require('./src/http_client');
 exports.MimeType = require('./src/mime.types');

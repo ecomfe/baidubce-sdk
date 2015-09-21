@@ -43,6 +43,20 @@ module.exports = {
             'ak': process.env.FACE_AK,
             'sk': process.env.FACE_SK
         }
+    },
+    'ocr': {
+        'endpoint': 'http://ocr.bj.baidubce.com',
+        'credentials': {
+            'ak': process.env.OCR_AK,
+            'sk': process.env.OCR_SK
+        }
+    },
+    'media': {
+        'endpoint': 'http://multimedia.bce-testinternal.baidu.com',
+        'credentials': {
+            'ak': process.env.MEDIA_AK,
+            'sk': process.env.MEDIA_SK
+        }
     }
     // 'endpoint': 'http://localhost:8828',
 };
