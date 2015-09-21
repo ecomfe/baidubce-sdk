@@ -42,7 +42,12 @@ define(function (require) {
     };
 
     exports.exception = function (error) {
-        exports.fatal(JSON.stringify(error));
+        if (error instanceof Error) {
+            exports.fatal(error.toString());
+        }
+        else {
+            exports.fatal(JSON.stringify(error));
+        }
     };
 
     return exports;

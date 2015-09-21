@@ -17,8 +17,11 @@ define(function (require) {
     var exports = {};
 
     var etpl = require('etpl');
+    var u = require('underscore');
 
     var router = require('./router');
+    var client = require('./client');
+    var log = require('./log');
 
     function renderBody(templateName, data) {
         var html = etpl.render(templateName, data);
@@ -38,8 +41,38 @@ define(function (require) {
         $('#dropzone').html('<div class="loading">努力加载中...</div>');
     };
 
+    function rectangleToStyle(rect) {
+        return 'position:absolute;'
+               + 'background:rgba(255,255,0,.5);'
+               + 'top:' + rect.top + 'px;'
+               + 'left:' + rect.left + 'px;'
+               + 'width:' + rect.width + 'px;'
+               + 'height:' + rect.height + 'px';
+    }
+
+    function startImageOcr() {
+        var bosPath = $('.ocr img').attr('src').replace(/^\/v1\//, '');
+        var ocrClient = client.createOCRClient();
+        ocrClient.allText(bosPath)
+            .then(function (response) {
+                var body = response.body;
+                body.results.forEach(function (item) {
+                    var div = '<div style="' + rectangleToStyle(item.rectangle)
+                        + '">' + u.escape(item.word) + '</div>';
+                    $('.ocr .image').append(div);
+                });
+
+                console.log(response);
+            })
+            .catch(function (error) {
+                log.exception(error);
+            })
+    }
+
     exports.init = function () {
         router.register('!view', exports);
+
+        $('#ocrBtn').click(startImageOcr);
     };
 
     return exports;

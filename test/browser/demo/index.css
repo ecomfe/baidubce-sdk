@@ -148,8 +148,10 @@ legend {
   text-align: center;
 }
 
-.ocr img {
+.ocr .image {
   margin: 0 auto;
+  display: inline-block;
+  position: relative;
 }
 
 .private {

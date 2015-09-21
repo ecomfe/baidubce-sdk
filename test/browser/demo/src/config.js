@@ -71,19 +71,21 @@ define(function (require) {
     exports.get = function () {
         var config = {
             bos: {
-                endpoint: '/-/10.105.97.15',
+                // 10.105.97.15
+                endpoint: '/-/bos.bj.baidubce.com',
                 credentials: {
                     ak: store.get('ak') || '',
                     sk: store.get('sk') || '',
-                    host: '10.105.97.15'
+                    host: 'bos.bj.baidubce.com'
                 }
             },
             bcs: {
+                endpoint: '/-/bs.baidu.com',
                 credentials: {
                     ak: store.get('ak') || '',
-                    sk: store.get('sk') || ''
+                    sk: store.get('sk') || '',
+                    host: 'bs.baidu.com'
                 },
-                endpoint: $('#g_host').val()
             },
             ocr: {
                 endpoint: '/-/ocr.bj.baidubce.com',
@@ -94,12 +96,13 @@ define(function (require) {
                 }
             },
             face: {
-                // 'endpoint': 'http://face.bj.baidubce.com',
-                endpoint: '/-/nmg02-bce-test15.nmg02.baidu.com:8750',
+                endpoint: '/-/face.bj.baidubce.com',
+                // endpoint: '/-/nmg02-bce-test15.nmg02.baidu.com:8750',
                 credentials: {
                     ak: store.get('ak') || '',
                     sk: store.get('sk') || '',
-                    host: 'nmg02-bce-test15.nmg02.baidu.com:8750'
+                    host: 'face.bj.baidubce.com',
+                    // host: 'nmg02-bce-test15.nmg02.baidu.com:8750'
                 }
             },
             ss_url: $('#g_ss_url').val(),

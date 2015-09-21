@@ -1,4 +1,6 @@
 <!-- target: TPL_image_viewer(master=TPL_ocr) -->
 <!-- block: image -->
-<img src="${url}" />
+<div class="image">
+    <img src="${url}" />
+</div>
 <!-- /block -->

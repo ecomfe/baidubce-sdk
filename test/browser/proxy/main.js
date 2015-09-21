@@ -20,8 +20,8 @@ var httpProxy = require('http-proxy');
 
 // 10.32.249.237   qasandbox.bcetest.baidu.com
 // 10.107.37.49    rdsandbox.bcetest.baidu.com
-var kDefaultTarget = 'http://10.105.97.15';
-var kDefaultHost = '10.105.97.15';
+var kDefaultTarget = 'http://bos.bj.baidubce.com';
+var kDefaultHost = 'bos.bj.baidubce.com';
 
 // var kDefaultTarget = 'http://platform.v3.bae.baidu.com';
 // var kDefaultHost = 'platform.v3.bae.baidu.com';
