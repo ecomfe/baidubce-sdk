@@ -2,7 +2,7 @@
 <!-- for: ${rows} as ${row} -->
 <tr>
     <!-- if: ${row.is_dir} -->
-    <td><i class="fa fa-folder-o"></i> <a href="#/${row.name}">${row.name|i18n}/</a></td>
+    <td><i class="fa fa-folder-o"></i> <a href="#/!bos/${row.name}">${row.name|i18n}/</a></td>
     <!-- else -->
     <td><i class="fa ${row.name|fa_icon}"></i> ${row.name}</td>
     <!-- /if -->

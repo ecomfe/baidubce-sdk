@@ -15,6 +15,7 @@ define(function (require) {
     var pref = require('./pref');
     var face = require('./face');
     var config = require('./config');
+    var router = require('./router');
 
     var exports = {};
 
@@ -41,6 +42,7 @@ define(function (require) {
         up.init();
         pref.init();
         face.init();
+        router.init();
 
         var appcfg = config.get();
         var credentials = appcfg.bos.credentials;

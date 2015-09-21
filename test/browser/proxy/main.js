@@ -20,15 +20,15 @@ var httpProxy = require('http-proxy');
 
 // 10.32.249.237   qasandbox.bcetest.baidu.com
 // 10.107.37.49    rdsandbox.bcetest.baidu.com
-// var kDefaultTarget = 'http://10.105.97.15';
-// var kDefaultHost = '10.105.97.15';
+var kDefaultTarget = 'http://10.105.97.15';
+var kDefaultHost = '10.105.97.15';
 
-var kDefaultTarget = 'http://platform.v3.bae.baidu.com';
-var kDefaultHost = 'platform.v3.bae.baidu.com';
+// var kDefaultTarget = 'http://platform.v3.bae.baidu.com';
+// var kDefaultHost = 'platform.v3.bae.baidu.com';
 // var kDefaultTarget = 'http://bs.baidu.com';
 // var kDefaultHost = 'bs.baidu.com';
-// var kWebRoot = '/Users/leeight/hd/local/case/inf/bos/baidubce-sdk/test/browser/demo';
-var kWebRoot = '/Users/leeight/hd/local/case/inf/bec/platform_1-0-8_BRANCH/fe';
+var kWebRoot = '/Users/leeight/hd/local/case/inf/bos/baidubce-sdk/test/browser/demo';
+// var kWebRoot = '/Users/leeight/hd/local/case/inf/bec/platform_1-0-8_BRANCH/fe';
 
 var proxy = httpProxy.createProxyServer({});
 proxy.on('proxyReq', function (proxyReq, req, res, options) {
@@ -55,8 +55,8 @@ http.createServer(function (req, res) {
     else if (req.method === 'GET'
         && req.url.indexOf('sign=') === -1
         && fs.existsSync(path.join(kWebRoot, pathname))) {
-        target = 'http://127.0.0.1:9998';
-        host = '127.0.0.1:9998';
+        target = 'http://127.0.0.1:8080';
+        host = '127.0.0.1:8080';
     }
 
     console.log('[%s] %s%s', req.method, target, req.url);

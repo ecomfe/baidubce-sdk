@@ -28,6 +28,7 @@ define(function (require) {
     var log = require('./log');
     var acl = require('./acl');
     var config = require('./config');
+    var router = require('./router');
     var Klient = require('./client');
     var kPageCount = 10;
 
@@ -62,6 +63,14 @@ define(function (require) {
         }
     }
 
+    function attachFileType(body) {
+        (body.contents || []).forEach(function (row) {
+            row.isImage = /\.(je?pg|png|gif|bmp|webp)$/i.test(row.key);
+        });
+
+        return body;
+    }
+
     var working = false;
     function loadDirectory() {
         if (working) {
@@ -70,7 +79,7 @@ define(function (require) {
         working = true;
 
         var client = Klient.createInstance();
-        if (location.hash.length > 2) {
+        if (router.getPath().length > 2) {
             // listObjects
             var options = getOptions();
             var bucketName = options.bucketName;
@@ -93,6 +102,7 @@ define(function (require) {
                         }
                         else {
                             stripPrefix(res);
+                            attachFileType(res.body);
                             renderBody('TPL_list_objects', res.body);
                         }
                         if (res.body.isTruncated) {
@@ -198,6 +208,7 @@ define(function (require) {
                     else if (res.body.contents.length
                         || res.body.commonPrefixes.length) {
                         stripPrefix(res);
+                        attachFileType(res.body);
                         html = etpl.render('TPL_list_objects', res.body);
                     }
 
@@ -246,9 +257,16 @@ define(function (require) {
         loadDirectory();
     };
 
-    exports.init = function () {
+    exports.enter = function (context) {
         loadDirectory();
-        $(window).on('hashchange', loadDirectory);
+    };
+
+    exports.leave = function () {
+    };
+
+    exports.init = function () {
+        router.register('!bos', exports);
+
         $('.file-list').on('click', '.load-more button', loadMoreObjects);
         $('.file-list').on('click', '.fa-trash-o', deleteObjects);
         $('#refreshList').click(loadDirectory);

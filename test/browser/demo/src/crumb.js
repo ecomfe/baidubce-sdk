@@ -5,6 +5,7 @@
 
 define(function (require) {
     var config = require('./config');
+    var router = require('./router');
 
     var exports = {};
 
@@ -51,9 +52,15 @@ define(function (require) {
         }
     };
 
-    exports.init = function () {
-        $(window).on('hashchange', updateCrumb);
+    exports.enter = function (context) {
         updateCrumb();
+    };
+
+    exports.leave = function () {
+    };
+
+    exports.init = function () {
+        router.register('!bos', exports);
     };
 
     return exports;

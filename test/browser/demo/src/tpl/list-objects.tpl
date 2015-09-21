@@ -5,7 +5,12 @@
     <!-- for: ${contents} as ${row} -->
     <!-- if: ${row.key} -->
     <tr>
-        <td><i class="fa ${row.key|fa_icon}"></i> <a target="_blank" href="/v1/${name}/${prefix|raw}${row.key}">${row.key}</a></td>
+        <td><i class="fa ${row.key|fa_icon}"></i>
+        <!-- if: ${row.isImage} -->
+        <a href="#/!view/v1/${name}/${prefix|raw}${row.key}">${row.key}</a></td>
+        <!-- else -->
+        <a target="_blank" href="/v1/${name}/${prefix|raw}${row.key}">${row.key}</a></td>
+        <!-- /if -->
         <td>
             <i class="fa fa-trash-o" title="删除" data-bucket="${name}" data-key="${prefix|raw}${row.key}"></i>
             <a class="fa" href="/v1/${name}/${prefix|raw}${row.key}?responseContentDisposition=attachment"><i class="fa fa-download" title="下载"></i></a>
@@ -18,7 +23,7 @@
     <!-- /for -->
     <!-- for: ${commonPrefixes} as ${row} -->
     <tr>
-        <td><i class="fa fa-folder-o"></i> <a href="#/${name}/${prefix|raw}${row.prefix}">${row.prefix}</a></td>
+        <td><i class="fa fa-folder-o"></i> <a href="#/!bos/${name}/${prefix|raw}${row.prefix}">${row.prefix}</a></td>
         <td>&nbsp;</td>
         <td>文件夹</td>
         <td>-</td>

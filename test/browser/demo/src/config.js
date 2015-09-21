@@ -17,6 +17,8 @@
 define(function (require) {
     var store = require('store');
 
+    var router = require('./router');
+
     var exports = {};
 
     // 分片上传的时候，并行的请求数目（带宽有限的情况下，太多了也没啥用）
@@ -52,7 +54,7 @@ define(function (require) {
      * @return {{bucket:string, prefix:string}}
      */
     exports.getOptions = function () {
-        var match = /#\/([^\/]+)((\/[^\/]+)+)?/.exec(location.hash);
+        var match = /#\/([^\/]+)((\/[^\/]+)+)?/.exec(router.getPath());
         var bucketName = match ? match[1] : null;
         var prefix = (match ? match[2] : '') || '';
 
@@ -69,12 +71,12 @@ define(function (require) {
     exports.get = function () {
         var config = {
             bos: {
+                endpoint: '/-/10.105.97.15',
                 credentials: {
                     ak: store.get('ak') || '',
                     sk: store.get('sk') || '',
                     host: '10.105.97.15'
-                },
-                endpoint: $('#g_host').val()
+                }
             },
             bcs: {
                 credentials: {
@@ -82,6 +84,14 @@ define(function (require) {
                     sk: store.get('sk') || ''
                 },
                 endpoint: $('#g_host').val()
+            },
+            ocr: {
+                endpoint: '/-/ocr.bj.baidubce.com',
+                credentials: {
+                    ak: store.get('ak') || '',
+                    sk: store.get('sk') || '',
+                    host: 'ocr.bj.baidubce.com'
+                }
             },
             face: {
                 // 'endpoint': 'http://face.bj.baidubce.com',
