@@ -27,6 +27,7 @@ define(function (require) {
 
     var log = require('./log');
     var acl = require('./acl');
+    var lru = require('./lru');
     var config = require('./config');
     var router = require('./router');
     var Klient = require('./client');
@@ -145,14 +146,23 @@ define(function (require) {
                     async.mapLimit(buckets, 2,
                         function (bucket, callback) {
                             bucket.is_dir = true;
-                            client.getBucketAcl(bucket.name)
-                                .then(function (res) {
-                                    bucket.acl = acl.getAcl(res.body.accessControlList);
-                                    callback(null, bucket);
-                                })
-                                .catch(function (err) {
-                                    callback(null, bucket);
-                                });
+                            var aclKey = 'bos:bucket:acl:' + bucket.name;
+                            var bucketAcl = lru.get(aclKey);
+                            if (bucketAcl) {
+                                bucket.acl = bucketAcl;
+                                callback(null, bucket);
+                            }
+                            else {
+                                client.getBucketAcl(bucket.name)
+                                    .then(function (res) {
+                                        bucket.acl = acl.getAcl(res.body.accessControlList);
+                                        lru.set(aclKey, bucket.acl);
+                                        callback(null, bucket);
+                                    })
+                                    .catch(function (err) {
+                                        callback(null, bucket);
+                                    });
+                            }
                         },
                         function (_, results) {
                             deferred.resolve({tpl: tpl, buckets: results});
@@ -245,6 +255,8 @@ define(function (require) {
         var client = Klient.createInstance();
         client.setBucketCannedAcl(bucketName, acl)
             .then(function (response) {
+                var aclKey = 'bos:bucket:acl:' + bucketName;
+                lru.set(aclKey, null);
                 log.ok('成功设置『' + bucketName + '』访问权限为『' + acl + '』');
                 loadDirectory();
             })
@@ -267,8 +279,8 @@ define(function (require) {
     exports.init = function () {
         router.register('!bos', exports);
 
-        $('.file-list').on('click', '.load-more button', loadMoreObjects);
-        $('.file-list').on('click', '.fa-trash-o', deleteObjects);
+        $('#dropzone').on('click', '.file-list .load-more button', loadMoreObjects);
+        $('#dropzone').on('click', '.file-list .fa-trash-o', deleteObjects);
         $('#refreshList').click(loadDirectory);
         $(document).on('click', '.dropdown-menu li[data-acl]', setBucketAccess);
     };
