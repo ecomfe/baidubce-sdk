@@ -30,6 +30,10 @@ var kDefaultHost = 'bos.bj.baidubce.com';
 var kWebRoot = path.join(__dirname, '..', 'demo');
 
 var proxy = httpProxy.createProxyServer({});
+proxy.on('proxyRes', function (proxyRes, req, res) {
+    delete proxyRes.headers['content-disposition'];
+});
+
 proxy.on('proxyReq', function (proxyReq, req, res, options) {
     if (options.host) {
         proxyReq.setHeader('Host', options.host);
