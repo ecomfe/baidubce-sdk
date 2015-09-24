@@ -27,8 +27,7 @@ var kDefaultHost = 'bos.bj.baidubce.com';
 // var kDefaultHost = 'platform.v3.bae.baidu.com';
 // var kDefaultTarget = 'http://bs.baidu.com';
 // var kDefaultHost = 'bs.baidu.com';
-var kWebRoot = '/Users/leeight/hd/local/case/inf/bos/baidubce-sdk/test/browser/demo';
-// var kWebRoot = '/Users/leeight/hd/local/case/inf/bec/platform_1-0-8_BRANCH/fe';
+var kWebRoot = path.join(__dirname, '..', 'demo');
 
 var proxy = httpProxy.createProxyServer({});
 proxy.on('proxyReq', function (proxyReq, req, res, options) {

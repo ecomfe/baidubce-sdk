@@ -33,7 +33,7 @@ define(function (require) {
         var ak = store.get('ak');
         var sk = store.get('sk');
 
-        var msg = '信息只会存储在本地浏览器，不会被其他人看到。';
+        var msg = '信息只会存储在本地浏览器<code>localStorage</code>，不会被其他人看到。';
         if (!ak || !sk) {
             msg = '初次使用，请先设置 AK 和 SK。' + msg;
         }
