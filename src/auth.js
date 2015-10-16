@@ -54,7 +54,7 @@ Auth.prototype.generateAuthorization = function (method, resource, params,
         this.ak, now.toISOString().replace(/\.\d+Z$/, 'Z'), expirationInSeconds || 1800);
     var sessionKey = this.hash(rawSessionKey, this.sk);
 
-    var canonicalUri = encodeURI(resource);
+    var canonicalUri = this.uriCanonicalization(resource);
     var canonicalQueryString = this.queryStringCanonicalization(params || {});
 
     var rv = this.headersCanonicalization(headers || {}, headersToSign);
@@ -74,6 +74,13 @@ Auth.prototype.generateAuthorization = function (method, resource, params,
     }
 
     return util.format('%s//%s', rawSessionKey, signature);
+};
+
+Auth.prototype.uriCanonicalization = function (uri) {
+    var canonicalUri = uri.replace(/[^a-zA-Z0-9\-\._~\/]/g, function (item) {
+        return encodeURIComponent(item);
+    });
+    return canonicalUri;
 };
 
 /**

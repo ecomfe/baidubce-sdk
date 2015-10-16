@@ -17,11 +17,12 @@ var path = require('path');
 var http = require('http');
 
 var httpProxy = require('http-proxy');
+var debug = require('debug')('proxy');
 
 // 10.32.249.237   qasandbox.bcetest.baidu.com
 // 10.107.37.49    rdsandbox.bcetest.baidu.com
-var kDefaultTarget = 'http://bos.bj.baidubce.com';
-var kDefaultHost = 'bos.bj.baidubce.com';
+var kDefaultHost = process.env.DEFAULT_HOST || 'bos.bj.baidubce.com';
+var kDefaultTarget = 'http://' + kDefaultHost;
 
 // var kDefaultTarget = 'http://platform.v3.bae.baidu.com';
 // var kDefaultHost = 'platform.v3.bae.baidu.com';
@@ -47,6 +48,7 @@ console.log("Listening on port 8964")
 http.createServer(function (req, res) {
     var target = kDefaultTarget;
     var host = kDefaultHost;
+    debug('target = %j, host = %j', target, host);
 
     var pathname = url.parse(req.url).pathname;
     // /-/
@@ -58,11 +60,12 @@ http.createServer(function (req, res) {
     else if (req.method === 'GET'
         && req.url.indexOf('sign=') === -1
         && fs.existsSync(path.join(kWebRoot, pathname))) {
-        target = 'http://127.0.0.1:8080';
-        host = '127.0.0.1:8080';
+        // TODO 只有调试bcs的时候才需要开启
+        // target = 'http://127.0.0.1:8080';
+        // host = '127.0.0.1:8080';
     }
 
-    console.log('[%s] %s%s', req.method, target, req.url);
+    debug('[%s] %s%s', req.method, target, req.url);
 
     proxy.web(req, res, {
         target: target,

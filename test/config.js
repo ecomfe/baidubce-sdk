@@ -44,6 +44,13 @@ module.exports = {
             'sk': process.env.FACE_SK
         }
     },
+    'ses': {
+        'endpoint': 'http://ses.bj.baidubce.com',
+        'credentials': {
+            'ak': process.env.SES_AK,
+            'sk': process.env.SES_SK
+        }
+    },
     'ocr': {
         'endpoint': 'http://ocr.bj.baidubce.com',
         'credentials': {

@@ -66,8 +66,9 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     signFunction, outputStream) {
 
     var requestUrl = this._getRequestUrl(path, params);
-    debug('httpMethod = %s, requestUrl = %s', httpMethod, requestUrl);
     var options = require('url').parse(requestUrl);
+    debug('httpMethod = %s, requestUrl = %s, options = %j',
+        httpMethod, requestUrl, options);
 
     // Prepare the request headers.
     var defaultHeaders = {};

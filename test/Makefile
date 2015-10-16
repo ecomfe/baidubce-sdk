@@ -12,3 +12,9 @@ face:
 
 ocr:
 	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/ocr_client.spec.js
+
+ses:
+	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/ses_client.spec.js
+
+auth:
+	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/auth.spec.js

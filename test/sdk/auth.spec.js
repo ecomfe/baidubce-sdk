@@ -25,6 +25,13 @@ describe('Auth', function() {
         expect(auth.queryStringCanonicalization(params)).toEqual('A=A&B=&C=');
     });
 
+    it('uriCanonicalization', function () {
+        var auth = new Auth('ak', 'sk');
+
+        expect(auth.uriCanonicalization('this is an example for 测试')).toEqual(
+            'this%20is%20an%20example%20for%20%E6%B5%8B%E8%AF%95');
+    });
+
     it('headersCanonicalization', function() {
         var auth = new Auth('ak', 'sk');
 
