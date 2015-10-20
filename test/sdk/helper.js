@@ -9,22 +9,19 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
- *
- * @file index.js
- * @author leeight
  */
 
-exports.Q = require('q');
-exports.Auth = require('./src/auth');
-exports.BosClient = require('./src/bos_client');
-exports.BcsClient = require('./src/bcs_client');
-exports.BccClient = require('./src/bcc_client');
-exports.SesClient = require('./src/ses_client');
-exports.FaceClient = require('./src/face_client');
-exports.OCRClient = require('./src/ocr_client');
-exports.MediaClient = require('./src/media_client');
-exports.HttpClient = require('./src/http_client');
-exports.MimeType = require('./src/mime.types');
+exports.fail = function (spec) {
+    var failImpl = spec.fail.bind(spec);
+    return function (error) {
+        if (error instanceof Error) {
+            failImpl(error);
+        }
+        else {
+            failImpl(new Error(JSON.stringify(error)));
+        }
+    }
+};
 
 
 

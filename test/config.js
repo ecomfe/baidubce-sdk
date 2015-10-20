@@ -45,7 +45,7 @@ module.exports = {
         }
     },
     'ses': {
-        'endpoint': 'http://ses.bj.baidubce.com',
+        'endpoint': process.env.SES_ENDPOINT,
         'credentials': {
             'ak': process.env.SES_AK,
             'sk': process.env.SES_SK

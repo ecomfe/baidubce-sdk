@@ -19,6 +19,7 @@ var Q = require('q');
 var u = require('underscore');
 
 var config = require('../config');
+var helper = require('./helper');
 var BosClient = require('../../src/bos_client');
 
 describe('BosClient', function() {
@@ -30,9 +31,7 @@ describe('BosClient', function() {
     var filename;
 
     beforeEach(function() {
-        fail = u.bind(function() {
-            return this.fail.call(this, JSON.stringify(arguments));
-        }, this);
+        fail = helper.fail(this);
 
         var id = Math.floor(Math.random() * 100000) + 900;
         bucket = util.format('test-bucket%d', id);

@@ -21,6 +21,7 @@
     "underscore": "^1.7.0"
   },
   "devDependencies": {
-    "browserify": "^10.2.6"
+    "browserify": "^10.2.6",
+    "jasmine-node": "^1.14.5"
   }
 }
