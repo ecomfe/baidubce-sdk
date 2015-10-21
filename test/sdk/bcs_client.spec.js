@@ -20,17 +20,15 @@ var u = require('underscore');
 
 var config = require('../config');
 var crypto = require('../../src/crypto');
-var BcsClient = require('../../src/bcs_client');
+var BcsClient = require('../..').BcsClient;
+var helper = require('./helper');
 
 describe('BcsClient', function () {
     var client;
     var fail;
 
     beforeEach(function () {
-        fail = u.bind(function() {
-            return this.fail.call(this, JSON.stringify(arguments));
-        }, this);
-
+        fail = helper.fail(this);
         client = new BcsClient(config.bcs);
     });
 

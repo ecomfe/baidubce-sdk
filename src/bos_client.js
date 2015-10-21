@@ -14,8 +14,8 @@
  * @author leeight
  */
 
-/*eslint-env node*/
-/*eslint max-params:[0,10]*/
+/* eslint-env node */
+/* eslint max-params:[0,10] */
 
 var util = require('util');
 var path = require('path');
@@ -83,13 +83,13 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
 
 BosClient.prototype.listBuckets = function (options) {
     options = options || {};
-    return this._sendRequest('GET', {config: options.config});
+    return this.sendRequest('GET', {config: options.config});
 };
 
 BosClient.prototype.createBucket = function (bucketName, options) {
     options = options || {};
 
-    return this._sendRequest('PUT', {
+    return this.sendRequest('PUT', {
         bucketName: bucketName,
         config: options.config
     });
@@ -103,7 +103,7 @@ BosClient.prototype.listObjects = function (bucketName, options) {
         u.pick(options, 'maxKeys', 'prefix', 'marker', 'delimiter')
     );
 
-    return this._sendRequest('GET', {
+    return this.sendRequest('GET', {
         bucketName: bucketName,
         params: params,
         config: options.config
@@ -113,7 +113,7 @@ BosClient.prototype.listObjects = function (bucketName, options) {
 BosClient.prototype.doesBucketExist = function (bucketName, options) {
     options = options || {};
 
-    return this._sendRequest('HEAD', {
+    return this.sendRequest('HEAD', {
         bucketName: bucketName,
         config: options.config
     }).then(
@@ -137,7 +137,7 @@ BosClient.prototype.doesBucketExist = function (bucketName, options) {
 BosClient.prototype.deleteBucket = function (bucketName, options) {
     options = options || {};
 
-    return this._sendRequest('DELETE', {
+    return this.sendRequest('DELETE', {
         bucketName: bucketName,
         config: options.config
     });
@@ -148,7 +148,7 @@ BosClient.prototype.setBucketCannedAcl = function (bucketName, cannedAcl, option
 
     var headers = {};
     headers[H.X_BCE_ACL] = cannedAcl;
-    return this._sendRequest('PUT', {
+    return this.sendRequest('PUT', {
         bucketName: bucketName,
         headers: headers,
         params: {acl: ''},
@@ -161,7 +161,7 @@ BosClient.prototype.setBucketAcl = function (bucketName, acl, options) {
 
     var headers = {};
     headers[H.CONTENT_TYPE] = 'application/json; charset=UTF-8';
-    return this._sendRequest('PUT', {
+    return this.sendRequest('PUT', {
         bucketName: bucketName,
         body: JSON.stringify({accessControlList: acl}),
         headers: headers,
@@ -173,7 +173,7 @@ BosClient.prototype.setBucketAcl = function (bucketName, acl, options) {
 BosClient.prototype.getBucketAcl = function (bucketName, options) {
     options = options || {};
 
-    return this._sendRequest('GET', {
+    return this.sendRequest('GET', {
         bucketName: bucketName,
         params: {acl: ''},
         config: options.config
@@ -183,7 +183,7 @@ BosClient.prototype.getBucketAcl = function (bucketName, options) {
 BosClient.prototype.deleteObject = function (bucketName, key, options) {
     options = options || {};
 
-    return this._sendRequest('DELETE', {
+    return this.sendRequest('DELETE', {
         bucketName: bucketName,
         key: key,
         config: options.config
@@ -197,7 +197,7 @@ BosClient.prototype.putObject = function (bucketName, key, data, options) {
 
     options = this._checkOptions(options || {});
 
-    return this._sendRequest('PUT', {
+    return this.sendRequest('PUT', {
         bucketName: bucketName,
         key: key,
         body: data,
@@ -266,7 +266,7 @@ BosClient.prototype.putObjectFromFile = function (bucketName, key, filename, opt
 BosClient.prototype.getObjectMetadata = function (bucketName, key, options) {
     options = options || {};
 
-    return this._sendRequest('HEAD', {
+    return this.sendRequest('HEAD', {
         bucketName: bucketName,
         key: key,
         config: options.config
@@ -277,7 +277,7 @@ BosClient.prototype.getObject = function (bucketName, key, range, options) {
     options = options || {};
 
     var outputStream = new WMStream();
-    return this._sendRequest('GET', {
+    return this.sendRequest('GET', {
         bucketName: bucketName,
         key: key,
         headers: {
@@ -294,7 +294,7 @@ BosClient.prototype.getObject = function (bucketName, key, range, options) {
 BosClient.prototype.getObjectToFile = function (bucketName, key, filename, range, options) {
     options = options || {};
 
-    return this._sendRequest('GET', {
+    return this.sendRequest('GET', {
         bucketName: bucketName,
         key: key,
         headers: {
@@ -328,7 +328,7 @@ BosClient.prototype.copyObject = function (sourceBucketName, sourceKey, targetBu
     }
     options.headers['x-bce-metadata-directive'] = hasUserMetadata ? 'replace' : 'copy';
 
-    return this._sendRequest('PUT', {
+    return this.sendRequest('PUT', {
         bucketName: targetBucketName,
         key: targetKey,
         headers: options.headers,
@@ -341,7 +341,7 @@ BosClient.prototype.initiateMultipartUpload = function (bucketName, key, options
 
     var headers = {};
     headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(key));
-    return this._sendRequest('POST', {
+    return this.sendRequest('POST', {
         bucketName: bucketName,
         key: key,
         params: {uploads: ''},
@@ -353,7 +353,7 @@ BosClient.prototype.initiateMultipartUpload = function (bucketName, key, options
 BosClient.prototype.abortMultipartUpload = function (bucketName, key, uploadId, options) {
     options = options || {};
 
-    return this._sendRequest('DELETE', {
+    return this.sendRequest('DELETE', {
         bucketName: bucketName,
         key: key,
         params: {uploadId: uploadId},
@@ -366,7 +366,7 @@ BosClient.prototype.completeMultipartUpload = function (bucketName, key, uploadI
     headers[H.CONTENT_TYPE] = 'application/json; charset=UTF-8';
     options = this._checkOptions(u.extend(headers, options));
 
-    return this._sendRequest('POST', {
+    return this.sendRequest('POST', {
         bucketName: bucketName,
         key: key,
         body: JSON.stringify({parts: partList}),
@@ -400,7 +400,7 @@ BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, pa
     // headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
 
     options = this._checkOptions(u.extend(headers, options));
-    return this._sendRequest('PUT', {
+    return this.sendRequest('PUT', {
         bucketName: bucketName,
         key: key,
         body: blob,
@@ -426,7 +426,7 @@ BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId,
     // headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
 
     options = this._checkOptions(u.extend(headers, options));
-    return this._sendRequest('PUT', {
+    return this.sendRequest('PUT', {
         bucketName: bucketName,
         key: key,
         body: data,
@@ -472,7 +472,7 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
 
     function newPromise() {
         options = client._checkOptions(options);
-        return client._sendRequest('PUT', {
+        return client.sendRequest('PUT', {
             bucketName: bucketName,
             key: key,
             body: clonedPartFp,
@@ -493,7 +493,7 @@ BosClient.prototype.listParts = function (bucketName, key, uploadId, options) {
     options = this._checkOptions(options || {}, allowedParams);
     options.params.uploadId = uploadId;
 
-    return this._sendRequest('GET', {
+    return this.sendRequest('GET', {
         bucketName: bucketName,
         key: key,
         params: options.params,
@@ -507,23 +507,16 @@ BosClient.prototype.listMultipartUploads = function (bucketName, options) {
     options = this._checkOptions(options || {}, allowedParams);
     options.params.uploads = '';
 
-    return this._sendRequest('GET', {
+    return this.sendRequest('GET', {
         bucketName: bucketName,
         params: options.params,
         config: options.config
     });
 };
 
-BosClient.prototype.createSignature = function (credentials, httpMethod, path, params, headers) {
-    return Q.fcall(function () {
-        var auth = new Auth(credentials.ak, credentials.sk);
-        return auth.generateAuthorization(httpMethod, path, params, headers);
-    });
-};
-
 // --- E N D ---
 
-BosClient.prototype._sendRequest = function (httpMethod, varArgs) {
+BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
     var defaultArgs = {
         bucketName: null,
         key: null,

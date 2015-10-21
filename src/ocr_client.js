@@ -19,12 +19,8 @@
 
 var util = require('util');
 
-var u = require('underscore');
-var Q = require('q');
 var debug = require('debug')('OCRClient');
 
-var Auth = require('./auth');
-var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
 
 /**
@@ -37,11 +33,6 @@ var BceBaseClient = require('./bce_base_client');
  */
 function OCRClient(config) {
     BceBaseClient.call(this, config, 'face', true);
-
-    /**
-     * @type {HttpClient}
-     */
-    this._httpAgent = null;
 }
 util.inherits(OCRClient, BceBaseClient);
 
@@ -69,7 +60,7 @@ OCRClient.prototype._apiCall = function (url, data, language, options) {
         body.language = language;
     }
 
-    return this._sendRequest('POST', url, {
+    return this.sendRequest('POST', url, {
         body: JSON.stringify(body),
         config: options.config
     });
@@ -85,41 +76,6 @@ OCRClient.prototype.oneLine = function (data, language, options) {
 
 OCRClient.prototype.singleCharacter = function (data, language, options) {
     return this._apiCall('/v1/recognize/character', data, language, options);
-};
-
-OCRClient.prototype.createSignature = function (credentials, httpMethod, path, params, headers) {
-    return Q.fcall(function () {
-        var auth = new Auth(credentials.ak, credentials.sk);
-        return auth.generateAuthorization(httpMethod, path, params, headers);
-    });
-};
-
-// --- E N D ---
-
-
-OCRClient.prototype._sendRequest = function (httpMethod, resource, varArgs) {
-    var defaultArgs = {
-        body: null,
-        headers: {},
-        params: {},
-        config: {},
-        outputStream: null
-    };
-    var args = u.extend(defaultArgs, varArgs);
-
-    var config = u.extend({}, this.config, args.config);
-
-    var client = this;
-    var agent = this._httpAgent = new HttpClient(config);
-    u.each(['progress', 'error', 'abort'], function (eventName) {
-        agent.on(eventName, function (evt) {
-            client.emit(eventName, evt);
-        });
-    });
-    return this._httpAgent.sendRequest(httpMethod, resource, args.body,
-        args.headers, args.params, u.bind(this.createSignature, this),
-        args.outputStream
-    );
 };
 
 module.exports = OCRClient;

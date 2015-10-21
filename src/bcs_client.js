@@ -45,11 +45,6 @@ var MAX_USER_METADATA_SIZE = 2048;          // 2 * 1024
  */
 function BcsClient(config) {
     BceBaseClient.call(this, config, 'bcs', true);
-
-    /**
-     * @type {HttpClient}
-     */
-    this._httpAgent = null;
 }
 util.inherits(BcsClient, BceBaseClient);
 
@@ -57,13 +52,13 @@ util.inherits(BcsClient, BceBaseClient);
 
 BcsClient.prototype.listBuckets = function (options) {
     options = options || {};
-    return this._sendRequest('GET', {config: options.config});
+    return this.sendRequest('GET', {config: options.config});
 };
 
 BcsClient.prototype.createBucket = function (bucketName, options) {
     options = options || {};
 
-    return this._sendRequest('PUT', {
+    return this.sendRequest('PUT', {
         bucketName: bucketName,
         config: options.config
     });
@@ -74,7 +69,7 @@ BcsClient.prototype.setBucketAcl = function (bucketName, acl, options) {
 
     var headers = {};
     headers[H.CONTENT_TYPE] = 'application/json; charset=UTF-8';
-    return this._sendRequest('PUT', {
+    return this.sendRequest('PUT', {
         bucketName: bucketName,
         body: JSON.stringify({accessControlList: acl}),
         headers: headers,
@@ -88,7 +83,7 @@ BcsClient.prototype.setBucketCannedAcl = function (bucketName, cannedAcl, option
 
     var headers = {};
     headers[H.X_BCE_ACL] = cannedAcl;
-    return this._sendRequest('PUT', {
+    return this.sendRequest('PUT', {
         bucketName: bucketName,
         headers: headers,
         params: {acl: ''},
@@ -99,7 +94,7 @@ BcsClient.prototype.setBucketCannedAcl = function (bucketName, cannedAcl, option
 BcsClient.prototype.getBucketAcl = function (bucketName, options) {
     options = options || {};
 
-    return this._sendRequest('GET', {
+    return this.sendRequest('GET', {
         bucketName: bucketName,
         params: {acl: '1'},
         config: options.config
@@ -109,7 +104,7 @@ BcsClient.prototype.getBucketAcl = function (bucketName, options) {
 BcsClient.prototype.deleteBucket = function (bucketName, options) {
     options = options || {};
 
-    return this._sendRequest('DELETE', {
+    return this.sendRequest('DELETE', {
         bucketName: bucketName,
         config: options.config
     });
@@ -118,7 +113,7 @@ BcsClient.prototype.deleteBucket = function (bucketName, options) {
 BcsClient.prototype.deleteObject = function (bucketName, key, options) {
     options = options || {};
 
-    return this._sendRequest('DELETE', {
+    return this.sendRequest('DELETE', {
         bucketName: bucketName,
         key: key,
         config: options.config
@@ -130,7 +125,7 @@ BcsClient.prototype.listObjects = function (bucketName, options) {
 
     var params = u.extend({}, u.pick(options, 'start', 'limit'));
 
-    return this._sendRequest('GET', {
+    return this.sendRequest('GET', {
         bucketName: bucketName,
         params: params,
         config: options.config
@@ -140,7 +135,7 @@ BcsClient.prototype.listObjects = function (bucketName, options) {
 BcsClient.prototype.getObjectMetadata = function (bucketName, key, options) {
     options = options || {};
 
-    return this._sendRequest('HEAD', {
+    return this.sendRequest('HEAD', {
         bucketName: bucketName,
         key: key,
         config: options.config
@@ -154,7 +149,7 @@ BcsClient.prototype.putObject = function (bucketName, key, data, options) {
 
     options = this._checkOptions(options || {});
 
-    return this._sendRequest('PUT', {
+    return this.sendRequest('PUT', {
         bucketName: bucketName,
         key: key,
         body: data,
@@ -239,7 +234,7 @@ BcsClient.prototype.createSignature = function (credentials, httpMethod, bucketN
 
 // --- E N D ---
 
-BcsClient.prototype._sendRequest = function (httpMethod, varArgs) {
+BcsClient.prototype.sendRequest = function (httpMethod, varArgs) {
     var defaultArgs = {
         bucketName: null,
         key: null,

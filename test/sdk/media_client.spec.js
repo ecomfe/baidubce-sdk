@@ -10,21 +10,21 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 var u = require('underscore');
 var debug = require('debug')('media_client');
 
-var MediaClient = require('../../src/media_client');
+var config = require('../config');
+var MediaClient = require('../..').MediaClient;
+var helper = require('./helper');
 
 describe('MediaClient', function () {
     var client;
     var fail;
 
     beforeEach(function () {
-        fail = u.bind(function () {
-            return this.fail.call(this, JSON.stringify(arguments));
-        }, this);
-
-        client = new MediaClient(require('../media.config'));
+        fail = helper.fail(this);
+        client = new MediaClient(config.media);
     });
 
     afterEach(function () {
@@ -33,11 +33,14 @@ describe('MediaClient', function () {
 
     it('createPipeline', function (done) {
         var pipelineName = 'medium_priority_pipe';
-        var sourceBucket = 'exampleIuputBucket';
-        var targetBucket = 'exampleTargetBucket';
+        var sourceBucket = 'example-input-bucket';
+        var targetBucket = 'example-output-bucket';
         client.createPipeline(pipelineName, sourceBucket, targetBucket)
             .then(function (response) {
                 debug('%j', response);
+            })
+            .catch(function (error) {
+                expect(error.message).toEqual("duplicated pipeline name:medium_priority_pipe");
             })
             .catch(fail)
             .fin(done);
@@ -48,8 +51,8 @@ describe('MediaClient', function () {
         client.getPipeline(pipelineName)
             .then(function (response) {
                 expect(response.body.pipelineName).toEqual(pipelineName);
-                expect(response.body.sourceBucket).toEqual('jianbininput');
-                expect(response.body.targetBucket).toEqual('jianbinoutput');
+                expect(response.body.sourceBucket).toEqual('example-input-bucket');
+                expect(response.body.targetBucket).toEqual('example-output-bucket');
             })
             .catch(fail)
             .fin(done);

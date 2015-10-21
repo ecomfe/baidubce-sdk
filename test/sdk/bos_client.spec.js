@@ -20,7 +20,7 @@ var u = require('underscore');
 
 var config = require('../config');
 var helper = require('./helper');
-var BosClient = require('../../src/bos_client');
+var BosClient = require('../..').BosClient;
 
 describe('BosClient', function() {
     var client;
@@ -38,7 +38,7 @@ describe('BosClient', function() {
         key = util.format('test_object %d', id);
         filename = util.format('temp_file%d', id);
 
-        client = new BosClient(config);
+        client = new BosClient(config.bos);
     });
 
     afterEach(function(done) {
@@ -82,7 +82,7 @@ describe('BosClient', function() {
         client.listBuckets()
             .then(function(response) {
                 expect(response.body.buckets.length).toEqual(0);
-                expect(response.body.owner).toEqual(config.account);
+                expect(response.body.owner).toEqual(config.bos.account);
             })
             .catch(fail)
             .fin(done);
@@ -151,7 +151,7 @@ describe('BosClient', function() {
             },
             {
                 'grantee': [
-                    {'id': config.account.id}
+                    {'id': config.bos.account.id}
                 ],
                 'permission': ['FULL_CONTROL']
             }

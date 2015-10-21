@@ -14,9 +14,9 @@
  * @author leeight
  */
 
-/*eslint-env node*/
-/*eslint max-params:[0,10]*/
-/*eslint-disable fecs-camelcase*/
+/* eslint-env node */
+/* eslint max-params:[0,10] */
+/* eslint-disable fecs-camelcase */
 
 var util = require('util');
 
@@ -28,6 +28,7 @@ var BceBaseClient = require('./bce_base_client');
 
 /**
  * Media service api.
+ *
  * @constructor
  * @param {Object} config The media client configuration.
  * @extends {BceBaseClient}
@@ -52,7 +53,7 @@ MediaClient.prototype.createPipeline = function (pipelineName, sourceBucket, tar
         description: opt_description || ''
     });
 
-    return this._sendRequest('POST', url, {
+    return this.sendRequest('POST', url, {
         body: body,
         config: options.config
     });
@@ -62,21 +63,21 @@ MediaClient.prototype.getPipeline = function (pipelineName, opt_options) {
     var url = '/v3/pipeline/' + pipelineName;
     var options = opt_options || {};
 
-    return this._sendRequest('GET', url, {config: options.config});
+    return this.sendRequest('GET', url, {config: options.config});
 };
 
 MediaClient.prototype.deletePipeline = function (pipelineName, opt_options) {
     var url = '/v3/pipeline/' + pipelineName;
     var options = opt_options || {};
 
-    return this._sendRequest('DELETE', url, {config: options.config});
+    return this.sendRequest('DELETE', url, {config: options.config});
 };
 
 MediaClient.prototype.getAllPipelines = function (opt_options) {
     var url = '/v3/pipeline';
     var options = opt_options || {};
 
-    return this._sendRequest('GET', url, {config: options.config});
+    return this.sendRequest('GET', url, {config: options.config});
 };
 
 MediaClient.prototype.createJob = function (pipelineName, source, target, presetName, opt_options) {
@@ -89,7 +90,7 @@ MediaClient.prototype.createJob = function (pipelineName, source, target, preset
         presetName: presetName
     });
 
-    return this._sendRequest('POST', url, {
+    return this.sendRequest('POST', url, {
         body: body,
         config: options.config
     });
@@ -100,7 +101,7 @@ MediaClient.prototype.getAllJobs = function (pipelineName, opt_options) {
     var options = opt_options || {};
     var params = {pipelineName: pipelineName};
 
-    return this._sendRequest('GET', url, {
+    return this.sendRequest('GET', url, {
         params: params,
         config: options.config
     });
@@ -110,11 +111,12 @@ MediaClient.prototype.getJob = function (jobId, opt_options) {
     var url = '/v3/job/' + jobId;
     var options = opt_options || {};
 
-    return this._sendRequest('GET', url, {config: options.config});
+    return this.sendRequest('GET', url, {config: options.config});
 };
 
 /**
  * 创建模板, 不对外部用户开放，仅服务于Console.
+ *
  * @param {string} presetName 转码模板名称.
  * @param {string} container 音视频文件的容器.
  * @param {Object=} clip 是否截取音视频片段.
@@ -142,7 +144,7 @@ MediaClient.prototype.createPreset = function (presetName, container, clip, audi
     opt_transmux != null && (body.transmux = opt_transmux);
     opt_description && (body.description = opt_description);
 
-    return this._sendRequest('POST', url, {
+    return this.sendRequest('POST', url, {
         body: JSON.stringify(body),
         config: options.config
     });
@@ -152,7 +154,7 @@ MediaClient.prototype.getPreset = function (presetName, opt_options) {
     var url = '/v3/preset/' + presetName;
     var options = opt_options || {};
 
-    return this._sendRequest('GET', url, {
+    return this.sendRequest('GET', url, {
         config: options.config
     });
 };
@@ -161,7 +163,7 @@ MediaClient.prototype.deletePreset = function (presetName, opt_options) {
     var url = '/v3/preset/' + presetName;
     var options = opt_options || {};
 
-    return this._sendRequest('DELETE', url, {
+    return this.sendRequest('DELETE', url, {
         config: options.config
     });
 };
@@ -174,7 +176,7 @@ MediaClient.prototype.getMediainfo = function (bucket, key, opt_options) {
         key: key
     };
 
-    return this._sendRequest('GET', url, {
+    return this.sendRequest('GET', url, {
         params: params,
         config: options.config
     });
@@ -190,7 +192,7 @@ MediaClient.prototype.createSignature = function (credentials, httpMethod, path,
 // --- E N D ---
 
 
-MediaClient.prototype._sendRequest = function (httpMethod, resource, varArgs) {
+MediaClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
     var defaultArgs = {
         bucketName: null,
         key: null,
@@ -204,8 +206,14 @@ MediaClient.prototype._sendRequest = function (httpMethod, resource, varArgs) {
 
     var config = u.extend({}, this.config, args.config);
 
-    var httpClient = new HttpClient(config);
-    return httpClient.sendRequest(httpMethod, resource, args.body,
+    var client = this;
+    var agent = this._httpAgent = new HttpClient(config);
+    u.each(['progress', 'error', 'abort'], function (eventName) {
+        agent.on(eventName, function (evt) {
+            client.emit(eventName, evt);
+        });
+    });
+    return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
         args.outputStream
     );

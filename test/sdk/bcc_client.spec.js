@@ -18,7 +18,8 @@ var Q = require('q');
 var u = require('underscore');
 
 var config = require('../config');
-var BccClient = require('../../src/bcc_client');
+var BccClient = require('../..').BccClient;
+var helper = require('./helper');
 
 describe('BccClient', function () {
     var client;
@@ -27,10 +28,7 @@ describe('BccClient', function () {
     beforeEach(function () {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = 10 * 1000;
 
-        fail = u.bind(function () {
-            return this.fail.call(this, JSON.stringify(arguments));
-        }, this);
-
+        fail = helper.fail(this);
         client = new BccClient(config.bcc);
     });
 

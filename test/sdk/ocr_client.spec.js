@@ -21,16 +21,15 @@ var debug = require('debug')('ocr_client.spec');
 
 var config = require('../config');
 var crypto = require('../../src/crypto');
-var OCRClient = require('../../src/ocr_client');
+var OCRClient = require('../..').OCRClient;
+var helper = require('./helper');
 
 describe('OCRClient', function () {
     var client;
-
-    function fail(error) {
-        throw error;
-    }
+    var fail;
 
     beforeEach(function () {
+        fail = helper.fail(this);
         client = new OCRClient(config.ocr);
     });
 

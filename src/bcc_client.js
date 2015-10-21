@@ -14,18 +14,15 @@
  * @author leeight
  */
 
-/*eslint-env node*/
-/*eslint max-params:[0,10]*/
-/*eslint fecs-camelcase:[2,{"ignore":["/opt_/"]}]*/
+/* eslint-env node */
+/* eslint max-params:[0,10] */
+/* eslint fecs-camelcase:[2,{"ignore":["/opt_/"]}] */
 
 var util = require('util');
 
 var u = require('underscore');
-var Q = require('q');
 var debug = require('debug')('BccClient');
 
-var Auth = require('./auth');
-var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
 
 
@@ -43,11 +40,6 @@ var BceBaseClient = require('./bce_base_client');
  */
 function BccClient(config) {
     BceBaseClient.call(this, config, 'bcc', true);
-
-    /**
-     * @type {HttpClient}
-     */
-    this._httpAgent = null;
 }
 util.inherits(BccClient, BceBaseClient);
 
@@ -60,7 +52,7 @@ BccClient.prototype.listInstances = function (opt_options) {
         u.pick(options, 'maxKeys', 'marker')
     );
 
-    return this._sendRequest('GET', '/instance', {
+    return this.sendRequest('GET', '/v1/instance', {
         params: params,
         config: options.config
     });
@@ -74,7 +66,7 @@ function abstractMethod() {
 BccClient.prototype.getPackages = function (opt_options) {
     var options = opt_options || {};
 
-    return this._sendRequest('GET', '/instance/price', {
+    return this.sendRequest('GET', '/v1/instance/price', {
         config: options.config
     });
 };
@@ -89,7 +81,7 @@ BccClient.prototype.getImages = function (opt_options) {
         u.pick(options, 'maxKeys', 'marker', 'imageType')
     );
 
-    return this._sendRequest('GET', '/image', {
+    return this.sendRequest('GET', '/v1/image', {
         config: options.config,
         params: params
     });
@@ -124,7 +116,7 @@ BccClient.prototype.createInstance = function (body, opt_options) {
 
         debug('createInstance, params = %j, body = %j', params, body);
 
-        return me._sendRequest('POST', '/instance', {
+        return me.sendRequest('POST', '/v1/instance', {
             config: options.config,
             params: params,
             body: JSON.stringify(body)
@@ -136,7 +128,7 @@ BccClient.prototype.createInstance = function (body, opt_options) {
 BccClient.prototype.getInstance = function (id, opt_options) {
     var options = opt_options || {};
 
-    return this._sendRequest('GET', '/instance/' + id, {
+    return this.sendRequest('GET', '/v1/instance/' + id, {
         config: options.config
     });
 };
@@ -148,7 +140,7 @@ BccClient.prototype.startInstance = function (id, opt_options) {
         start: ''
     };
 
-    return this._sendRequest('PUT', '/instance/' + id, {
+    return this.sendRequest('PUT', '/v1/instance/' + id, {
         params: params,
         config: options.config
     });
@@ -161,7 +153,7 @@ BccClient.prototype.stopInstance = function (id, opt_options) {
         stop: ''
     };
 
-    return this._sendRequest('PUT', '/instance/' + id, {
+    return this.sendRequest('PUT', '/v1/instance/' + id, {
         params: params,
         config: options.config
     });
@@ -174,7 +166,7 @@ BccClient.prototype.restartInstance = function (id, opt_options) {
         reboot: ''
     };
 
-    return this._sendRequest('PUT', '/instance/' + id, {
+    return this.sendRequest('PUT', '/v1/instance/' + id, {
         params: params,
         config: options.config
     });
@@ -190,7 +182,7 @@ BccClient.prototype.rebuildInstance = abstractMethod;
 BccClient.prototype.deleteInstance = function (id, opt_options) {
     var options = opt_options || {};
 
-    return this._sendRequest('DELETE', '/instance/' + id, {
+    return this.sendRequest('DELETE', '/v1/instance/' + id, {
         config: options.config
     });
 };
@@ -205,20 +197,13 @@ BccClient.prototype.leaveSecurityGroup = abstractMethod;
 BccClient.prototype.getVNCUrl = function (id, opt_options) {
     var options = opt_options || {};
 
-    return this._sendRequest('GET', '/instance/' + id + '/vnc', {
+    return this.sendRequest('GET', '/v1/instance/' + id + '/vnc', {
         config: options.config
     });
 };
 
-BccClient.prototype.createSignature = function (credentials, httpMethod, path, params, headers) {
-    return Q.fcall(function () {
-        var auth = new Auth(credentials.ak, credentials.sk);
-        return auth.generateAuthorization(httpMethod, path, params, headers);
-    });
-};
-
 BccClient.prototype.getClientToken = function (opt_options) {
-    return this._sendRequest('POST', '/token/create');
+    return this.sendRequest('POST', '/v1/token/create');
 };
 
 // --- E N D ---
@@ -227,38 +212,6 @@ BccClient.prototype._generateClientToken = function () {
     var clientToken = Date.now().toString(16) + (Number.MAX_VALUE * Math.random()).toString(16).substr(0, 8);
     return 'ClientToken:' + clientToken;
 };
-
-BccClient.prototype._sendRequest = function (httpMethod, pathname, varArgs) {
-    var defaultArgs = {
-        body: null,
-        headers: {},
-        params: {},
-        config: {},
-        outputStream: null
-    };
-    var args = u.extend(defaultArgs, varArgs);
-
-    var config = u.extend({}, this.config, args.config);
-    var resource = '/v1' + pathname;
-
-    var client = this;
-    var agent = this._httpAgent = new HttpClient(config);
-    u.each(['progress', 'error', 'abort'], function (eventName) {
-        agent.on(eventName, function (evt) {
-            client.emit(eventName, evt);
-        });
-    });
-    return this._httpAgent.sendRequest(httpMethod, resource, args.body,
-        args.headers, args.params, u.bind(this.createSignature, this),
-        args.outputStream
-    );
-};
-
-
-
-
-
-
 
 
 

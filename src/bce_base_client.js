@@ -14,17 +14,22 @@
  * @author leeight
  */
 
-/*eslint-env node*/
+/* eslint-env node */
 
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 
 
+var Q = require('q');
 var u = require('underscore');
 
 var config = require('./config');
+var Auth = require('./auth');
+var HttpClient = require('./http_client');
 
 /**
+ * BceBaseClient
+ *
  * @constructor
  * @param {Object} config The bce client configuration.
  * @param {string} serviceId The service id.
@@ -38,12 +43,14 @@ function BceBaseClient(config, serviceId, regionSupported) {
     this.regionSupported = !!regionSupported;
 
     this.config.endpoint = this._computeEndpoint();
+
+    /**
+     * @type {HttpClient}
+     */
+    this._httpAgent = null;
 }
 util.inherits(BceBaseClient, EventEmitter);
 
-/**
- * @return {string} The bce client endpoint.
- */
 BceBaseClient.prototype._computeEndpoint = function () {
     if (this.config.endpoint) {
         return this.config.endpoint;
@@ -60,6 +67,39 @@ BceBaseClient.prototype._computeEndpoint = function () {
         this.config.protocol,
         this.serviceId,
         config.DEFAULT_SERVICE_DOMAIN);
+};
+
+BceBaseClient.prototype.createSignature = function (credentials, httpMethod, path, params, headers) {
+    return Q.fcall(function () {
+        var auth = new Auth(credentials.ak, credentials.sk);
+        return auth.generateAuthorization(httpMethod, path, params, headers);
+    });
+};
+
+
+BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
+    var defaultArgs = {
+        body: null,
+        headers: {},
+        params: {},
+        config: {},
+        outputStream: null
+    };
+    var args = u.extend(defaultArgs, varArgs);
+
+    var config = u.extend({}, this.config, args.config);
+
+    var client = this;
+    var agent = this._httpAgent = new HttpClient(config);
+    u.each(['progress', 'error', 'abort'], function (eventName) {
+        agent.on(eventName, function (evt) {
+            client.emit(eventName, evt);
+        });
+    });
+    return this._httpAgent.sendRequest(httpMethod, resource, args.body,
+        args.headers, args.params, u.bind(this.createSignature, this),
+        args.outputStream
+    );
 };
 
 

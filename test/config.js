@@ -12,21 +12,23 @@
 */
 
 module.exports = {
-    'credentials': {
-        'ak': 'a9622cb5f13c4003a80f2c00fe451d81',
-        'sk': '668ce0b2164e42e6b40d56a8efda8338',
-    },
-    'connection_timeout_in_mills': 5000,    // 5 seconds
-    'endpoint': 'http://10.105.97.15',
-    'account': {
-        'id': '04e0d2c9e8ef478c951b97714c092f77',
-        'displayName': 'PASSPORT:105016607'
+    'bos': {
+        'endpoint': 'http://10.105.97.15',
+        'credentials': {
+            'ak': process.env.BOS_AK,
+            'sk': process.env.BOS_SK,
+        },
+        'connection_timeout_in_mills': 5000,    // 5 seconds
+        'account': {
+            'id': '04e0d2c9e8ef478c951b97714c092f77',
+            'displayName': 'PASSPORT:105016607'
+        }
     },
     'bcc': {
         'endpoint': 'http://bcc.bce-api.baidu.com',
         'credentials': {
-            'ak': '97559b0876464e6989e628edeb892e8f',
-            'sk': '3e3b467ab329490a9cac428fe3f60b48'
+            'ak': process.env.BCC_AK,
+            'sk': process.env.BCC_SK
         }
     },
     'bcs': {
@@ -59,7 +61,8 @@ module.exports = {
         }
     },
     'media': {
-        'endpoint': 'http://multimedia.bce-testinternal.baidu.com',
+        // 'endpoint': 'http://multimedia.bce-testinternal.baidu.com',
+        'endpoint': process.env.MEDIA_ENDPOINT,
         'credentials': {
             'ak': process.env.MEDIA_AK,
             'sk': process.env.MEDIA_SK

@@ -21,16 +21,15 @@ var debug = require('debug')('face_client.spec');
 
 var config = require('../config');
 var crypto = require('../../src/crypto');
-var FaceClient = require('../../src/face_client');
+var FaceClient = require('../..').FaceClient;
+var helper = require('./helper');
 
 describe('FaceClient', function () {
     var client;
-
-    function fail(error) {
-        throw error;
-    }
+    var fail;
 
     beforeEach(function () {
+        fail = helper.fail(this);
         client = new FaceClient(config.face);
     });
 
@@ -300,7 +299,7 @@ describe('FaceClient', function () {
             .then(function (response) {
                 var persons = response.body.persons;
                 debug('Persons = %j', persons);
-                except(persons.length).toEqual(0);
+                expect(persons.length).toEqual(0);
             })
             .catch(fail)
             .fin(done);
