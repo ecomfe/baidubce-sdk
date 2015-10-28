@@ -28,7 +28,7 @@ var kDefaultTarget = 'http://' + kDefaultHost;
 // var kDefaultHost = 'platform.v3.bae.baidu.com';
 // var kDefaultTarget = 'http://bs.baidu.com';
 // var kDefaultHost = 'bs.baidu.com';
-var kWebRoot = path.join(__dirname, '..', 'demo');
+var kWebRoot = process.env.WEBROOT || path.join(__dirname, '..', 'demo');
 
 var proxy = httpProxy.createProxyServer({});
 proxy.on('proxyRes', function (proxyRes, req, res) {
@@ -61,8 +61,8 @@ http.createServer(function (req, res) {
         && req.url.indexOf('sign=') === -1
         && fs.existsSync(path.join(kWebRoot, pathname))) {
         // TODO 只有调试bcs的时候才需要开启
-        // target = 'http://127.0.0.1:8080';
-        // host = '127.0.0.1:8080';
+        target = 'http://127.0.0.1:8000';
+        host = '127.0.0.1:8000';
     }
 
     debug('[%s] %s%s', req.method, target, req.url);
