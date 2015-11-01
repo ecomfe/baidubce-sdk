@@ -14,7 +14,7 @@
  * @author leeight
  */
 
-/*eslint-env node*/
+/* eslint-env node */
 
 exports.CONTENT_TYPE = 'Content-Type';
 exports.CONTENT_LENGTH = 'Content-Length';

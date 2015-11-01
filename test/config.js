@@ -53,6 +53,13 @@ module.exports = {
             'sk': process.env.SES_SK
         }
     },
+    'qns': {
+        'endpoint': process.env.QNS_ENDPOINT,
+        'credentials': {
+            'ak': process.env.QNS_AK,
+            'sk': process.env.QNS_SK
+        }
+    },
     'ocr': {
         'endpoint': 'http://ocr.bj.baidubce.com',
         'credentials': {

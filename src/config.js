@@ -14,7 +14,7 @@
  * @author leeight
  */
 
-/*eslint-env node*/
+/* eslint-env node */
 
 exports.DEFAULT_SERVICE_DOMAIN = 'baidubce.com';
 

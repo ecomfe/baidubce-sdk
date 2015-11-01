@@ -3,7 +3,7 @@
  * @author leeight
  */
 
-/*eslint-env node*/
+/* eslint-env node */
 
 var mimeTypes = {
     'ez': 'application/andrew-inset',

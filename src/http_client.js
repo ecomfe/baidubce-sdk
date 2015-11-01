@@ -14,8 +14,8 @@
  * @author leeight
  */
 
-/*eslint-env node*/
-/*eslint max-params:[0,10]*/
+/* eslint-env node */
+/* eslint max-params:[0,10] */
 
 var http = require('http');
 var https = require('https');
@@ -30,6 +30,8 @@ var debug = require('debug')('HttpClient');
 var H = require('./headers');
 
 /**
+ * The HttpClient
+ *
  * @constructor
  * @param {Object} config The http client configuration.
  */
@@ -48,6 +50,8 @@ util.inherits(HttpClient, EventEmitter);
 
 
 /**
+ * Send Http Request
+ *
  * @param {string} httpMethod GET,POST,PUT,DELETE,HEAD
  * @param {string} path The http request path.
  * @param {(string|Buffer|stream.Readable)=} body The request body. If `body` is a
@@ -125,7 +129,7 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
                 return client._doRequest(options, body, outputStream);
             });
         }
-        else if (typeof promise === 'string'){
+        else if (typeof promise === 'string') {
             headers[H.AUTHORIZATION] = promise;
             debug('options = %j', options);
         }

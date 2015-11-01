@@ -11,6 +11,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
+var Q = require('q');
+
 exports.fail = function (spec) {
     var failImpl = spec.fail.bind(spec);
     return function (error) {
@@ -21,6 +23,12 @@ exports.fail = function (spec) {
             failImpl(new Error(JSON.stringify(error)));
         }
     }
+};
+
+exports.delayMs = function (ms) {
+    var deferred = Q.defer();
+    setTimeout(deferred.resolve, ms);
+    return deferred.promise;
 };
 
 

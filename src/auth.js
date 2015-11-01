@@ -14,8 +14,8 @@
  * @author leeight
  */
 
-/*eslint-env node*/
-/*eslint max-params:[0,10]*/
+/* eslint-env node */
+/* eslint max-params:[0,10] */
 
 var util = require('util');
 
@@ -24,6 +24,8 @@ var debug = require('debug')('auth');
 var H = require('./headers');
 
 /**
+ * Auth
+ *
  * @constructor
  * @param {string} ak The access key.
  * @param {string} sk The security key.
@@ -85,8 +87,8 @@ Auth.prototype.uriCanonicalization = function (uri) {
 
 /**
  * Canonical the query strings.
- * @see http://gollum.baidu.com/AuthenticationMechanism#生成CanonicalQueryString
  *
+ * @see http://gollum.baidu.com/AuthenticationMechanism#生成CanonicalQueryString
  * @param {Object} params The query strings.
  * @return {string}
  */
@@ -110,8 +112,8 @@ Auth.prototype.queryStringCanonicalization = function (params) {
 
 /**
  * Canonical the http request headers.
- * @see http://gollum.baidu.com/AuthenticationMechanism#生成CanonicalHeaders
  *
+ * @see http://gollum.baidu.com/AuthenticationMechanism#生成CanonicalHeaders
  * @param {Object} headers The http request headers.
  * @param {Array.<string>=} headersToSign The request headers list which will be used to calcualate the signature.
  * @return {*} canonicalHeaders and signedHeaders

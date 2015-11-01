@@ -14,7 +14,7 @@
  * @author leeight
  */
 
-/*eslint-env node*/
+/* eslint-env node */
 
 var stream = require('stream');
 var util = require('util');

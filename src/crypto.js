@@ -14,7 +14,7 @@
  * @author leeight
  */
 
-/*eslint-env node*/
+/* eslint-env node */
 
 var fs = require('fs');
 

@@ -31,14 +31,14 @@ var HttpClient = require('./http_client');
  * BceBaseClient
  *
  * @constructor
- * @param {Object} config The bce client configuration.
+ * @param {Object} clientConfig The bce client configuration.
  * @param {string} serviceId The service id.
  * @param {boolean=} regionSupported The service supported region or not.
  */
-function BceBaseClient(config, serviceId, regionSupported) {
+function BceBaseClient(clientConfig, serviceId, regionSupported) {
     EventEmitter.call(this);
 
-    this.config = u.extend({}, config.DEFAULT_CONFIG, config);
+    this.config = u.extend({}, config.DEFAULT_CONFIG, clientConfig);
     this.serviceId = serviceId;
     this.regionSupported = !!regionSupported;
 
