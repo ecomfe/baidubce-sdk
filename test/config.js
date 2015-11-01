@@ -13,7 +13,8 @@
 
 module.exports = {
     'bos': {
-        'endpoint': 'http://10.105.97.15',
+        // 'endpoint': 'http://10.105.97.15',
+        'endpoint': process.env.BOS_ENDPOINT,
         'credentials': {
             'ak': process.env.BOS_AK,
             'sk': process.env.BOS_SK,
@@ -40,7 +41,8 @@ module.exports = {
     },
     'face': {
         // 'endpoint': 'http://face.bj.baidubce.com',
-        'endpoint': 'http://nmg02-bce-test15.nmg02.baidu.com:8750',
+        // 'endpoint': 'http://nmg02-bce-test15.nmg02.baidu.com:8750',
+        'endpoint': process.env.FACE_ENDPOINT,
         'credentials': {
             'ak': process.env.FACE_AK,
             'sk': process.env.FACE_SK

@@ -43,7 +43,16 @@ describe('SesClient', function () {
             .then(function (response) {
                 debug('%j', response);
             })
-            .catch(fail)
+            .catch(function (error) {
+                if (error.code == 207) {
+                    expect(error.status_code).toEqual(500);
+                    expect(error.message).toEqual('mail addr [liyubei@baidu.com] already verified, please not re-verify');
+                    expect(error.code).toEqual('207');
+                }
+                else {
+                    fail(error);
+                }
+            })
             .fin(done);
     });
 
