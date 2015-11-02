@@ -28,5 +28,8 @@ qns:
 lss:
 	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/lss_client.spec.js
 
+mct:
+	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/mct_client.spec.js
+
 auth:
 	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/auth.spec.js

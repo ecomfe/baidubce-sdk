@@ -22,6 +22,7 @@ exports.BccClient = require('./src/bcc_client');
 exports.SesClient = require('./src/ses_client');
 exports.QnsClient = require('./src/qns_client');
 exports.LssClient = require('./src/lss_client');
+exports.MctClient = require('./src/mct_client');
 exports.FaceClient = require('./src/face_client');
 exports.OCRClient = require('./src/ocr_client');
 exports.MediaClient = require('./src/media_client');
