@@ -11,7 +11,10 @@
  * specific language governing permissions and limitations under the License.
  */
 
+var http = require('http');
+
 var Q = require('q');
+var debug = require('debug')('helper');
 
 exports.fail = function (spec) {
     var failImpl = spec.fail.bind(spec);
@@ -28,6 +31,28 @@ exports.fail = function (spec) {
 exports.delayMs = function (ms) {
     var deferred = Q.defer();
     setTimeout(deferred.resolve, ms);
+    return deferred.promise;
+};
+
+exports.get = function (url) {
+    var deferred = Q.defer();
+    http.get(url, function (res) {
+            var buffer = [];
+            res.on('data', function (data) {
+                buffer.push(data);
+            });
+            res.on('end', function () {
+                var body = Buffer.concat(buffer);
+                debug('statusCode = %s', res.statusCode);
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    deferred.resolve(body);
+                }
+                else {
+                    deferred.reject(body);
+                }
+            })
+        })
+        .on('error', deferred.reject);
     return deferred.promise;
 };
 

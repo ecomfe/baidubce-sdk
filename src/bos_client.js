@@ -20,6 +20,7 @@
 var util = require('util');
 var path = require('path');
 var fs = require('fs');
+var qs = require('querystring');
 
 var u = require('underscore');
 var Q = require('q');
@@ -61,6 +62,7 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
     expirationInSeconds, headers, params, headersToSign, config) {
 
     config = u.extend({}, this.config, config);
+    params = params || {};
 
     var resource = path.normalize(path.join(
         '/v1',
@@ -77,8 +79,9 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
         'GET', resource, params, headers, timestamp, expirationInSeconds,
         headersToSign);
 
-    return util.format('%s%s?authorization=%s', config.endpoint,
-        resource, encodeURIComponent(authorization));
+    params.authorization = authorization;
+
+    return util.format('%s%s?%s', config.endpoint, resource, qs.encode(params));
 };
 
 BosClient.prototype.listBuckets = function (options) {

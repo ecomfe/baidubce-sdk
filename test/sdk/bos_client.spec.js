@@ -17,6 +17,7 @@ var fs = require('fs');
 
 var Q = require('q');
 var u = require('underscore');
+var debug = require('debug')('bos_client.spec');
 
 var config = require('../config');
 var helper = require('./helper');
@@ -202,6 +203,21 @@ describe('BosClient', function() {
                 expect(response.http_headers['content-md5']).toEqual(
                     require('../../src/crypto').md5sum('hello world')
                 );
+
+                return client.generatePresignedUrl(bucket, key, 0, 1800, null, {'x-bce-range': '0-5'});
+            })
+            .then(function(url) {
+                return helper.get(url);
+            })
+            .then(function (body) {
+                expect(body.toString()).toEqual('hello ');
+                return client.generatePresignedUrl(bucket, key);
+            })
+            .then(function (url) {
+                return helper.get(url);
+            })
+            .then(function (body) {
+               expect(body.toString()).toEqual('hello world');
             })
             .catch(fail)
             .fin(done);
