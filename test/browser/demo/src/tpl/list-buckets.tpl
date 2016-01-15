@@ -25,7 +25,7 @@
         </div>
     </td>
     <td>文件夹</td>
-    <td>-</td>
+    <td>${row.location}</td>
     <td>${row.creationDate|relativeTime}</td>
 </tr>
 <!-- /for -->

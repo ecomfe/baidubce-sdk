@@ -88,12 +88,11 @@ define(function (require) {
             if (bucketName) {
                 client.listObjects(bucketName, options)
                     .then(function (res) {
-                        var button = $('.file-list tfoot button');
-
                         if (res.body.object_list) {
                             renderBody('TPL_list_bcs_objects', res.body);
                             res.body.isTruncated = (res.body.object_total >= res.body.limit);
                             if (res.body.isTruncated) {
+                                var button = $('.file-list tfoot button');
                                 var start = parseInt(button.data('next-marker'), 10);
                                 if (isNaN(start)) {
                                     start = 0;
@@ -106,6 +105,8 @@ define(function (require) {
                             attachFileType(res.body);
                             renderBody('TPL_list_objects', res.body);
                         }
+
+                        var button = $('.file-list tfoot button');
                         if (res.body.isTruncated) {
                             button.parents('tfoot').show();
                             button.data('next-marker', res.body.nextMarker);
