@@ -24488,7 +24488,8 @@ module.exports={
     "test": "test"
   },
   "scripts": {
-    "test": "make -C test"
+    "test": "make -C test",
+    "pack": "node_modules/.bin/browserify -s baidubce-sdk index.js -o baidubce-sdk.bundle.js"
   },
   "repository": {
     "type": "git",
@@ -25403,6 +25404,7 @@ module.exports = BcsClient;
 var util = require('util');
 var path = require('path');
 var fs = require('fs');
+var qs = require('querystring');
 
 var u = require('underscore');
 var Q = require('q');
@@ -25444,6 +25446,7 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
     expirationInSeconds, headers, params, headersToSign, config) {
 
     config = u.extend({}, this.config, config);
+    params = params || {};
 
     var resource = path.normalize(path.join(
         '/v1',
@@ -25460,8 +25463,9 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
         'GET', resource, params, headers, timestamp, expirationInSeconds,
         headersToSign);
 
-    return util.format('%s%s?authorization=%s', config.endpoint,
-        resource, encodeURIComponent(authorization));
+    params.authorization = authorization;
+
+    return util.format('%s%s?%s', config.endpoint, resource, qs.encode(params));
 };
 
 BosClient.prototype.listBuckets = function (options) {
@@ -25614,8 +25618,11 @@ BosClient.prototype.putObjectFromDataUrl = function (bucketName, key, data, opti
 };
 
 BosClient.prototype.putObjectFromString = function (bucketName, key, data, options) {
+    options = options || {};
+
     var headers = {};
     headers[H.CONTENT_LENGTH] = Buffer.byteLength(data);
+    headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(key));
     headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
     options = u.extend(headers, options);
 
@@ -25996,7 +26003,7 @@ module.exports = BosClient;
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require("buffer").Buffer)
-},{"./auth":188,"./bce_base_client":190,"./crypto":194,"./headers":196,"./http_client":197,"./mime.types":201,"./wm_stream":205,"buffer":178,"fs":2,"path":154,"q":185,"underscore":186,"url":173,"util":175}],193:[function(require,module,exports){
+},{"./auth":188,"./bce_base_client":190,"./crypto":194,"./headers":196,"./http_client":197,"./mime.types":201,"./wm_stream":205,"buffer":178,"fs":2,"path":154,"q":185,"querystring":159,"underscore":186,"url":173,"util":175}],193:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *

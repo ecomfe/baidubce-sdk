@@ -234,8 +234,11 @@ BosClient.prototype.putObjectFromDataUrl = function (bucketName, key, data, opti
 };
 
 BosClient.prototype.putObjectFromString = function (bucketName, key, data, options) {
+    options = options || {};
+
     var headers = {};
     headers[H.CONTENT_LENGTH] = Buffer.byteLength(data);
+    headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(key));
     headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
     options = u.extend(headers, options);
 
