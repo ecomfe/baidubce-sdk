@@ -1,6 +1,6 @@
 $(document).ready(function () {
     var sdk = window.baidubceSdk;
-    var tokenUrl = 'http://localhost:1337/ack';
+    var tokenUrl = 'http://180.76.166.159/:1337/ack';
     var bosConfig = {
         //credentials: {
         //    ak: '9fe103ae98de4798aabb34a433a3058b',
@@ -67,7 +67,6 @@ $(document).ready(function () {
         };
         var promise = client.putObjectFromBlob(bucket, key, blob, options);
         client.on('progress', function (evt) {
-            console.log('progress')
             if (evt.lengthComputable) {
                 var width = (evt.loaded / evt.total) * 100;
                 $row.find('.progress-bar').css('width', width + '%')
