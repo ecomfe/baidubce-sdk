@@ -55,6 +55,7 @@ var COMMAND_MAP = {
     gravityX: 'x',
     gravityY: 'y',
     opacity: 'o',
+    text: 't',
     fontSize: 'sz',
     fontFamily: 'ff',
     fontColor: 'fc',
@@ -116,20 +117,22 @@ BosClient.prototype.generateUrl = function (bucketName, key, pipeline, cdn) {
     )).replace(/\\/g, '/');
     // pipeline表示如何对图片进行处理.
     var command = '';
-    if (u.isString(pipeline)) {
-        if (/^@/.test(pipeline)) {
-            command = pipeline;
+    if (pipeline) {
+        if (u.isString(pipeline)) {
+            if (/^@/.test(pipeline)) {
+                command = pipeline;
+            }
+            else {
+                command = '@' + pipeline;
+            }
         }
         else {
-            command = '@' + pipeline;
+            command = '@' + u.map(pipeline, function (params) {
+                    return u.map(params, function (value, key) {
+                        return [COMMAND_MAP[key] || key, value].join('_');
+                    }).join(',');
+                }).join('|');
         }
-    }
-    else {
-        command = '@' + u.map(pipeline, function (params) {
-                return u.map(params, function (value, key) {
-                    return [COMMAND_MAP[key] || key, value].join('_');
-                }).join(',');
-            }).join('|');
     }
     if (command) {
         // 需要生成图片转码url

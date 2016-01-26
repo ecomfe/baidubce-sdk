@@ -4854,6 +4854,7 @@ var COMMAND_MAP = {
   gravityX: 'x',
   gravityY: 'y',
   opacity: 'o',
+  text: 't',
   fontSize: 'sz',
   fontFamily: 'ff',
   fontColor: 'fc',
@@ -4906,7 +4907,7 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
 };
 
 
-  BosClient.prototype.generateUrl = function (bucketName, key, pipeline, cdn) {
+BosClient.prototype.generateUrl = function (bucketName, key, pipeline, cdn) {
     var resource = path.normalize(path.join(
         '/v1',
         bucketName || '',
@@ -4914,20 +4915,23 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
     )).replace(/\\/g, '/');
     // pipeline表示如何对图片进行处理.
     var command = '';
-    if (u.isString(pipeline)) {
-      if (/^@/.test(pipeline)) {
-        command = pipeline;
+
+    if (pipeline) {
+      if (u.isString(pipeline)) {
+        if (/^@/.test(pipeline)) {
+          command = pipeline;
+        }
+        else {
+          command = '@' + pipeline;
+        }
       }
       else {
-        command = '@' + pipeline;
+        command = '@' + u.map(pipeline, function (params) {
+              return u.map(params, function (value, key) {
+                return [COMMAND_MAP[key] || key, value].join('_');
+              }).join(',');
+            }).join('|');
       }
-    }
-    else {
-      command = '@' + u.map(pipeline, function (params) {
-            return u.map(params, function (value, key) {
-              return [COMMAND_MAP[key] || key, value].join('_');
-            }).join(',');
-          }).join('|');
     }
     if (command) {
       // 需要生成图片转码url
@@ -21932,14 +21936,14 @@ function checkPrime(prime, generator) {
     return primeCache[hex];
   }
   var error = 0;
-  
+
   if (prime.isEven() ||
     !primes.simpleSieve ||
     !primes.fermatTest(prime) ||
     !millerRabin.test(prime)) {
     //not a prime so +1
     error += 1;
-    
+
     if (gen === '02' || gen === '05') {
       // we'd be able to check the generator
       // it would fail so +8
@@ -21969,9 +21973,9 @@ function checkPrime(prime, generator) {
       if (rem.cmp(THREE) && rem.cmp(SEVEN)) {
         // prime mod 10 needs to equal 3 or 7
         error += 8;
-      } 
+      }
       break;
-    default: 
+    default:
       error += 4;
   }
   primeCache[hex] = error;
@@ -21996,7 +22000,7 @@ function DH(prime, generator, malleable) {
   this._primeLen = prime.length;
   this._pub = void 0;
   this._priv = void 0;
-  
+
   if (malleable) {
     this.setPublicKey = setPublicKey;
     this.setPrivateKey = setPrivateKey;
@@ -22525,7 +22529,7 @@ module.exports = function privateDecrypt(private_key, enc, reverse) {
   } else {
     padding = 4;
   }
-  
+
   var key = parseKeys(private_key);
   var k = key.modulus.byteLength();
   if (enc.length > k || new bn(enc).cmp(key.modulus) >= 0) {
@@ -23109,7 +23113,7 @@ http.request = function (params, cb) {
         params.host = params.host.split(':')[0];
     }
     if (!params.port) params.port = params.protocol == 'https:' ? 443 : 80;
-    
+
     var req = new Request(new xhrHttp, params);
     if (cb) req.on('response', cb);
     return req;
@@ -23230,23 +23234,23 @@ var Request = module.exports = function (xhr, params) {
     self.writable = true;
     self.xhr = xhr;
     self.body = [];
-    
+
     self.uri = (params.protocol || 'http:') + '//'
         + params.host
         + (params.port ? ':' + params.port : '')
         + (params.path || '/')
     ;
-    
+
     if (typeof params.withCredentials === 'undefined') {
         params.withCredentials = true;
     }
 
     try { xhr.withCredentials = params.withCredentials }
     catch (e) {}
-    
+
     if (params.responseType) try { xhr.responseType = params.responseType }
     catch (e) {}
-    
+
     xhr.open(
         params.method || 'GET',
         self.uri,
@@ -23258,7 +23262,7 @@ var Request = module.exports = function (xhr, params) {
     };
 
     self._headers = {};
-    
+
     if (params.headers) {
         var keys = objectKeys(params.headers);
         for (var i = 0; i < keys.length; i++) {
@@ -23268,7 +23272,7 @@ var Request = module.exports = function (xhr, params) {
             self.setHeader(key, value);
         }
     }
-    
+
     if (params.auth) {
         //basic auth
         this.setHeader('Authorization', 'Basic ' + Base64.btoa(params.auth));
@@ -23278,7 +23282,7 @@ var Request = module.exports = function (xhr, params) {
     res.on('close', function () {
         self.emit('close');
     });
-    
+
     res.on('ready', function () {
         self.emit('response', res);
     });
@@ -23286,7 +23290,7 @@ var Request = module.exports = function (xhr, params) {
     res.on('error', function (err) {
         self.emit('error', err);
     });
-    
+
     xhr.onreadystatechange = function () {
         // Fix for IE9 bug
         // SCRIPT575: Could not complete the operation due to error c00c023f
@@ -23355,7 +23359,7 @@ Request.prototype.end = function (s) {
         }
         var body = new(this.body[0].constructor)(len);
         var k = 0;
-        
+
         for (var i = 0; i < this.body.length; i++) {
             var b = this.body[i];
             for (var j = 0; j < b.length; j++) {
@@ -23452,13 +23456,13 @@ function parseHeaders (res) {
     for (var i = 0; i < lines.length; i++) {
         var line = lines[i];
         if (line === '') continue;
-        
+
         var m = line.match(/^([^:]+):\s*(.*)/);
         if (m) {
             var key = m[1].toLowerCase(), value = m[2];
-            
+
             if (headers[key] !== undefined) {
-            
+
                 if (isArray(headers[key])) {
                     headers[key].push(value);
                 }
@@ -23497,7 +23501,7 @@ Response.prototype.handle = function (res) {
         catch (err) {
             capable.status2 = false;
         }
-        
+
         if (capable.status2) {
             this.emit('ready');
         }
@@ -23511,7 +23515,7 @@ Response.prototype.handle = function (res) {
             }
         }
         catch (err) {}
-        
+
         try {
             this._emitData(res);
         }
@@ -23525,12 +23529,12 @@ Response.prototype.handle = function (res) {
             this.emit('ready');
         }
         this._emitData(res);
-        
+
         if (res.error) {
             this.emit('error', this.getResponse(res));
         }
         else this.emit('end');
-        
+
         this.emit('close');
     }
 };
@@ -28345,13 +28349,13 @@ Script.prototype.runInContext = function (context) {
     if (!(context instanceof Context)) {
         throw new TypeError("needs a 'context' argument.");
     }
-    
+
     var iframe = document.createElement('iframe');
     if (!iframe.style) iframe.style = {};
     iframe.style.display = 'none';
-    
+
     document.body.appendChild(iframe);
-    
+
     var win = iframe.contentWindow;
     var wEval = win.eval, wExecScript = win.execScript;
 
@@ -28360,7 +28364,7 @@ Script.prototype.runInContext = function (context) {
         wExecScript.call(win, 'null');
         wEval = win.eval;
     }
-    
+
     forEach(Object_keys(context), function (key) {
         win[key] = context[key];
     });
@@ -28369,11 +28373,11 @@ Script.prototype.runInContext = function (context) {
             win[key] = context[key];
         }
     });
-    
+
     var winKeys = Object_keys(win);
 
     var res = wEval.call(win, this.code);
-    
+
     forEach(Object_keys(win), function (key) {
         // Avoid copying circular objects like `top` and `window` by only
         // updating existing context properties or new properties in the `win`
@@ -28388,9 +28392,9 @@ Script.prototype.runInContext = function (context) {
             defineProp(context, key, win[key]);
         }
     });
-    
+
     document.body.removeChild(iframe);
-    
+
     return res;
 };
 

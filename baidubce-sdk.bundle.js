@@ -28343,6 +28343,7 @@ var COMMAND_MAP = {
     gravityX: 'x',
     gravityY: 'y',
     opacity: 'o',
+    text: 't',
     fontSize: 'sz',
     fontFamily: 'ff',
     fontColor: 'fc',
@@ -28405,21 +28406,24 @@ BosClient.prototype.generateUrl = function (bucketName, key, pipeline, config) {
         key || ''
     )).replace(/\\/g, '/');
     // pipeline表示如何对图片进行处理.
-    var command = '';
-    if (u.isString(pipeline)) {
+
+    if (pipeline) {
+      var command = '';
+      if (u.isString(pipeline)) {
         if (/^@/.test(pipeline)) {
-            command = pipeline;
+          command = pipeline;
         }
         else {
-            command = '@' + pipeline;
+          command = '@' + pipeline;
         }
-    }
-    else {
+      }
+      else {
         command = '@' + u.map(pipeline, function (params) {
-            return u.map(params, function (value, key) {
+              return u.map(params, function (value, key) {
                 return [COMMAND_MAP[key] || key, value].join('_');
-            }).join(',');
-        }).join('|');
+              }).join(',');
+            }).join('|');
+      }
     }
 
     return util.format('%s%s%s', config.endpoint, resource, command);

@@ -1,6 +1,8 @@
 $(document).ready(function () {
+    hljs.initHighlightingOnLoad();
+
     var sdk = window.baidubceSdk;
-    var tokenUrl = 'http://180.76.166.159/:1337/ack';
+    var tokenUrl = 'http://180.76.166.159:1337/ack';
     var bosConfig = {
         //credentials: {
         //    ak: '9fe103ae98de4798aabb34a433a3058b',
@@ -20,7 +22,7 @@ $(document).ready(function () {
         var id = +new Date();
         var $row = $('<tr id="' + id + '">' +
             '<td class="file-name">' + key + '</td>' +
-            '<td>' + blob.size + '</td>' +
+            '<td>' + fileSize(blob.size) + '</td>' +
             '<td class="file-detail">' +
             '<div class="progress"><div class="progress-bar progress-bar-success" style="width: 0;"></div></div>' +
             '</td>' +
@@ -70,10 +72,11 @@ $(document).ready(function () {
             if (evt.lengthComputable) {
                 var width = (evt.loaded / evt.total) * 100;
                 $row.find('.progress-bar').css('width', width + '%')
-                    .text(width + '%');
+                    .text(width.toFixed(2) + '%');
             }
         });
         promise.then(function (res) {
+                toastr.success('上传成功');
                 $row.find('.file-detail').html('下载地址: <a href="' + url + '" target="_blank">' + url + '</a>');
                 if (/image/.test(mimeType)) {
                     $row.find('.file-name').html('<figure>' +
@@ -84,12 +87,12 @@ $(document).ready(function () {
                 }
             })
             .catch(function (err) {
+                toastr.success('上传失败');
                 console.error(err);
             });
 
     });
 
-    var $textWatermark = $('#textWatermark');
     var $textWatermarkPosition = $('#textWatermarkPosition');
     var $pictureWatermarkPosition = $('#pictureWatermarkPosition');
     var $width = $('#width');
@@ -97,18 +100,18 @@ $(document).ready(function () {
     var $angle = $('#angle');
     $('#process').click(function () {
         var pipeline = [];
-        if ($textWatermark.val() && +$textWatermarkPosition.val() > 0) {
+        if (+$textWatermarkPosition.val() > 0) {
             pipeline.push({
                 watermark: 2,
                 gravity: $textWatermarkPosition.val(),
-                text: $textWatermark.val()
+                text: '55m+5bqm5byA5pS+5LqR'
             });
         }
         if (+$pictureWatermarkPosition.val() > 0) {
             pipeline.push({
                 watermark: 1,
                 gravity: $pictureWatermarkPosition.val(),
-                key: '%E5%BC%80%E6%94%BE%E4%BA%91logo%281%29.png'
+                key: 'bG9nbzJ4LnBuZw=='
             });
         }
         if ($width.val() || $height.val() || $angle.val()) {
@@ -149,6 +152,17 @@ $(document).ready(function () {
         img.onload = function () {
             $img.prop('src', src);
         }
+    }
+
+    function fileSize(num) {
+        num = +num;
+        var unit = ['Byte', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        var index = 0;
+        while (num > 1024) {
+            num = num / 1024;
+            index++;
+        }
+        return num.toFixed(1) + unit[index];
     }
 
     $fileList.on('click', '.showEdit', function (e) {
