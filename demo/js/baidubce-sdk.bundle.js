@@ -4837,28 +4837,30 @@ var MAX_USER_METADATA_SIZE = 2048;          // 2 * 1024
 var MIN_PART_NUMBER = 1;
 var MAX_PART_NUMBER = 10000;
 var COMMAND_MAP = {
-    scale: 's',
-    width: 'w',
-    height: 'h',
-    quality: 'q',
-    format: 'f',
-    angle: 'a',
-    display: 'd',
-    limit: 'l',
-    crop: 'c',
-    offsetX: 'x',
-    offsetY: 'y',
-    watermark: 'wm',
-    key: 'k',
-    gravity: 'g',
-    gravityX: 'x',
-    gravityY: 'y',
-    opacity: 'o',
-    fontSize: 'sz',
-    fontFamily: 'ff',
-    fontColor: 'fc',
-    fontStyle: 'fs'
-  };
+  scale: 's',
+  width: 'w',
+  height: 'h',
+  quality: 'q',
+  format: 'f',
+  angle: 'a',
+  display: 'd',
+  limit: 'l',
+  crop: 'c',
+  offsetX: 'x',
+  offsetY: 'y',
+  watermark: 'wm',
+  key: 'k',
+  gravity: 'g',
+  gravityX: 'x',
+  gravityY: 'y',
+  opacity: 'o',
+  fontSize: 'sz',
+  fontFamily: 'ff',
+  fontColor: 'fc',
+  fontStyle: 'fs'
+};
+var IMAGE_DOMAIN = 'bceimg.com';
+
 /**
  * BOS service api
  *
@@ -4904,18 +4906,14 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
 };
 
 
-BosClient.prototype.generateUrl = function (bucketName, key, pipeline, config) {
-
-  config = u.extend({}, this.config, config);
-
-  var resource = path.normalize(path.join(
-      '/v1',
-      bucketName || '',
-      key || ''
-  )).replace(/\\/g, '/');
-  // pipeline表示如何对图片进行处理.
-  var command = '';
-  if(pipeline) {
+  BosClient.prototype.generateUrl = function (bucketName, key, pipeline, cdn) {
+    var resource = path.normalize(path.join(
+        '/v1',
+        bucketName || '',
+        key || ''
+    )).replace(/\\/g, '/');
+    // pipeline表示如何对图片进行处理.
+    var command = '';
     if (u.isString(pipeline)) {
       if (/^@/.test(pipeline)) {
         command = pipeline;
@@ -4931,10 +4929,15 @@ BosClient.prototype.generateUrl = function (bucketName, key, pipeline, config) {
             }).join(',');
           }).join('|');
     }
-  }
-
-  return util.format('%s%s%s', config.endpoint, resource, command);
-}
+    if (command) {
+      // 需要生成图片转码url
+      if (cdn) {
+        return util.format('http://%s/%s%s', cdn, path.normalize(key), command);
+      }
+      return util.format('http://%s.%s/%s%s', path.normalize(bucketName), IMAGE_DOMAIN, path.normalize(key), command);
+    }
+    return util.format('%s%s%s', this.config.endpoint, resource, command);
+  };
 
 BosClient.prototype.listBuckets = function (options) {
     options = options || {};

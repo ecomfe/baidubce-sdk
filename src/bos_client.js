@@ -60,6 +60,7 @@ var COMMAND_MAP = {
     fontColor: 'fc',
     fontStyle: 'fs'
 };
+var IMAGE_DOMAIN = 'bceimg.com';
 
 /**
  * BOS service api
@@ -107,10 +108,7 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
     return util.format('%s%s?%s', config.endpoint, resource, qs.encode(params));
 };
 
-BosClient.prototype.generateUrl = function (bucketName, key, pipeline, config) {
-
-    config = u.extend({}, this.config, config);
-
+BosClient.prototype.generateUrl = function (bucketName, key, pipeline, cdn) {
     var resource = path.normalize(path.join(
         '/v1',
         bucketName || '',
@@ -128,15 +126,20 @@ BosClient.prototype.generateUrl = function (bucketName, key, pipeline, config) {
     }
     else {
         command = '@' + u.map(pipeline, function (params) {
-            return u.map(params, function (value, key) {
-                return [COMMAND_MAP[key] || key, value].join('_');
-            }).join(',');
-        }).join('|');
+                return u.map(params, function (value, key) {
+                    return [COMMAND_MAP[key] || key, value].join('_');
+                }).join(',');
+            }).join('|');
     }
-
-    return util.format('%s%s%s', config.endpoint, resource, command);
-}
-;
+    if (command) {
+        // 需要生成图片转码url
+        if (cdn) {
+            return util.format('http://%s/%s%s', cdn, path.normalize(key), command);
+        }
+        return util.format('http://%s.%s/%s%s', path.normalize(bucketName), IMAGE_DOMAIN, path.normalize(key), command);
+    }
+    return util.format('%s%s%s', this.config.endpoint, resource, command);
+};
 
 BosClient.prototype.listBuckets = function (options) {
     options = options || {};
