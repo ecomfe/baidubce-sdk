@@ -37,6 +37,31 @@ var MAX_PUT_OBJECT_LENGTH = 5368709120;     // 5G
 var MAX_USER_METADATA_SIZE = 2048;          // 2 * 1024
 var MIN_PART_NUMBER = 1;
 var MAX_PART_NUMBER = 10000;
+var COMMAND_MAP = {
+    scale: 's',
+    width: 'w',
+    height: 'h',
+    quality: 'q',
+    format: 'f',
+    angle: 'a',
+    display: 'd',
+    limit: 'l',
+    crop: 'c',
+    offsetX: 'x',
+    offsetY: 'y',
+    watermark: 'wm',
+    key: 'k',
+    gravity: 'g',
+    gravityX: 'x',
+    gravityY: 'y',
+    opacity: 'o',
+    text: 't',
+    fontSize: 'sz',
+    fontFamily: 'ff',
+    fontColor: 'fc',
+    fontStyle: 'fs'
+};
+var IMAGE_DOMAIN = 'bceimg.com';
 
 /**
  * BOS service api
@@ -59,7 +84,7 @@ util.inherits(BosClient, BceBaseClient);
 
 // --- B E G I N ---
 BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
-    expirationInSeconds, headers, params, headersToSign, config) {
+                                                     expirationInSeconds, headers, params, headersToSign, config) {
 
     config = u.extend({}, this.config, config);
     params = params || {};
@@ -82,6 +107,41 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
     params.authorization = authorization;
 
     return util.format('%s%s?%s', config.endpoint, resource, qs.encode(params));
+};
+
+BosClient.prototype.generateUrl = function (bucketName, key, pipeline, cdn) {
+    var resource = path.normalize(path.join(
+        '/v1',
+        bucketName || '',
+        key || ''
+    )).replace(/\\/g, '/');
+    // pipeline表示如何对图片进行处理.
+    var command = '';
+    if (pipeline) {
+        if (u.isString(pipeline)) {
+            if (/^@/.test(pipeline)) {
+                command = pipeline;
+            }
+            else {
+                command = '@' + pipeline;
+            }
+        }
+        else {
+            command = '@' + u.map(pipeline, function (params) {
+                    return u.map(params, function (value, key) {
+                        return [COMMAND_MAP[key] || key, value].join('_');
+                    }).join(',');
+                }).join('|');
+        }
+    }
+    if (command) {
+        // 需要生成图片转码url
+        if (cdn) {
+            return util.format('http://%s/%s%s', cdn, path.normalize(key), command);
+        }
+        return util.format('http://%s.%s/%s%s', path.normalize(bucketName), IMAGE_DOMAIN, path.normalize(key), command);
+    }
+    return util.format('%s%s%s', this.config.endpoint, resource, command);
 };
 
 BosClient.prototype.listBuckets = function (options) {
@@ -313,10 +373,18 @@ BosClient.prototype.getObjectToFile = function (bucketName, key, filename, range
 
 BosClient.prototype.copyObject = function (sourceBucketName, sourceKey, targetBucketName, targetKey, options) {
     /*eslint-disable*/
-    if (!sourceBucketName) { throw new TypeError('sourceBucketName should not be empty'); }
-    if (!sourceKey) { throw new TypeError('sourceKey should not be empty'); }
-    if (!targetBucketName) { throw new TypeError('targetBucketName should not be empty'); }
-    if (!targetKey) { throw new TypeError('targetKey should not be empty'); }
+    if (!sourceBucketName) {
+        throw new TypeError('sourceBucketName should not be empty');
+    }
+    if (!sourceKey) {
+        throw new TypeError('sourceKey should not be empty');
+    }
+    if (!targetBucketName) {
+        throw new TypeError('targetBucketName should not be empty');
+    }
+    if (!targetKey) {
+        throw new TypeError('targetKey should not be empty');
+    }
     /*eslint-enable*/
 
     options = this._checkOptions(options || {});
@@ -383,7 +451,7 @@ BosClient.prototype.completeMultipartUpload = function (bucketName, key, uploadI
 };
 
 BosClient.prototype.uploadPartFromFile = function (bucketName, key, uploadId, partNumber,
-    partSize, filename, offset, partMd5, options) {
+                                                   partSize, filename, offset, partMd5, options) {
 
     var start = offset;
     var end = offset + partSize - 1;
@@ -393,7 +461,7 @@ BosClient.prototype.uploadPartFromFile = function (bucketName, key, uploadId, pa
 };
 
 BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, partNumber,
-    partSize, blob, options) {
+                                                   partSize, blob, options) {
     if (blob.size !== partSize) {
         throw new TypeError(util.format('Invalid partSize %d and data length %d',
             partSize, blob.size));
@@ -417,7 +485,7 @@ BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, pa
 };
 
 BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId, partNumber,
-    partSize, dataUrl, options) {
+                                                      partSize, dataUrl, options) {
 
     var data = new Buffer(dataUrl, 'base64');
     if (data.length !== partSize) {
@@ -443,11 +511,15 @@ BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId,
 };
 
 BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber,
-    partSize, partFp, partMd5, options) {
+                                           partSize, partFp, partMd5, options) {
 
     /*eslint-disable*/
-    if (!bucketName) { throw new TypeError('bucketName should not be empty');}
-    if (!key) { throw new TypeError('key should not be empty'); }
+    if (!bucketName) {
+        throw new TypeError('bucketName should not be empty');
+    }
+    if (!key) {
+        throw new TypeError('key should not be empty');
+    }
     /*eslint-enable*/
     if (partNumber < MIN_PART_NUMBER || partNumber > MAX_PART_NUMBER) {
         throw new TypeError(util.format('Invalid partNumber %d. The valid range is from %d to %d.',
@@ -487,12 +559,15 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
             config: options.config
         });
     }
+
     return newPromise();
 };
 
 BosClient.prototype.listParts = function (bucketName, key, uploadId, options) {
     /*eslint-disable*/
-    if (!uploadId) { throw new TypeError('uploadId should not empty'); }
+    if (!uploadId) {
+        throw new TypeError('uploadId should not empty');
+    }
     /*eslint-enable*/
 
     var allowedParams = ['maxParts', 'partNumberMarker', 'uploadId'];
@@ -614,6 +689,5 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
 };
 
 module.exports = BosClient;
-
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */

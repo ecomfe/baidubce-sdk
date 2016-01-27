@@ -21,8 +21,8 @@ var util = require('util');
 var Auth = require('../../../../src/auth');
 
 var kCredentials = {
-    ak: '4c60a1d7c5c846c79bff4f304240c581',
-    sk: '42bb4f0b2f274b7eb0b544156a50e564'
+    ak: '9fe103ae98de4798aabb34a433a3058b',
+    sk: 'b084ab23d1ef44c997d10d2723dd8014'
 };
 
 function safeParse(text) {
@@ -66,7 +66,10 @@ http.createServer(function (req, res) {
             xbceDate: new Date().toISOString().replace(/\.\d+Z$/, 'Z')
         };
 
-        res.writeHead(statusCode, {'Content-Type': 'text/javascript; charset=utf-8'});
+        res.writeHead(statusCode, {
+            'Content-Type': 'text/javascript; charset=utf-8',
+            'Access-Control-Allow-Origin': '*'
+        });
         if (query.callback) {
             res.end(util.format('%s(%s)', query.callback, JSON.stringify(payload)));
         }
@@ -76,13 +79,5 @@ http.createServer(function (req, res) {
     }, delay * 1000);
 }).listen(1337, '127.0.0.1');
 console.log('Server running at http://127.0.0.1:1337/');
-
-
-
-
-
-
-
-
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
