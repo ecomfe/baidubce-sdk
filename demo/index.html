@@ -25,6 +25,7 @@
             <div class="panel-body">
                 <h4>欢迎使用百度开放云。</h4>
                 <p>本页面向您展示如何使用javascript-sdk，使用对象存储BOS及相应的图片处理服务。</p>
+                <p>BOS文件上传支持直接上传和分块上传，本示例中，小于5M的文件直接上传，大于5M的文件分块上传。</p>
                 <br>
                 <p class="text-center">
                     <a href="http://bce.baidu.com" target="_blank" class="btn btn-default">百度开放云</a>
@@ -268,6 +269,122 @@ console.log('Server running at http://0.0.0.0:1337/');
                     </code></pre>
                 </li>
                 <li>
+                    <h4>分块上传</h4>
+
+                    <p>对于支持html5的浏览器可以使用分块上传的功能。分块上传比直接上传稍微复杂一点，直接上只需要调用<code>putObjectFromBlob</code>就可以了，而分块上传需要分为三个阶段：开始上传（<code>initiateMultipartUpload</code>）、上传分块（<code>uploadPartFromBlob</code>）、上传完成（<code>completeMultipartUpload</code>）。</p>
+                    <pre><code>
+
+var PART_SIZE = 5 * 1024 * 1024; // 指定分块大小
+
+// 按照指定的分块大小对文件进行分块
+function getTasks(file, uploadId, bucketName, key) {
+    var leftSize = file.size;
+    var offset = 0;
+    var partNumber = 1;
+
+    var tasks = [];
+
+    while (leftSize > 0) {
+        var partSize = Math.min(leftSize, PART_SIZE);
+        tasks.push({
+            file: file,
+            uploadId: uploadId,
+            bucketName: bucketName,
+            key: key,
+            partNumber: partNumber,
+            partSize: partSize,
+            start: offset,
+            stop: offset + partSize - 1
+        });
+
+        leftSize -= partSize;
+        offset += partSize;
+        partNumber += 1;
+    }
+    return tasks;
+}
+
+// 定义分块上传的方法
+function uploadPartFile(state, client) {
+    return function(task, callback) {
+        var blob = task.file.slice(task.start, task.stop + 1);
+        client.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob)
+            .then(function(res) {
+                ++state.loaded;
+                client.emit('overallProgress', state);
+                callback(null, res);
+            })
+            .catch(function(err) {
+                callback(err);
+            });
+    };
+}
+
+var uploadId; // 开始上传时，由服务器生成本次分块上传的id，所有分块都要用
+promise = client.initiateMultipartUpload(bucket, key, options)
+    .then(function(response) {
+        uploadId = response.body.uploadId; // 开始上传，获取服务器生成的uploadId
+
+        var deferred = sdk.Q.defer();
+        var tasks = getTasks(blob, uploadId, bucket, key);
+        var state = {
+            lengthComputable: true,
+            loaded: 0,
+            total: tasks.length
+        };
+
+        // 为了管理分块上传，使用了async（https://github.com/caolan/async）库来进行异步处理
+        var THREADS = 2; // 同时上传的分块数量
+        async.mapLimit(tasks, THREADS, uploadPartFile(state, client), function(err, results) {
+            if (err) {
+                deferred.reject(err);
+            } else {
+                deferred.resolve(results);
+            }
+        });
+        return deferred.promise;
+    })
+    .then(function(allResponse) {
+        var partList = [];
+        allResponse.forEach(function(response, index) {
+            // 生成分块清单
+            partList.push({
+                partNumber: index + 1,
+                eTag: response.http_headers.etag
+            });
+        });
+        return client.completeMultipartUpload(bucket, key, uploadId, partList); // 完成上传
+    });
+}
+client.on('overallProgress', function(evt) {
+    // 监听上传进度
+    if (evt.lengthComputable) {
+        // 添加您的代码
+        var percentage = (evt.loaded / evt.total) * 100;
+        console.log('上传中，已上传了' + percentage + '%');
+    }
+});
+promise.then(function (res) {
+        // 上传完成，添加您的代码
+        console.log('上传成功，下载地址：' + url);
+    })
+    .catch(function (err) {
+        // 上传失败，添加您的代码
+        console.error(err);
+    });
+                    </code></pre>
+                    <p>在完成上传的步骤中，参数中需要带上上传区块的清单时需要每个分块上传成功时的ETag，为了能正确地接收BOS服务器返回的这个字段，您需要在相关bucket的cors设置中，在ExposeHeaders中添加“ETag”，如下图所示。</p>
+                    <p class="text-center">
+                        <img src="http://bos.bj.baidubce.com/v1/bce-javascript-sdk-demo-test/示例图.png" alt="">
+                    </p>
+                    <p>您可以在开放云控制台中查看由于分块上传而产生的文件分块信息：</p>
+                    <ol>
+                        <li>登录<a href="https://console.bce.baidu.com/bos/#/bos/list">开放云控制台</a></li>
+                        <li>选择一个 Bucket，进入 Bucket 管理页面</li>
+                        <li>点击左侧『Part管理』，进入 Part 管理页面</li>
+                    </ol>
+                </li>
+                <li>
                     <h4>图片处理</h4>
                     <p>您可以对存储在bos中的图片进行各种处理，开通图片服务的流程请参考：<a href="https://bce.baidu.com/doc/BOS/ImgService.html#.36.59.EB.F0.21.91.FA.C1.3B.41.96.94.43.40.D2.EB" target="_blank">图片服务使用流程</a>。</p>
                     <p>
@@ -409,6 +526,7 @@ client.generateUrl('bucketName', 'key', pipeline);
     <script src="http://apps.bdimg.com/libs/underscore.js/1.7.0/underscore-min.js"></script>
     <script src="//cdn.bootcss.com/highlight.js/9.1.0/highlight.min.js"></script>
     <script src="//cdn.bootcss.com/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="http://apps.bdimg.com/libs/async/0.9.0/async.js"></script>
     <script src="js/baidubce-sdk.bundle.js"></script>
     <script src="js/index.js"></script>
 </body>
