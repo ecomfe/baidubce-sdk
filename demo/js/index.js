@@ -129,9 +129,17 @@ $(document).ready(function() {
                     }
                 })
                 .catch(function(err) {
-                    toastr.success('上传失败');
+                    toastr.error('上传失败');
                     console.error(err);
                 });
+
+            $row.on('click', '.showEdit', function(e) {
+                window.client = client;
+                $('#edit').modal();
+                var key = $(e.target).attr('data-key');
+                updateImage(client.generateUrl(bucket, key));
+                $('#process').attr('data-key', key);
+            });
         })(evt);
     });
 
@@ -204,12 +212,6 @@ $(document).ready(function() {
         return num.toFixed(1) + unit[index];
     }
 
-    $fileList.on('click', '.showEdit', function(e) {
-        $('#edit').modal();
-        var key = $(e.target).attr('data-key');
-        updateImage(client.generateUrl(bucket, key));
-        $('#process').attr('data-key', key);
-    });
 
     function getTasks(file, uploadId, bucketName, key) {
         var leftSize = file.size;
