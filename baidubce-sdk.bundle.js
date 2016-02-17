@@ -23075,6 +23075,7 @@ exports.OCRClient = require('./src/ocr_client');
 exports.MediaClient = require('./src/media_client');
 exports.HttpClient = require('./src/http_client');
 exports.MimeType = require('./src/mime.types');
+exports.STS = require('./src/sts');
 
 
 
@@ -23087,7 +23088,7 @@ exports.MimeType = require('./src/mime.types');
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./src/auth":152,"./src/bcc_client":153,"./src/bcs_client":155,"./src/bos_client":156,"./src/face_client":159,"./src/http_client":161,"./src/lss_client":162,"./src/mct_client":163,"./src/media_client":164,"./src/mime.types":165,"./src/ocr_client":166,"./src/qns_client":167,"./src/ses_client":168,"q":149}],146:[function(require,module,exports){
+},{"./src/auth":152,"./src/bcc_client":153,"./src/bcs_client":155,"./src/bos_client":156,"./src/face_client":159,"./src/http_client":161,"./src/lss_client":162,"./src/mct_client":163,"./src/media_client":164,"./src/mime.types":165,"./src/ocr_client":166,"./src/qns_client":167,"./src/ses_client":168,"./src/sts":169,"q":149}],146:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -28785,7 +28786,7 @@ module.exports = BosClient;
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require("buffer").Buffer)
-},{"./auth":152,"./bce_base_client":154,"./crypto":158,"./headers":160,"./http_client":161,"./mime.types":165,"./wm_stream":169,"buffer":46,"fs":1,"path":106,"q":149,"querystring":118,"underscore":150,"url":141,"util":143}],157:[function(require,module,exports){
+},{"./auth":152,"./bce_base_client":154,"./crypto":158,"./headers":160,"./http_client":161,"./mime.types":165,"./wm_stream":170,"buffer":46,"fs":1,"path":106,"q":149,"querystring":118,"underscore":150,"url":141,"util":143}],157:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -32128,6 +32129,75 @@ module.exports = SesClient;
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{"./bce_base_client":154,"fs":1,"path":106,"util":143}],169:[function(require,module,exports){
+/**
+ * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ * @file src/sts.js
+ * @author zhouhua
+ */
+
+/* eslint-env node */
+/* eslint max-params:[0,10] */
+
+var util = require('util');
+var u = require('underscore');
+
+var debug = require('debug')('STS');
+
+var BceBaseClient = require('./bce_base_client');
+
+/**
+ * STS支持 - 将STS抽象成一种服务
+ *
+ * @see https://bce.baidu.com/doc/BOS/API.html#STS.20.E6.9C.8D.E5.8A.A1.E6.8E.A5.E5.8F.A3
+ * @constructor
+ * @param {Object} config The STS configuration.
+ * @extends {BceBaseClient}
+ */
+function STS(config) {
+    BceBaseClient.call(this, config, 'sts', true);
+}
+util.inherits(STS, BceBaseClient);
+
+// --- BEGIN ---
+
+STS.prototype.getSessionToken = function (durationSeconds, params, options) {
+    options = options || {};
+    params = u.pick(params, 'id', 'accessControlList');
+
+    if (params.accessControlList) {
+        params.accessControlList = u.map(params.accessControlList, function (acl) {
+            return u.pick(acl, 'eid', 'service', 'region', 'effect', 'resource', 'permission');
+        });
+    }
+
+    var url = '/v1/sessionToken';
+
+    return this.sendRequest('POST', url, {
+        config: options.config,
+        params: {
+            durationSeconds: durationSeconds
+        },
+        body: JSON.stringify(params)
+    });
+};
+
+// --- E N D ---
+
+module.exports = STS;
+
+/* vim: set ts=4 sw=4 sts=4 tw=120: */
+
+},{"./bce_base_client":154,"debug":146,"underscore":150,"util":143}],170:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
