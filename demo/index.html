@@ -324,6 +324,95 @@ namespace BaiduCloudEngine.Controllers
 </code></pre>
                 </li>
                 <li>
+                    <h4>STS临时授权</h4>
+                    <p>百度开放云SDK支持STS临时授权的方式。用这种方式可以从服务端生成一组具体特定操作权限、具有一定时效性的临时AK/SK。这组临时的AK/SK可以暴露给浏览器端直接使用。</p>
+                    <p>关于STS方面的介绍请参考如下文档：</p>
+                    <ul>
+                        <li><a href="#STS.E7.AE.80.E4.BB.8B" target="_blank">STS简介</a></li>
+                        <li><a href="#STS.20.E6.9C.8D.E5.8A.A1.E6.8E.A5.E5.8F.A3" target="_blank">STS 服务接口</a></li>
+                        <li><a href="#STS.E9.89.B4.E6.9D.83.E8.BF.87.E7.A8.8B" target="_blank">STS鉴权过程</a></li>
+                        <li><a href="#.4F.4D.C0.45.A7.13.A2.8A.2E.48.AC.39.74.C1.07.C4" target="_blank">使用STS凭证访问BOS服务</a></li>
+                    </ul>
+
+                    <p>服务器端代码：</p>
+                    <pre><code>
+var koa = require('koa');
+var logger = require('koa-logger');
+var router = require('koa-router')();
+var app = koa();
+var url = require('url');
+
+var STS = require('baidubce-sdk').STS;
+
+var kCredentials = {
+    ak: '您的AK',
+    sk: '您的SK'
+};
+var kRegion = 'bj';
+
+function safeParse(text) {
+    try {
+        return JSON.parse(text);
+    }
+    catch (ex) {
+        return null;
+    }
+}
+app.use(logger());
+
+router
+    .get('/sts', function *(next){
+        var stsClient = new STS({
+            credentials: kCredentials,
+            region: kRegion,
+            protocol: 'http'
+        });
+        var res = yield stsClient.getSessionToken(6000, {
+            accessControlList: [{
+                service: 'bce:bos',
+                resource: ['bce-javascript-sdk-demo-test'],
+                region: '*',
+                effect: 'Allow',
+                permission: ['READ', 'WRITE']
+            }]
+        });
+        this.body = JSON.stringify(res.body);
+    });
+
+app.use(router.routes())
+    .use(router.allowedMethods());
+
+app.listen(3000);
+
+                    </code></pre>
+                    <p>
+                        在服务器端，用与创建bosClient实例类似的方式创建一个stsClient实例。对于stsClient实例，主要有一个方法，那就是<code>getSessionToken</code>。这个方法接收两个参数，第一个参数是临时授权的有效期，以秒为单位；第二个单位是具体的权限控制，参见<a href="#STS.20.E6.9C.8D.E5.8A.A1.E6.8E.A5.E5.8F.A3" target="_blank">STS 服务接口</a>文档。
+                    </p>
+                    <p>
+                        这个方法会异步访问sts授权服务器，返回一个promise对象。STS授权服务器会返回类似如下内容：
+                    </p>
+                    <pre><code>
+{
+    ...
+    body: {
+        "accessKeyId": "d87a16e5ce1d47c1917b38ed03fbb329",
+        "secretAccessKey": "e9b6f59ce06c45cdaaea2296111dab46",
+        "sessionToken": "MjUzZjQzNTY4OTE0NDRkNjg3N2E4YzJhZTc4YmU5ZDh8AAAAABwCAAB/HfHDVV2bu5xUf6rApt2YdSLG6+21UTC62EHvIuiaamtuMQQKNkR9PU2NJGVbuWgBn8Ot0atk0HnWYQGgwgyew24HtbrX3GFiR/cDymCowm0TI6OGq7k8pGuBiCczT8qZcarH7VdZBd1lkpYaXbtP7wQJqiochDXrswrCd+J/I2CeSQT6mJiMmvupUV06R89dWBL/Vcu7JQpdYBk0d5cp2B+gdaHddBobevlBmKQw50/oOykJIuho4Wn7FgOGPMPdod0Pf0s7lW/HgSnPOjZCgRl0pihs197rP3GWpnlJRyfdCY0g0GFG6T0/FsqDbxbi8lWzF1QRTmJzzh2Tax8xoPFKGMbpntp//vGP7oPYK1JoES34TjcdcZnLzIRnVIGaZAzmZMUhPEXE5RVX1w8jPEXMJJHSrFs3lJe13o9Dwg==",
+        "createTime": "2016-02-16T14:01:29Z",
+        "expiration": "2016-02-16T15:41:29Z",
+        "userId": "5e433c4a8fe74765a7ec6fc147e25c80"
+    }
+}
+                    </code></pre>
+                    <p>服务器端需要把<code>accessKeyId</code>、<code>secretAccessKey</code>、<code>sessionToken</code>三个字段下发给浏览器端。浏览器端AK、SK的用法与第一个示例相同，唯一不同的是需要在请求头中添加<code>sessionToken</code>的内容，例如这样：</p>
+                    <pre><code>
+var options = {
+    'Content-Type': mimeType,
+    'x-bce-security-token': '从服务器获取的sessionToken'
+};
+                    </code></pre>
+                </li>
+                <li>
                     <h4>分块上传</h4>
 
                     <p>对于支持html5的浏览器可以使用分块上传的功能。分块上传比直接上传稍微复杂一点，直接上只需要调用<code>putObjectFromBlob</code>就可以了，而分块上传需要分为三个阶段：开始上传（<code>initiateMultipartUpload</code>）、上传分块（<code>uploadPartFromBlob</code>）、上传完成（<code>completeMultipartUpload</code>）。</p>

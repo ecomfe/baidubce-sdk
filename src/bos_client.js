@@ -666,7 +666,8 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
         H.X_BCE_CONTENT_SHA256,
         H.CONTENT_TYPE,
         H.CONTENT_DISPOSITION,
-        H.ETAG
+        H.ETAG,
+        H.SEESION_TOKEN
     ];
     var metaSize = 0;
     var headers = u.pick(options, function (value, key) {
