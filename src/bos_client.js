@@ -24,6 +24,7 @@ var qs = require('querystring');
 
 var u = require('underscore');
 var Q = require('q');
+var async = require('async');
 
 var H = require('./headers');
 var strings = require('./strings');
@@ -34,7 +35,8 @@ var BceBaseClient = require('./bce_base_client');
 var MimeType = require('./mime.types');
 var WMStream = require('./wm_stream');
 
-// var MIN_PART_SIZE = 5242880;             // 5M
+var MIN_PART_SIZE = 5242880;                // 5M
+var THREAD = 2;
 var MAX_PUT_OBJECT_LENGTH = 5368709120;     // 5G
 var MAX_USER_METADATA_SIZE = 2048;          // 2 * 1024
 var MIN_PART_NUMBER = 1;
@@ -638,9 +640,11 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
     var client = this;
     var agent = this._httpAgent = new HttpClient(config);
     u.each(['progress', 'error', 'abort'], function (eventName) {
-        agent.on(eventName, function (evt) {
-            client.emit(eventName, evt);
-        });
+        agent.on(eventName, (function (params) {
+            return function (evt) {
+                client.emit(eventName, u.extend(evt, u.pick(params, 'partNumber', 'uploadId')));
+            }
+        })(args.params));
     });
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
@@ -708,6 +712,88 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
 
     return headers;
 };
+
+BosClient.prototype.uploadFecade = function (bucketName, key, blob, partSize, threadNum, options) {
+    partSize = partSize || MIN_PART_SIZE;
+    threadNum = threadNum || THREAD;
+    var size = blob.size;
+    if (size <= partSize) {
+        return this.putObjectFromBlob(bucketName, key, blob, options);
+    }
+    return (function (client, bucketName, key, blob, partSize, threadNum, options) {
+        var uploadId;
+        return client.initiateMultipartUpload(bucketName, key, options).then(function (res) {
+            uploadId = res.body.uploadId;
+            var deferred = Q.defer();
+            var tasks = getTasks(blob, uploadId, bucketName, key, partSize);
+            var state = {
+                lengthComputable: true,
+                loaded: 0,
+                total: tasks.length
+            };
+
+            async.mapLimit(tasks, threadNum, uploadPartFile(state, client), function (err, results) {
+                if (err) {
+                    deferred.reject(err);
+                }
+                else {
+                    deferred.resolve(results);
+                }
+            });
+            return deferred.promise;
+        }).then(function (allResponse) {
+            var partList = u.map(allResponse, function (response, index) {
+                // 生成分块清单
+                return {
+                    partNumber: index + 1,
+                    eTag: response.http_headers.etag
+                };
+            });
+            return client.completeMultipartUpload(bucketName, key, uploadId, partList); // 完成上传
+        });
+    })(this, bucketName, key, blob, partSize, threadNum, options);
+};
+
+function uploadPartFile(state, client) {
+    return function (task, callback) {
+        var blob = task.file.slice(task.start, task.stop + 1);
+        client.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob)
+            .then(function (res) {
+                ++state.loaded;
+                client.emit('progress', state);
+                callback(null, res);
+            })
+            .catch(function (err) {
+                callback(err);
+            });
+    };
+}
+function getTasks(file, uploadId, bucketName, key, PART_SIZE) {
+    var leftSize = file.size;
+    var offset = 0;
+    var partNumber = 1;
+
+    var tasks = [];
+
+    while (leftSize > 0) {
+        var partSize = Math.min(leftSize, PART_SIZE);
+        tasks.push({
+            file: file,
+            uploadId: uploadId,
+            bucketName: bucketName,
+            key: key,
+            partNumber: partNumber,
+            partSize: partSize,
+            start: offset,
+            stop: offset + partSize - 1
+        });
+
+        leftSize -= partSize;
+        offset += partSize;
+        partNumber += 1;
+    }
+    return tasks;
+}
 
 module.exports = BosClient;
 

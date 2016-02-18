@@ -29,6 +29,7 @@ exports.MediaClient = require('./src/media_client');
 exports.HttpClient = require('./src/http_client');
 exports.MimeType = require('./src/mime.types');
 exports.STS = require('./src/sts');
+exports.VodClient = require('./src/vod_client');
 
 
 
