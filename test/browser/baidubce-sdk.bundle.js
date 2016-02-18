@@ -33714,7 +33714,7 @@ VodClient.prototype._buildRequest = function (verb, url, merdiaId, query, option
         url += '/' + merdiaId;
     }
     if (query) {
-        url += '?' + query;
+        options.params[query] = '';
     }
     if (!options.headers.hasOwnProperty(H.CONTENT_TYPE)) {
         options.headers[H.CONTENT_TYPE] = 'application/json';
