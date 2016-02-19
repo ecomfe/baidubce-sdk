@@ -30,6 +30,7 @@ exports.HttpClient = require('./src/http_client');
 exports.MimeType = require('./src/mime.types');
 exports.STS = require('./src/sts');
 exports.VodClient = require('./src/vod_client');
+exports.DocClient = require('./src/doc_client');
 
 
 
