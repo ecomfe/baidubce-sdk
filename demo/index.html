@@ -267,6 +267,61 @@ http.createServer(function (req, res) {
 }).listen(1337);
 console.log('Server running at http://0.0.0.0:1337/');
                     </code></pre>
+                    <div>C#的示例</div><pre><code>using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Mvc.Ajax;
+using BaiduBce;
+using BaiduBce.Auth;
+using BaiduBce.Internal;
+using Newtonsoft.Json;
+using BaiduBce.Util;
+
+namespace BaiduCloudEngine.Controllers
+{
+  class SignatureResult {
+    public int statusCode { get; set; }
+    public string signature { get; set; }
+    public string xbceDate { get; set; }
+  }
+
+  public class HomeController : Controller
+  {
+    public string Index(string httpMethod, string path, string queries, string headers, string callback) {
+      BceClientConfiguration config = new BceClientConfiguration();
+      config.Credentials = new DefaultBceCredentials("9fe103ae98de4798aabb34a433a3058b",
+        "b084ab23d1ef44c997d10d2723dd8014");
+      BceV1Signer bceV1Signer = new BceV1Signer();
+      InternalRequest internalRequest = new InternalRequest();
+      internalRequest.Config = config;
+      internalRequest.Uri = new Uri("http://www.baidu.com" + path);
+      internalRequest.HttpMethod = httpMethod;
+      if (headers != null) {
+        internalRequest.Headers = JsonConvert.DeserializeObject<Dictionary<string, string>> (headers);
+      }
+      if (queries != null) {
+        internalRequest.Parameters = JsonConvert.DeserializeObject<Dictionary<string, string>> (queries);
+      }
+      var sign = bceV1Signer.Sign(internalRequest);
+
+      var xbceDate = DateUtils.FormatAlternateIso8601Date (DateTime.Now);
+      var result = JsonConvert.SerializeObject (new SignatureResult() {
+        statusCode = 200,
+        signature = sign,
+        xbceDate = xbceDate
+      });
+
+      if (callback != null) {
+        result = callback + "(" + result + ")";
+      }
+
+      return result;
+    }
+  }
+}
+</code></pre>
                 </li>
                 <li>
                     <h4>分块上传</h4>
