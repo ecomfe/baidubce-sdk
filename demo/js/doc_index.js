@@ -7,8 +7,7 @@ $(document).ready(function() {
         credentials: {
             ak: '',
             sk: ''
-        },
-        endpoint:'http://doc.baidubce.com'
+        }
     };
 
     var $fileList = $('#fileList');
@@ -37,7 +36,8 @@ $(document).ready(function() {
             };
 
             var promise;
-            promise = client.createDocument(file);
+            promise = client.createDocumentFromBlob(file);
+            console.log(promise);
             client.on('progress', function(evt) {
                 client.emit('overallProgress', evt);
             });
@@ -48,9 +48,9 @@ $(document).ready(function() {
                         .text(width.toFixed(2) + '%');
                 }
             });
-            promise.then(function(res) {
+            promise.then(function(documentId) {
                     toastr.success('上传成功');
-                    $row.find('.documentId').html(client._documentId);
+                    $row.find('.documentId').html(documentId);
                     $row.find('.file-detail').html('完成');
                 })
                 .catch(function(err) {

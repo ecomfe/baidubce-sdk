@@ -22,7 +22,6 @@ var util = require('util');
 
 var Q = require('q');
 var u = require('underscore');
-var fs = require('fs');
 var path = require('path');
 var Auth = require('./auth');
 var BosClient = require('./bos_client');
@@ -38,11 +37,12 @@ var BceBaseClient = require('./bce_base_client');
  * @extends {BceBaseClient}
  */
 function DocClient(config) {
-    BceBaseClient.call(this, config, 'doc', true);
+    if (!config.protocol) {
+        config["protocol"] = 'http';
+    }
+    BceBaseClient.call(this, config, 'doc', false);
     this._config = config;
-    this.regionSupported = false;
-    this.serviceId = 'doc';
-    this._docId = null;
+    this._documentId = null;
 }
 util.inherits(DocClient, BceBaseClient);
 
@@ -57,52 +57,52 @@ DocClient.prototype._isValidFormat = function() {
 
 }
 
-DocClient.prototype.createDocument = function (file, options) {
+DocClient.prototype.createDocumentFromBlob = function (file, options) {
     var self = this;
     var url = self._buildUrl();
     options = options || {};
     //calc md5 and sizeInBytes
     var filename = file.name;
-    if(!options["title"]){
-        options["title"] = filename.split('.')[0];
-    }
+    var tokens = filename.split('.'); 
+    var format = tokens.pop();
+    var title = tokens.join('.');
+    
     if (!options["format"]){
-        options["format"] = filename.split('.')[1];
+        options["format"] = format;
+    }
+    if(!options["title"]){
+        options["title"] = title;
     }
     options["meta"] = {};
     options["meta"]["sizeInBytes"] = file.size;
-
+    
     var deffered = function(file) {
-        var reader = new FileReader();
         var deferred = Q.defer();
-        reader.readAsBinaryString(file);
+        
+        var reader = new FileReader();
+        reader.readAsArrayBuffer(file);
         reader.onloadend = function (e) {
-            if (e.target.readyState == FileReader.DONE) {
+           if (e.target.readyState == FileReader.DONE) {
                 var content = e.target.result;
-                //var data = new Buffer(content,'UTF-8');
                 deferred.resolve(content);
             }
         };
         return deferred.promise;
     };
     return deffered(file).then(function(content){
-        SparkMD5 = require("./spark-md5");
-        spark = new SparkMD5();
-        spark.appendBinary(content);
-        options["meta"]["md5"] = spark.end();
-        //options["meta"]["md5"] = require('./crypto').md5sum(content,0,'hex');
-        return doPromise(content);
+        options["meta"]["md5"] = require('./crypto').md5sum(content,0,'hex');
+        return doPromise();
     });
-    function doPromise(content){
+    function doPromise(){
         //register
-        return self.registerDocument(options).then(function(){
+        return self.registerDocument(options).then(function(regResult){
             //upload
             var bos_config = JSON.parse(JSON.stringify(self._config));
-            bos_config["endpoint"] = self._bosEndpoint;
+            bos_config["endpoint"] = regResult["bosEndpoint"];
             bos_client = new BosClient(bos_config);
 
-            return bos_client.putObjectFromBlob(self._bucket, self._object, file).then(function(){
-                return self.publishDocument();
+            return bos_client.putObjectFromBlob(regResult["bucket"], regResult["object"], file).then(function(){
+                return self.publishDocument(regResult["documentId"]);
             });
         })
     };
@@ -119,18 +119,23 @@ DocClient.prototype.registerDocument = function(options) {
         self._bucket = response.body.bucket;
         self._object = response.body.object;
         self._bosEndpoint = response.body.bosEndpoint;
-        return response;
+        return {
+            documentId:response.body.documentId,
+            bucket:response.body.bucket,
+            object:response.body.object,
+            bosEndpoint:response.body.bosEndpoint
+        };
     });
 };
 
-DocClient.prototype.publishDocument = function() {
+DocClient.prototype.publishDocument = function(documentId) {
     var self = this;
     var url = self._buildUrl();
-    url =url + "/"+self._documentId;
+    url =url + "/"+documentId;
     return self.sendRequest('PUT', url, {
         params:{publish:''}
     }).then(function (response) {
-        return response;
+        return documentId;
     });
 };
 
