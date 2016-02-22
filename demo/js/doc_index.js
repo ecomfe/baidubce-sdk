@@ -37,7 +37,6 @@ $(document).ready(function() {
 
             var promise;
             promise = client.createDocumentFromBlob(file);
-            console.log(promise);
             client.on('progress', function(evt) {
                 client.emit('overallProgress', evt);
             });
@@ -55,7 +54,6 @@ $(document).ready(function() {
                 })
                 .catch(function(err) {
                     toastr.error('上传失败');
-                    console.error(err);
                 });
         })(evt);
     });
