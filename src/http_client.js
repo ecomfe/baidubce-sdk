@@ -48,7 +48,6 @@ function HttpClient(config) {
 }
 util.inherits(HttpClient, EventEmitter);
 
-
 /**
  * Send Http Request
  *
@@ -67,7 +66,7 @@ util.inherits(HttpClient, EventEmitter);
  * @return {Q.defer}
  */
 HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, params,
-    signFunction, outputStream) {
+                                             signFunction, outputStream) {
 
     var requestUrl = this._getRequestUrl(path, params);
     var options = require('url').parse(requestUrl);
@@ -167,7 +166,12 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
             return;
         }
 
-        deferred.resolve(client._recvResponse(res));
+        // deferred.resolve(client._recvResponse(res));
+        client._recvResponse(res).then(function (data) {
+            deferred.resolve(data);
+        }, function (err) {
+            deferred.reject(err);
+        })
     });
 
     if (req.xhr && typeof req.xhr.upload === 'object') {
@@ -224,9 +228,9 @@ HttpClient.prototype._guessContentLength = function (data) {
             return data.length;
         }
         /*
-        if (typeof FormData !== 'undefined' && data instanceof FormData) {
-        }
-        */
+         if (typeof FormData !== 'undefined' && data instanceof FormData) {
+         }
+         */
     }
     else if (Buffer.isBuffer(data)) {
         return data.length;
@@ -265,7 +269,7 @@ HttpClient.prototype._recvResponse = function (res) {
             return {};
         }
         else if (contentType
-                 && /(application|text)\/json/.test(contentType)) {
+            && /(application|text)\/json/.test(contentType)) {
             return JSON.parse(raw.toString());
         }
         return raw;
@@ -329,8 +333,13 @@ function isXHR2Compatible(obj) {
 
 HttpClient.prototype._sendRequest = function (req, data) {
     /*eslint-disable*/
-    if (!data) { req.end(); return; }
-    if (typeof data === 'string') { data = new Buffer(data); }
+    if (!data) {
+        req.end();
+        return;
+    }
+    if (typeof data === 'string') {
+        data = new Buffer(data);
+    }
     /*eslint-enable*/
 
     if (Buffer.isBuffer(data) || isXHR2Compatible(data)) {
@@ -393,13 +402,5 @@ function failure(statusCode, message, code, requestId) {
 }
 
 module.exports = HttpClient;
-
-
-
-
-
-
-
-
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */

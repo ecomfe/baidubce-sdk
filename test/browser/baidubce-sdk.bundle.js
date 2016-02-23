@@ -23077,6 +23077,7 @@ exports.HttpClient = require('./src/http_client');
 exports.MimeType = require('./src/mime.types');
 exports.STS = require('./src/sts');
 exports.VodClient = require('./src/vod_client');
+exports.DocClient = require('./src/doc_client');
 
 
 
@@ -23089,7 +23090,7 @@ exports.VodClient = require('./src/vod_client');
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./src/auth":153,"./src/bcc_client":154,"./src/bcs_client":156,"./src/bos_client":157,"./src/face_client":160,"./src/http_client":162,"./src/lss_client":163,"./src/mct_client":164,"./src/media_client":165,"./src/mime.types":166,"./src/ocr_client":167,"./src/qns_client":168,"./src/ses_client":169,"./src/sts":170,"./src/vod_client":171,"q":150}],146:[function(require,module,exports){
+},{"./src/auth":153,"./src/bcc_client":154,"./src/bcs_client":156,"./src/bos_client":157,"./src/doc_client":160,"./src/face_client":161,"./src/http_client":163,"./src/lss_client":164,"./src/mct_client":165,"./src/media_client":166,"./src/mime.types":167,"./src/ocr_client":168,"./src/qns_client":169,"./src/ses_client":170,"./src/sts":171,"./src/vod_client":172,"q":150}],146:[function(require,module,exports){
 (function (process,global){
 /*!
  * async
@@ -28478,7 +28479,6 @@ module.exports={
   "dependencies": {
     "async": "^1.5.2",
     "debug": "^2.1.3",
-    "koa": "^1.1.2",
     "q": "^1.1.2",
     "underscore": "^1.7.0"
   },
@@ -28661,7 +28661,7 @@ module.exports = Auth;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./headers":161,"crypto":55,"debug":147,"util":143}],154:[function(require,module,exports){
+},{"./headers":162,"crypto":55,"debug":147,"util":143}],154:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -29002,7 +29002,7 @@ module.exports = BceBaseClient;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./auth":153,"./config":158,"./http_client":162,"events":83,"q":150,"underscore":151,"util":143}],156:[function(require,module,exports){
+},{"./auth":153,"./config":158,"./http_client":163,"events":83,"q":150,"underscore":151,"util":143}],156:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -29360,7 +29360,7 @@ module.exports = BcsClient;
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require("buffer").Buffer)
-},{"./bce_base_client":155,"./crypto":159,"./headers":161,"./http_client":162,"./mime.types":166,"buffer":46,"crypto":55,"fs":1,"path":106,"querystring":118,"underscore":151,"util":143}],157:[function(require,module,exports){
+},{"./bce_base_client":155,"./crypto":159,"./headers":162,"./http_client":163,"./mime.types":167,"buffer":46,"crypto":55,"fs":1,"path":106,"querystring":118,"underscore":151,"util":143}],157:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -29397,7 +29397,7 @@ var BceBaseClient = require('./bce_base_client');
 var MimeType = require('./mime.types');
 var WMStream = require('./wm_stream');
 
-var MIN_PART_SIZE = 5242880;                // 5M
+var MIN_PART_SIZE = 1048576;                // 1M
 var THREAD = 2;
 var MAX_PUT_OBJECT_LENGTH = 5368709120;     // 5G
 var MAX_USER_METADATA_SIZE = 2048;          // 2 * 1024
@@ -29985,11 +29985,9 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
     var client = this;
     var agent = this._httpAgent = new HttpClient(config);
     u.each(['progress', 'error', 'abort'], function (eventName) {
-        agent.on(eventName, (function (params) {
-            return function (evt) {
-                client.emit(eventName, u.extend(evt, u.pick(params, 'partNumber', 'uploadId')));
-            }
-        })(args.params));
+        agent.on(eventName, function (evt) {
+            client.emit(eventName, u.extend(evt, u.pick(args.params, 'partNumber', 'uploadId')));
+        });
     });
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
@@ -30060,49 +30058,54 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
 BosClient.prototype.uploadFecade = function (bucketName, key, blob, partSize, threadNum, options) {
     partSize = partSize || MIN_PART_SIZE;
     threadNum = threadNum || THREAD;
-    var size = blob.size;
+    var isBlob = !u.isString(blob);
+    var size = isBlob ? blob.size : fs.statSync(blob).size;
     if (size <= partSize) {
-        return this.putObjectFromBlob(bucketName, key, blob, options);
+        return (isBlob ? this.putObjectFromBlob : this.putObjectFromFile).call(this, bucketName, key, blob, options);
     }
-    return (function (client, bucketName, key, blob, partSize, threadNum, options) {
-        var uploadId;
-        return client.initiateMultipartUpload(bucketName, key, options).then(function (res) {
-            uploadId = res.body.uploadId;
-            var deferred = Q.defer();
-            var tasks = getTasks(blob, uploadId, bucketName, key, partSize);
-            var state = {
-                lengthComputable: true,
-                loaded: 0,
-                total: tasks.length
-            };
-
-            async.mapLimit(tasks, threadNum, uploadPartFile(state, client), function (err, results) {
-                if (err) {
-                    deferred.reject(err);
-                }
-                else {
-                    deferred.resolve(results);
-                }
-            });
-            return deferred.promise;
-        }).then(function (allResponse) {
-            var partList = u.map(allResponse, function (response, index) {
-                // 生成分块清单
-                return {
-                    partNumber: index + 1,
-                    eTag: response.http_headers.etag
-                };
-            });
-            return client.completeMultipartUpload(bucketName, key, uploadId, partList); // 完成上传
+    var uploadId;
+    var client = this;
+    return client.initiateMultipartUpload(bucketName, key, options).then(function (res) {
+        uploadId = res.body.uploadId;
+        var deferred = Q.defer();
+        var tasks = client._getTasks(blob, uploadId, bucketName, key, partSize);
+        var state = {
+            lengthComputable: true,
+            loaded: 0,
+            total: tasks.length
+        };
+        async.mapLimit(tasks, threadNum, client._uploadPartFile(state, isBlob), function (err, results) {
+            if (err) {
+                deferred.reject(err);
+            }
+            else {
+                deferred.resolve(results);
+            }
         });
-    })(this, bucketName, key, blob, partSize, threadNum, options);
+        return deferred.promise;
+    }).then(function (allResponse) {
+        var partList = u.map(allResponse, function (response, index) {
+            // 生成分块清单
+            return {
+                partNumber: index + 1,
+                eTag: response.http_headers.etag
+            };
+        });
+        return client.completeMultipartUpload(bucketName, key, uploadId, partList); // 完成上传
+    });
 };
 
-function uploadPartFile(state, client) {
+BosClient.prototype._uploadPartFile = function (state, isBlob) {
+    var client = this;
     return function (task, callback) {
-        var blob = task.file.slice(task.start, task.stop + 1);
-        client.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob)
-            .then(function (res) {
+        var promise;
+        if (isBlob) {
+            var blob = task.file.slice(task.start, task.stop + 1);
+            promise = client.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob);
+        }else{
+            promise = client.uploadPartFromFile(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob, task.start);
+        }
+        return promise.then(function (res) {
                 ++state.loaded;
                 client.emit('progress', state);
                 callback(null, res);
@@ -30111,8 +30114,9 @@ function uploadPartFile(state, client) {
                 callback(err);
             });
     };
-}
-function getTasks(file, uploadId, bucketName, key, PART_SIZE) {
+};
+
+BosClient.prototype._getTasks = function (file, uploadId, bucketName, key, PART_SIZE) {
     var leftSize = file.size;
     var offset = 0;
     var partNumber = 1;
@@ -30137,14 +30141,14 @@ function getTasks(file, uploadId, bucketName, key, PART_SIZE) {
         partNumber += 1;
     }
     return tasks;
-}
+};
 
 module.exports = BosClient;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require("buffer").Buffer)
-},{"./auth":153,"./bce_base_client":155,"./crypto":159,"./headers":161,"./http_client":162,"./mime.types":166,"./wm_stream":172,"async":146,"buffer":46,"fs":1,"path":106,"q":150,"querystring":118,"underscore":151,"url":141,"util":143}],158:[function(require,module,exports){
+},{"./auth":153,"./bce_base_client":155,"./crypto":159,"./headers":162,"./http_client":163,"./mime.types":167,"./wm_stream":173,"async":146,"buffer":46,"fs":1,"path":106,"q":150,"querystring":118,"underscore":151,"url":141,"util":143}],158:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -30244,6 +30248,175 @@ exports.md5file = function (filename, digest) {
 
 }).call(this,require("buffer").Buffer)
 },{"buffer":46,"crypto":55,"fs":1,"q":150}],160:[function(require,module,exports){
+/**
+ * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ * @file src/doc_client.js
+ * @author guofan
+ */
+
+/* eslint-env node */
+/* eslint max-params:[0,10] */
+/* eslint fecs-camelcase:[2,{"ignore":["/opt_/"]}] */
+
+var util = require('util');
+
+var Q = require('q');
+var u = require('underscore');
+var path = require('path');
+var Auth = require('./auth');
+var BosClient = require('./bos_client');
+var HttpClient = require('./http_client');
+var BceBaseClient = require('./bce_base_client');
+
+/**
+ * 文档转码任务接口（Job/Transcoding API）
+ * http://bce.baidu.com/doc/DOC/API.html#.1D.1E.B0.1E.6C.74.0C.6D.C1.68.D2.57.6F.70.EA.F1
+ *
+ * @constructor
+ * @param {Object} config The doc client configuration.
+ * @extends {BceBaseClient}
+ */
+function DocClient(config) {
+    if (!config.protocol) {
+        config["protocol"] = 'http';
+    }
+    BceBaseClient.call(this, config, 'doc', false);
+    this._config = config;
+    this._documentId = null;
+}
+util.inherits(DocClient, BceBaseClient);
+
+// --- B E G I N ---
+
+DocClient.prototype._buildUrl = function () {
+    var url = '/v1/document';
+    return url;
+};
+
+DocClient.prototype._isValidFormat = function () {
+
+}
+
+DocClient.prototype.createDocumentFromBlob = function (file, options) {
+    var self = this;
+    var url = self._buildUrl();
+    options = options || {};
+    //calc md5 and sizeInBytes
+    var filename = file.name;
+    var tokens = filename.split('.');
+    var format = tokens.pop();
+    var title = tokens.join('.');
+
+    if (!options.format) {
+        options.format = format;
+    }
+    if (!options.title) {
+        options.title = title;
+    }
+    options.meta = {};
+    options.meta.sizeInBytes = file.size;
+
+    var deffered = function (file) {
+        var deferred = Q.defer();
+
+        var reader = new FileReader();
+        reader.readAsArrayBuffer(file);
+        reader.onloadend = function (e) {
+            if (e.target.readyState == FileReader.DONE) {
+                var content = e.target.result;
+                deferred.resolve(content);
+            }
+        };
+        return deferred.promise;
+    };
+    return deffered(file).then(function (content) {
+        options.meta.md5 = require('./crypto').md5sum(content, 0, 'hex');
+        return doPromise();
+    });
+    function doPromise() {
+        //register
+        return self.registerDocument(options).then(function (regResult) {
+            //upload
+            var bosConfig = JSON.parse(JSON.stringify(self._config));
+            bosConfig.endpoint = regResult.bosEndpoint;
+            var bosClient = new BosClient(bosConfig);
+
+            return bosClient.putObjectFromBlob(regResult.bucket, regResult.object, file).then(function () {
+                return self.publishDocument(regResult.documentId);
+            });
+        })
+    };
+};
+
+DocClient.prototype.registerDocument = function (options) {
+    var self = this;
+    var url = self._buildUrl();
+    return self.sendRequest('POST', url, {
+        params: {register: ''},
+        body: JSON.stringify(options)
+    }).then(function (response) {
+        return {
+            documentId: response.body.documentId,
+            bucket: response.body.bucket,
+            object: response.body.object,
+            bosEndpoint: response.body.bosEndpoint
+        };
+    });
+};
+
+DocClient.prototype.publishDocument = function (documentId) {
+    var self = this;
+    var url = self._buildUrl();
+    url = url + '/' + documentId;
+    return self.sendRequest('PUT', url, {
+        params: {publish: ''}
+    }).then(function (response) {
+        return response.body.documentId
+    });
+};
+
+// --- E   N   D ---
+
+DocClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
+    var defaultArgs = {
+        body: null,
+        headers: {},
+        params: {},
+        config: {}
+    };
+    var args = u.extend(defaultArgs, varArgs);
+
+    var config = u.extend({}, this.config, args.config);
+
+    var client = this;
+    var agent = this._httpAgent = new HttpClient(config);
+    u.each(['progress', 'error', 'abort'], function (eventName) {
+        agent.on(eventName, function (evt) {
+            client.emit(eventName, evt);
+        });
+    });
+    return this._httpAgent.sendRequest(httpMethod, resource, args.body,
+        args.headers, args.params, u.bind(this.createSignature, this),
+        args.outputStream
+    );
+};
+
+//exports.DocClient = DocClient;
+module.exports = DocClient;
+
+/* vim: set ts=4 sw=4 sts=4 tw=120: */
+
+},{"./auth":153,"./bce_base_client":155,"./bos_client":157,"./crypto":159,"./http_client":163,"path":106,"q":150,"underscore":151,"util":143}],161:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -30470,8 +30643,8 @@ module.exports = FaceClient;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-}).call(this,{"isBuffer":require("../../../../../usr/local/lib/node_modules/browserify/node_modules/is-buffer/index.js")})
-},{"../../../../../usr/local/lib/node_modules/browserify/node_modules/is-buffer/index.js":98,"./bce_base_client":155,"debug":147,"underscore":151,"util":143}],161:[function(require,module,exports){
+}).call(this,{"isBuffer":require("../../../../../../usr/local/lib/node_modules/browserify/node_modules/is-buffer/index.js")})
+},{"../../../../../../usr/local/lib/node_modules/browserify/node_modules/is-buffer/index.js":98,"./bce_base_client":155,"debug":147,"underscore":151,"util":143}],162:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -30531,7 +30704,7 @@ exports.ACCEPT = 'accept';
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{}],162:[function(require,module,exports){
+},{}],163:[function(require,module,exports){
 (function (process,Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -30583,7 +30756,6 @@ function HttpClient(config) {
 }
 util.inherits(HttpClient, EventEmitter);
 
-
 /**
  * Send Http Request
  *
@@ -30602,7 +30774,7 @@ util.inherits(HttpClient, EventEmitter);
  * @return {Q.defer}
  */
 HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, params,
-    signFunction, outputStream) {
+                                             signFunction, outputStream) {
 
     var requestUrl = this._getRequestUrl(path, params);
     var options = require('url').parse(requestUrl);
@@ -30695,7 +30867,12 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
             return;
         }
 
-        deferred.resolve(client._recvResponse(res));
+        // deferred.resolve(client._recvResponse(res));
+        client._recvResponse(res).then(function (data) {
+            deferred.resolve(data);
+        }, function (err) {
+            deferred.reject(err);
+        })
     });
 
     if (req.xhr && typeof req.xhr.upload === 'object') {
@@ -30713,7 +30890,7 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
     try {
         client._sendRequest(req, body);
     }
-    catch(ex) {
+    catch (ex) {
         deferred.reject(ex);
     }
 
@@ -30752,9 +30929,9 @@ HttpClient.prototype._guessContentLength = function (data) {
             return data.length;
         }
         /*
-        if (typeof FormData !== 'undefined' && data instanceof FormData) {
-        }
-        */
+         if (typeof FormData !== 'undefined' && data instanceof FormData) {
+         }
+         */
     }
     else if (Buffer.isBuffer(data)) {
         return data.length;
@@ -30793,7 +30970,7 @@ HttpClient.prototype._recvResponse = function (res) {
             return {};
         }
         else if (contentType
-                 && /(application|text)\/json/.test(contentType)) {
+            && /(application|text)\/json/.test(contentType)) {
             return JSON.parse(raw.toString());
         }
         return raw;
@@ -30812,7 +30989,9 @@ HttpClient.prototype._recvResponse = function (res) {
             payload.push(new Buffer(chunk));
         }
     });
-    res.on('error', function (e) { deferred.reject(e); });
+    res.on('error', function (e) {
+        deferred.reject(e);
+    });
     /*eslint-enable*/
     res.on('end', function () {
         var raw = Buffer.concat(payload);
@@ -30855,8 +31034,13 @@ function isXHR2Compatible(obj) {
 
 HttpClient.prototype._sendRequest = function (req, data) {
     /*eslint-disable*/
-    if (!data) { req.end(); return; }
-    if (typeof data === 'string') { data = new Buffer(data); }
+    if (!data) {
+        req.end();
+        return;
+    }
+    if (typeof data === 'string') {
+        data = new Buffer(data);
+    }
     /*eslint-enable*/
 
     if (Buffer.isBuffer(data) || isXHR2Compatible(data)) {
@@ -30920,18 +31104,10 @@ function failure(statusCode, message, code, requestId) {
 
 module.exports = HttpClient;
 
-
-
-
-
-
-
-
-
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"../package.json":152,"./headers":161,"_process":108,"buffer":46,"debug":147,"events":83,"http":91,"https":94,"q":150,"querystring":118,"stream":139,"underscore":151,"url":141,"util":143}],163:[function(require,module,exports){
+},{"../package.json":152,"./headers":162,"_process":108,"buffer":46,"debug":147,"events":83,"http":91,"https":94,"q":150,"querystring":118,"stream":139,"underscore":151,"url":141,"util":143}],164:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -31216,7 +31392,7 @@ exports.Notification = Notification;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./bce_base_client":155,"q":150,"util":143}],164:[function(require,module,exports){
+},{"./bce_base_client":155,"q":150,"util":143}],165:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -31688,7 +31864,7 @@ exports.Preset = Preset;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./bce_base_client":155,"q":150,"util":143}],165:[function(require,module,exports){
+},{"./bce_base_client":155,"q":150,"util":143}],166:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -31920,7 +32096,7 @@ module.exports = MediaClient;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./auth":153,"./bce_base_client":155,"./http_client":162,"underscore":151,"util":143}],166:[function(require,module,exports){
+},{"./auth":153,"./bce_base_client":155,"./http_client":163,"underscore":151,"util":143}],167:[function(require,module,exports){
 /**
  * @file src/mime.types.js
  * @author leeight
@@ -32934,7 +33110,7 @@ exports.guess = function (ext) {
     return mimeTypes[ext.toLowerCase()] || 'application/octet-stream';
 };
 
-},{}],167:[function(require,module,exports){
+},{}],168:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -33028,8 +33204,8 @@ module.exports = OCRClient;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-}).call(this,{"isBuffer":require("../../../../../usr/local/lib/node_modules/browserify/node_modules/is-buffer/index.js")})
-},{"../../../../../usr/local/lib/node_modules/browserify/node_modules/is-buffer/index.js":98,"./bce_base_client":155,"debug":147,"util":143}],168:[function(require,module,exports){
+}).call(this,{"isBuffer":require("../../../../../../usr/local/lib/node_modules/browserify/node_modules/is-buffer/index.js")})
+},{"../../../../../../usr/local/lib/node_modules/browserify/node_modules/is-buffer/index.js":98,"./bce_base_client":155,"debug":147,"util":143}],169:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -33319,7 +33495,7 @@ exports.Subscription = Subscription;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./bce_base_client":155,"underscore":151,"util":143}],169:[function(require,module,exports){
+},{"./bce_base_client":155,"underscore":151,"util":143}],170:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -33493,7 +33669,7 @@ module.exports = SesClient;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./bce_base_client":155,"fs":1,"path":106,"util":143}],170:[function(require,module,exports){
+},{"./bce_base_client":155,"fs":1,"path":106,"util":143}],171:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -33562,7 +33738,7 @@ module.exports = STS;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./bce_base_client":155,"debug":147,"underscore":151,"util":143}],171:[function(require,module,exports){
+},{"./bce_base_client":155,"debug":147,"underscore":151,"util":143}],172:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -33601,7 +33777,7 @@ var H = require('./headers');
  * @extends {BceBaseClient}
  */
 function VodClient(vodConfig, bosConfig) {
-    //this.bosClient = new BosClient(u.extend(vodConfig, bosConfig));
+    this.bosClient = new BosClient(u.extend({}, vodConfig, bosConfig));
     // Vod is a global service. It doesn't support region.
     BceBaseClient.call(this, vodConfig, 'vod', false);
 }
@@ -33611,17 +33787,16 @@ util.inherits(VodClient, BceBaseClient);
 
 VodClient.prototype.createMediaResource = function (title, description, blob, options) {
     options = options || {};
-    return (function (client, title, description, blob, options) {
-        var mediaId;
-        return client._generateMediaId(options)
-            .then(function (res) {
-                mediaId = res.mediaId;
-                return client._uploadMeida(res.sourceBucket, res.sourceKey, blob, options);
-            })
-            .then(function () {
-                return client._internalCreateMediaResource(mediaId, title, description, options)
-            });
-    })(this, title, description, blob, options);
+    var mediaId;
+    var client = this;
+    return client._generateMediaId(options)
+        .then(function (res) {
+            mediaId = res.body.mediaId;
+            return client._uploadMeida(res.body.sourceBucket, res.body.sourceKey, blob, options);
+        })
+        .then(function () {
+            return client._internalCreateMediaResource(mediaId, title, description, options)
+        });
 };
 
 VodClient.prototype.getMediaResource = function (mediaId, options) {
@@ -33684,7 +33859,7 @@ VodClient.prototype._generateMediaId = function (options) {
 };
 
 VodClient.prototype._uploadMeida = function (bucketName, key, blob, options) {
-    return this.bosClient.uploadFecade(bucketName, key, blob, options);
+    return this.bosClient.uploadFecade(bucketName, key, blob, null, null, options);
 };
 
 VodClient.prototype._internalCreateMediaResource = function (mediaId, title, description, options) {
@@ -33693,8 +33868,8 @@ VodClient.prototype._internalCreateMediaResource = function (mediaId, title, des
         params.description = description;
     }
     options = options || {};
-    return this.buildRequest('POST', mediaId, null, u.extend(options, {
-        params: params
+    return this.buildRequest('POST', 'internal/' + mediaId, null, u.extend(options, {
+        body: JSON.stringify(params)
     }));
 };
 
@@ -33734,7 +33909,7 @@ module.exports = VodClient;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./bce_base_client":155,"./bos_client":157,"./headers":161,"debug":147,"underscore":151,"util":143}],172:[function(require,module,exports){
+},{"./bce_base_client":155,"./bos_client":157,"./headers":162,"debug":147,"underscore":151,"util":143}],173:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved

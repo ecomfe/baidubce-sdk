@@ -7,7 +7,8 @@
       "etpl": "~3.0.0",
       "moment": "~2.7.0",
       "store": "~1.3.9",
-      "underscore": "~1.6.0"
+      "underscore": "~1.6.0",
+      "koa": "^1.1.2"
     }
   },
   "dependencies": {
