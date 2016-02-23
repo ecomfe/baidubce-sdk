@@ -14,6 +14,8 @@
  * @author leeight
  */
 
+/* eslint fecs-camelcase:[2,{"ignore":["/file_(name|data)/"]}] */
+
 var path = require('path');
 var fs = require('fs');
 
@@ -39,21 +41,18 @@ describe('SesClient', function () {
     it('ok', function () {});
 
     it('addVerifiedEmail', function (done) {
-        client.addVerifiedEmail('liyubei@baidu.com')
-            .then(function (response) {
-                debug('%j', response);
-            })
-            .catch(function (error) {
-                if (error.code == 207) {
-                    expect(error.status_code).toEqual(500);
-                    expect(error.message).toEqual('mail addr [liyubei@baidu.com] already verified, please not re-verify');
-                    expect(error.code).toEqual('207');
-                }
-                else {
-                    fail(error);
-                }
-            })
-            .fin(done);
+        client.addVerifiedEmail('liyubei@baidu.com').then(function (response) {
+            debug('%j', response);
+        }).catch(function (error) {
+            if (error.code === 207) {
+                expect(error.status_code).toEqual(500);
+                expect(error.message).toEqual('mail addr [liyubei@baidu.com] already verified, please not re-verify');
+                expect(error.code).toEqual('207');
+            }
+            else {
+                fail(error);
+            }
+        }).fin(done);
     });
 
     it('sendMail', function (done) {
@@ -64,9 +63,9 @@ describe('SesClient', function () {
             // bcc: 'liyubei@baidu.com',
             subject: '测试邮件',
             text: '文本内容',
-            html: '<font color="red">HTML内容</font>' +
-                  '<p><img src="cid:bd_logo1.png" /></p>' +
-                  '<p><img src="cid:googlelogo_color_272x92dp.png" /></p>',
+            html: '<font color="red">HTML内容</font>'
+                  + '<p><img src="cid:bd_logo1.png" /></p>'
+                  + '<p><img src="cid:googlelogo_color_272x92dp.png" /></p>',
             attachments: [
                 __filename,
                 {
@@ -79,7 +78,8 @@ describe('SesClient', function () {
                     file_name: 'googlelogo_color_272x92dp.png',
                     cid: 'googlelogo_color_272x92dp.png',
                     file_data: {
-                        data: fs.readFileSync(path.join(__dirname, './googlelogo_color_272x92dp.png')).toString('base64')
+                        data: fs.readFileSync(
+                            path.join(__dirname, './googlelogo_color_272x92dp.png')).toString('base64')
                     }
                 },
                 {
@@ -90,45 +90,28 @@ describe('SesClient', function () {
                     }
                 }
             ]
-        })
-        .then(function (response) {
+        }).then(function (response) {
             expect(response.body.message_id).not.toBeUndefined();
-        })
-        .catch(fail)
-        .fin(done);
+        }).catch(fail).fin(done);
     });
 
     it('getQuota', function (done) {
-        client.getQuota()
-            .then(function (response) {
-                expect(response.body.maxPerDay).not.toBeUndefined();
-                expect(response.body.maxPerSecond).not.toBeUndefined();
-                expect(response.body.usedToday).not.toBeUndefined();
-            })
-            .catch(fail)
-            .fin(done);
+        client.getQuota().then(function (response) {
+            expect(response.body.maxPerDay).not.toBeUndefined();
+            expect(response.body.maxPerSecond).not.toBeUndefined();
+            expect(response.body.usedToday).not.toBeUndefined();
+        }).catch(fail).fin(done);
     });
 
     it('setQuota', function (done) {
         var quota = {
             maxPerDay: 100
         };
-        client.setQuota(quota)
-            .then(function (response) {
-                expect(response.body).toEqual({});
-            })
-            .catch(fail)
-            .fin(done);
+        client.setQuota(quota).then(function (response) {
+            expect(response.body).toEqual({});
+        }).catch(fail).fin(done);
     });
 });
-
-
-
-
-
-
-
-
 
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */

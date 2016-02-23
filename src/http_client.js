@@ -182,7 +182,7 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
     try {
         client._sendRequest(req, body);
     }
-    catch(ex) {
+    catch (ex) {
         deferred.reject(ex);
     }
 
