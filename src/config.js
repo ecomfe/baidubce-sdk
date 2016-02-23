@@ -18,7 +18,10 @@
 
 exports.DEFAULT_SERVICE_DOMAIN = 'baidubce.com';
 
-exports.DEFAULT_CONFIG = {};
+exports.DEFAULT_CONFIG = {
+    protocol: 'http',
+    region: 'bj'
+};
 
 
 

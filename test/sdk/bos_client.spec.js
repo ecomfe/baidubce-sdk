@@ -261,6 +261,21 @@ describe('BosClient', function() {
             .fin(done);
     });
 
+    it('getObjectFailed', function (done) {
+        client.createBucket(bucket)
+            .then(function() {
+                return client.putObjectFromFile(bucket, path.basename(__filename), __filename);
+            })
+            .then(function() {
+                return client.getObject(bucket, path.basename(__filename) + '.failed');
+            })
+            .catch(function (response) {
+                expect(response.status_code).toEqual(404);
+                expect(response.code).toEqual('NoSuchKey');
+            })
+            .fin(done);
+    });
+
     it('getObjectWithRange', function(done) {
         client.createBucket(bucket)
             .then(function() {

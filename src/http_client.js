@@ -145,13 +145,17 @@ function isPromise(obj) {
     return obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function';
 }
 
+HttpClient.prototype._isValidStatus = function (statusCode) {
+    return statusCode >= 200 && statusCode < 300;
+};
+
 HttpClient.prototype._doRequest = function (options, body, outputStream) {
     var api = options.protocol === 'https:' ? https : http;
     var deferred = Q.defer();
 
     var client = this;
     var req = client._req = api.request(options, function (res) {
-        if (outputStream
+        if (client._isValidStatus(res.statusCode) && outputStream
             && outputStream instanceof stream.Writable) {
             res.pipe(outputStream);
             res.on('end', function () {
