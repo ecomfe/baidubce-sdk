@@ -76,6 +76,14 @@ module.exports = {
             'ak': process.env.MEDIA_AK,
             'sk': process.env.MEDIA_SK
         }
+    },
+    'media_bos': {
+        // 'endpoint': 'http://multimedia.bce-testinternal.baidu.com',
+        'endpoint': process.env.MEDIA_ENDPOINT,
+        'credentials': {
+            'ak': process.env.MEDIA_AK,
+            'sk': process.env.MEDIA_SK
+        }
     }
     // 'endpoint': 'http://localhost:8828',
 };

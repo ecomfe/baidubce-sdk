@@ -36,7 +36,7 @@ var H = require('./headers');
  * @extends {BceBaseClient}
  */
 function VodClient(vodConfig, bosConfig) {
-    //this.bosClient = new BosClient(u.extend(vodConfig, bosConfig));
+    this.bosClient = new BosClient(u.extend({}, vodConfig, bosConfig));
     // Vod is a global service. It doesn't support region.
     BceBaseClient.call(this, vodConfig, 'vod', false);
 }
@@ -46,17 +46,16 @@ util.inherits(VodClient, BceBaseClient);
 
 VodClient.prototype.createMediaResource = function (title, description, blob, options) {
     options = options || {};
-    return (function (client, title, description, blob, options) {
-        var mediaId;
-        return client._generateMediaId(options)
-            .then(function (res) {
-                mediaId = res.mediaId;
-                return client._uploadMeida(res.sourceBucket, res.sourceKey, blob, options);
-            })
-            .then(function () {
-                return client._internalCreateMediaResource(mediaId, title, description, options)
-            });
-    })(this, title, description, blob, options);
+    var mediaId;
+    var client = this;
+    return client._generateMediaId(options)
+        .then(function (res) {
+            mediaId = res.body.mediaId;
+            return client._uploadMeida(res.body.sourceBucket, res.body.sourceKey, blob, options);
+        })
+        .then(function () {
+            return client._internalCreateMediaResource(mediaId, title, description, options)
+        });
 };
 
 VodClient.prototype.getMediaResource = function (mediaId, options) {
@@ -119,7 +118,7 @@ VodClient.prototype._generateMediaId = function (options) {
 };
 
 VodClient.prototype._uploadMeida = function (bucketName, key, blob, options) {
-    return this.bosClient.uploadFecade(bucketName, key, blob, options);
+    return this.bosClient.uploadFecade(bucketName, key, blob, null, null, options);
 };
 
 VodClient.prototype._internalCreateMediaResource = function (mediaId, title, description, options) {
@@ -128,8 +127,8 @@ VodClient.prototype._internalCreateMediaResource = function (mediaId, title, des
         params.description = description;
     }
     options = options || {};
-    return this.buildRequest('POST', mediaId, null, u.extend(options, {
-        params: params
+    return this.buildRequest('POST', 'internal/' + mediaId, null, u.extend(options, {
+        body: JSON.stringify(params)
     }));
 };
 

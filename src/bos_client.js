@@ -35,7 +35,7 @@ var BceBaseClient = require('./bce_base_client');
 var MimeType = require('./mime.types');
 var WMStream = require('./wm_stream');
 
-var MIN_PART_SIZE = 5242880;                // 5M
+var MIN_PART_SIZE = 1048576;                // 1M
 var THREAD = 2;
 var MAX_PUT_OBJECT_LENGTH = 5368709120;     // 5G
 var MAX_USER_METADATA_SIZE = 2048;          // 2 * 1024
@@ -640,11 +640,9 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
     var client = this;
     var agent = this._httpAgent = new HttpClient(config);
     u.each(['progress', 'error', 'abort'], function (eventName) {
-        agent.on(eventName, (function (params) {
-            return function (evt) {
-                client.emit(eventName, u.extend(evt, u.pick(params, 'partNumber', 'uploadId')));
-            }
-        })(args.params));
+        agent.on(eventName, function (evt) {
+            client.emit(eventName, u.extend(evt, u.pick(args.params, 'partNumber', 'uploadId')));
+        });
     });
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
@@ -716,49 +714,54 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
 BosClient.prototype.uploadFecade = function (bucketName, key, blob, partSize, threadNum, options) {
     partSize = partSize || MIN_PART_SIZE;
     threadNum = threadNum || THREAD;
-    var size = blob.size;
+    var isBlob = !u.isString(blob);
+    var size = isBlob ? blob.size : fs.statSync(blob).size;
     if (size <= partSize) {
-        return this.putObjectFromBlob(bucketName, key, blob, options);
+        return (isBlob ? this.putObjectFromBlob : this.putObjectFromFile).call(this, bucketName, key, blob, options);
     }
-    return (function (client, bucketName, key, blob, partSize, threadNum, options) {
-        var uploadId;
-        return client.initiateMultipartUpload(bucketName, key, options).then(function (res) {
-            uploadId = res.body.uploadId;
-            var deferred = Q.defer();
-            var tasks = getTasks(blob, uploadId, bucketName, key, partSize);
-            var state = {
-                lengthComputable: true,
-                loaded: 0,
-                total: tasks.length
-            };
-
-            async.mapLimit(tasks, threadNum, uploadPartFile(state, client), function (err, results) {
-                if (err) {
-                    deferred.reject(err);
-                }
-                else {
-                    deferred.resolve(results);
-                }
-            });
-            return deferred.promise;
-        }).then(function (allResponse) {
-            var partList = u.map(allResponse, function (response, index) {
-                // 生成分块清单
-                return {
-                    partNumber: index + 1,
-                    eTag: response.http_headers.etag
-                };
-            });
-            return client.completeMultipartUpload(bucketName, key, uploadId, partList); // 完成上传
+    var uploadId;
+    var client = this;
+    return client.initiateMultipartUpload(bucketName, key, options).then(function (res) {
+        uploadId = res.body.uploadId;
+        var deferred = Q.defer();
+        var tasks = client._getTasks(blob, uploadId, bucketName, key, partSize);
+        var state = {
+            lengthComputable: true,
+            loaded: 0,
+            total: tasks.length
+        };
+        async.mapLimit(tasks, threadNum, client._uploadPartFile(state, isBlob), function (err, results) {
+            if (err) {
+                deferred.reject(err);
+            }
+            else {
+                deferred.resolve(results);
+            }
         });
-    })(this, bucketName, key, blob, partSize, threadNum, options);
+        return deferred.promise;
+    }).then(function (allResponse) {
+        var partList = u.map(allResponse, function (response, index) {
+            // 生成分块清单
+            return {
+                partNumber: index + 1,
+                eTag: response.http_headers.etag
+            };
+        });
+        return client.completeMultipartUpload(bucketName, key, uploadId, partList); // 完成上传
+    });
 };
 
-function uploadPartFile(state, client) {
+BosClient.prototype._uploadPartFile = function (state, isBlob) {
+    var client = this;
     return function (task, callback) {
-        var blob = task.file.slice(task.start, task.stop + 1);
-        client.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob)
-            .then(function (res) {
+        var promise;
+        if (isBlob) {
+            var blob = task.file.slice(task.start, task.stop + 1);
+            promise = client.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob);
+        }else{
+            promise = client.uploadPartFromFile(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob, task.start);
+        }
+        return promise.then(function (res) {
                 ++state.loaded;
                 client.emit('progress', state);
                 callback(null, res);
@@ -767,8 +770,9 @@ function uploadPartFile(state, client) {
                 callback(err);
             });
     };
-}
-function getTasks(file, uploadId, bucketName, key, PART_SIZE) {
+};
+
+BosClient.prototype._getTasks = function (file, uploadId, bucketName, key, PART_SIZE) {
     var leftSize = file.size;
     var offset = 0;
     var partNumber = 1;
@@ -793,7 +797,7 @@ function getTasks(file, uploadId, bucketName, key, PART_SIZE) {
         partNumber += 1;
     }
     return tasks;
-}
+};
 
 module.exports = BosClient;
 

@@ -53,7 +53,7 @@ DocClient.prototype._buildUrl = function () {
     return url;
 };
 
-DocClient.prototype._isValidFormat = function() {
+DocClient.prototype._isValidFormat = function () {
 
 }
 
@@ -63,79 +63,75 @@ DocClient.prototype.createDocumentFromBlob = function (file, options) {
     options = options || {};
     //calc md5 and sizeInBytes
     var filename = file.name;
-    var tokens = filename.split('.'); 
+    var tokens = filename.split('.');
     var format = tokens.pop();
     var title = tokens.join('.');
-    
-    if (!options["format"]){
-        options["format"] = format;
+
+    if (!options.format) {
+        options.format = format;
     }
-    if(!options["title"]){
-        options["title"] = title;
+    if (!options.title) {
+        options.title = title;
     }
-    options["meta"] = {};
-    options["meta"]["sizeInBytes"] = file.size;
-    
-    var deffered = function(file) {
+    options.meta = {};
+    options.meta.sizeInBytes = file.size;
+
+    var deffered = function (file) {
         var deferred = Q.defer();
-        
+
         var reader = new FileReader();
         reader.readAsArrayBuffer(file);
         reader.onloadend = function (e) {
-           if (e.target.readyState == FileReader.DONE) {
+            if (e.target.readyState == FileReader.DONE) {
                 var content = e.target.result;
                 deferred.resolve(content);
             }
         };
         return deferred.promise;
     };
-    return deffered(file).then(function(content){
-        options["meta"]["md5"] = require('./crypto').md5sum(content,0,'hex');
+    return deffered(file).then(function (content) {
+        options.meta.md5 = require('./crypto').md5sum(content, 0, 'hex');
         return doPromise();
     });
-    function doPromise(){
+    function doPromise() {
         //register
-        return self.registerDocument(options).then(function(regResult){
+        return self.registerDocument(options).then(function (regResult) {
             //upload
-            var bos_config = JSON.parse(JSON.stringify(self._config));
-            bos_config["endpoint"] = regResult["bosEndpoint"];
-            bos_client = new BosClient(bos_config);
+            var bosConfig = JSON.parse(JSON.stringify(self._config));
+            bosConfig.endpoint = regResult.bosEndpoint;
+            var bosClient = new BosClient(bosConfig);
 
-            return bos_client.putObjectFromBlob(regResult["bucket"], regResult["object"], file).then(function(){
-                return self.publishDocument(regResult["documentId"]);
+            return bosClient.putObjectFromBlob(regResult.bucket, regResult.object, file).then(function () {
+                return self.publishDocument(regResult.documentId);
             });
         })
     };
 };
 
-DocClient.prototype.registerDocument = function(options) {
+DocClient.prototype.registerDocument = function (options) {
     var self = this;
     var url = self._buildUrl();
     return self.sendRequest('POST', url, {
-        params:{register:''},
+        params: {register: ''},
         body: JSON.stringify(options)
     }).then(function (response) {
-        self._documentId = response.body.documentId;
-        self._bucket = response.body.bucket;
-        self._object = response.body.object;
-        self._bosEndpoint = response.body.bosEndpoint;
         return {
-            documentId:response.body.documentId,
-            bucket:response.body.bucket,
-            object:response.body.object,
-            bosEndpoint:response.body.bosEndpoint
+            documentId: response.body.documentId,
+            bucket: response.body.bucket,
+            object: response.body.object,
+            bosEndpoint: response.body.bosEndpoint
         };
     });
 };
 
-DocClient.prototype.publishDocument = function(documentId) {
+DocClient.prototype.publishDocument = function (documentId) {
     var self = this;
     var url = self._buildUrl();
-    url =url + "/"+documentId;
+    url = url + '/' + documentId;
     return self.sendRequest('PUT', url, {
-        params:{publish:''}
+        params: {publish: ''}
     }).then(function (response) {
-        return documentId;
+        return response.body.documentId
     });
 };
 
@@ -167,10 +163,5 @@ DocClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
 
 //exports.DocClient = DocClient;
 module.exports = DocClient;
-
-
-
-
-
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
