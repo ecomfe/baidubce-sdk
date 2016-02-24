@@ -1,6 +1,6 @@
 ---
 id: advanced-topics-decorators
-title: Decorators
+title: 断点续传
 layout: docs
 category: Advanced Topics
 next: advanced-topics-key-bindings

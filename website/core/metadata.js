@@ -6,7 +6,7 @@ module.exports = {
   "files": [
     {
       "id": "advanced-topics-block-components",
-      "title": "Custom Block Components",
+      "title": "服务端动态签名",
       "layout": "docs",
       "category": "Advanced Topics",
       "next": "advanced-topics-inline-styles",
@@ -14,7 +14,7 @@ module.exports = {
     },
     {
       "id": "advanced-topics-block-styling",
-      "title": "Block Styling",
+      "title": "STS临时授权",
       "layout": "docs",
       "category": "Advanced Topics",
       "next": "advanced-topics-block-components",
@@ -22,7 +22,7 @@ module.exports = {
     },
     {
       "id": "advanced-topics-decorators",
-      "title": "Decorators",
+      "title": "断点续传",
       "layout": "docs",
       "category": "Advanced Topics",
       "next": "advanced-topics-key-bindings",
@@ -30,7 +30,7 @@ module.exports = {
     },
     {
       "id": "advanced-topics-entities",
-      "title": "Entities",
+      "title": "大文件分块上传",
       "layout": "docs",
       "category": "Advanced Topics",
       "next": "advanced-topics-decorators",
@@ -54,7 +54,7 @@ module.exports = {
     },
     {
       "id": "advanced-topics-key-bindings",
-      "title": "Key Bindings",
+      "title": "IE低版本的处理",
       "layout": "docs",
       "category": "Advanced Topics",
       "next": "advanced-topics-managing-focus",
@@ -62,7 +62,7 @@ module.exports = {
     },
     {
       "id": "advanced-topics-managing-focus",
-      "title": "Managing Focus",
+      "title": "AK和SK的安全性问题",
       "layout": "docs",
       "category": "Advanced Topics",
       "next": "advanced-topics-block-styling",

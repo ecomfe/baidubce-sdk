@@ -137,7 +137,7 @@ var Post = React.createClass({
     content: content
   },
   render: function() {
-    return <Layout metadata={{"id":"advanced-topics-entities","title":"Entities","layout":"docs","category":"Advanced Topics","next":"advanced-topics-decorators","permalink":"docs/advanced-topics-entities.html"}}>{content}</Layout>;
+    return <Layout metadata={{"id":"advanced-topics-entities","title":"大文件分块上传","layout":"docs","category":"Advanced Topics","next":"advanced-topics-decorators","permalink":"docs/advanced-topics-entities.html"}}>{content}</Layout>;
   }
 });
 module.exports = Post;

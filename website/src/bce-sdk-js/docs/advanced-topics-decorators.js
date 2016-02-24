@@ -153,7 +153,7 @@ var Post = React.createClass({
     content: content
   },
   render: function() {
-    return <Layout metadata={{"id":"advanced-topics-decorators","title":"Decorators","layout":"docs","category":"Advanced Topics","next":"advanced-topics-key-bindings","permalink":"docs/advanced-topics-decorators.html"}}>{content}</Layout>;
+    return <Layout metadata={{"id":"advanced-topics-decorators","title":"断点续传","layout":"docs","category":"Advanced Topics","next":"advanced-topics-key-bindings","permalink":"docs/advanced-topics-decorators.html"}}>{content}</Layout>;
   }
 });
 module.exports = Post;

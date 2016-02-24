@@ -118,6 +118,13 @@ html * {
   rendering-intent: auto;
 }
 
+
+table { border-collapse: collapse; }
+table th, table td { border: 1px solid #ccc; padding: 8px; padding-right: 17px; }
+table tr:nth-child(odd) { background: #eee; }
+table tr:nth-child(even) { background: #fff; }
+table th { background: #fff; }
+
 .prism {
   white-space: pre-wrap;
   font-family: 'source-code-pro', Menlo, 'Courier New', Consolas, monospace;

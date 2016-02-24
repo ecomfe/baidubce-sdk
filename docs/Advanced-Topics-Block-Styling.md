@@ -1,6 +1,6 @@
 ---
 id: advanced-topics-block-styling
-title: Block Styling
+title: STS临时授权
 layout: docs
 category: Advanced Topics
 next: advanced-topics-block-components

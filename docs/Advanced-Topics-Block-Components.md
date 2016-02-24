@@ -1,6 +1,6 @@
 ---
 id: advanced-topics-block-components
-title: Custom Block Components
+title: 服务端动态签名
 layout: docs
 category: Advanced Topics
 next: advanced-topics-inline-styles

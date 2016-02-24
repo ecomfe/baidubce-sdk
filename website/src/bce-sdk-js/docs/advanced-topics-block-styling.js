@@ -60,7 +60,7 @@ var Post = React.createClass({
     content: content
   },
   render: function() {
-    return <Layout metadata={{"id":"advanced-topics-block-styling","title":"Block Styling","layout":"docs","category":"Advanced Topics","next":"advanced-topics-block-components","permalink":"docs/advanced-topics-block-styling.html"}}>{content}</Layout>;
+    return <Layout metadata={{"id":"advanced-topics-block-styling","title":"STS临时授权","layout":"docs","category":"Advanced Topics","next":"advanced-topics-block-components","permalink":"docs/advanced-topics-block-styling.html"}}>{content}</Layout>;
   }
 });
 module.exports = Post;

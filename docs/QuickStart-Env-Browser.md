@@ -23,6 +23,19 @@ bower install bce-sdk-js
 
 当 js 加载到页面之后，可以用过全局变量`baidubceSdk`来使用 sdk 的功能。
 
+### 支持的浏览器版本
+
+|浏览器|最低版本|
+|------|--------|
+|Google Chrome|28.0+|
+|Microsoft Internet Explorer|10.0|
+|Mozilla Firefox|23.0+|
+|Apple Safari|5.1+|
+|Opera|17.0+|
+|Android Browser|4.3+|
+
+> IE低版本（IE8, IE9）有特殊的支持方式，请参考[IE低版本的处理](advanced-topics-key-bindings.html)
+
 ### 基本用法
 
 ```js
