@@ -2,7 +2,7 @@
     margin: 20px 0;
 }
 
-.img-wraper{
+.img-wraper {
     margin-bottom: 30px;
 }
 
@@ -15,3 +15,6 @@ td {
     word-break: break-all;
 }
 
+.uploading .btn {
+    display: none;
+}
