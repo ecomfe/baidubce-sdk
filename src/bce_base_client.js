@@ -19,13 +19,13 @@
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 
-
 var Q = require('q');
 var u = require('underscore');
 
 var config = require('./config');
 var Auth = require('./auth');
 var HttpClient = require('./http_client');
+var H = require('./headers');
 
 /**
  * BceBaseClient
@@ -76,7 +76,6 @@ BceBaseClient.prototype.createSignature = function (credentials, httpMethod, pat
     });
 };
 
-
 BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
     var defaultArgs = {
         body: null,
@@ -96,21 +95,21 @@ BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
             client.emit(eventName, evt);
         });
     });
+    var signatureFun;
+
+    if (config.sessionToken) {
+        signatureFun = null;
+        args.headers[H.X_BCE_SECURITY_TOKEN] = config.sessionToken;
+    }
+    else {
+        signatureFun = u.bind(this.createSignature, this);
+    }
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
-        args.headers, args.params, u.bind(this.createSignature, this),
-        args.outputStream
+        args.headers, args.params, signatureFun,
+        args.outputStream, config.retry || 0
     );
 };
 
-
 module.exports = BceBaseClient;
-
-
-
-
-
-
-
-
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
