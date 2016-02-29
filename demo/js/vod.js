@@ -4,7 +4,7 @@ $(document).ready(function () {
     var sdk = window.baidubceSdk;
     var bosConfig = {
         credentials: {
-            ak: '3e50573ecad74f1e8032b1c8a1c43265',
+            ak: '3e50573ecad74f1e8032b1c8a1c43265~',
             sk: '3c81cdfbf6d34a6d8c5ec520ca77beba'
         },
         endpoint: 'http://bos.bj.baidubce.com'
@@ -14,7 +14,8 @@ $(document).ready(function () {
             ak: '3e50573ecad74f1e8032b1c8a1c43265',
             sk: '3c81cdfbf6d34a6d8c5ec520ca77beba'
         },
-        endpoint: 'http://vod.baidubce.com'
+        endpoint: 'http://vod.baidubce.com',
+        retry: 50
     };
 
     var $fileList = $('#fileList');

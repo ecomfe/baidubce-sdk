@@ -28906,13 +28906,13 @@ module.exports = BccClient;
 var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 
-
 var Q = require('q');
 var u = require('underscore');
 
 var config = require('./config');
 var Auth = require('./auth');
 var HttpClient = require('./http_client');
+var H = require('./headers');
 
 /**
  * BceBaseClient
@@ -28963,7 +28963,6 @@ BceBaseClient.prototype.createSignature = function (credentials, httpMethod, pat
     });
 };
 
-
 BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
     var defaultArgs = {
         body: null,
@@ -28983,26 +28982,26 @@ BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
             client.emit(eventName, evt);
         });
     });
+    var signatureFun;
+
+    if (config.sessionToken) {
+        signatureFun = null;
+        args.headers[H.X_BCE_SECURITY_TOKEN] = config.sessionToken;
+    }
+    else {
+        signatureFun = u.bind(this.createSignature, this);
+    }
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
-        args.headers, args.params, u.bind(this.createSignature, this),
-        args.outputStream
+        args.headers, args.params, signatureFun,
+        args.outputStream, config.retry || 0
     );
 };
 
-
 module.exports = BceBaseClient;
-
-
-
-
-
-
-
-
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./auth":153,"./config":158,"./http_client":163,"events":83,"q":150,"underscore":151,"util":143}],156:[function(require,module,exports){
+},{"./auth":153,"./config":158,"./headers":162,"./http_client":163,"events":83,"q":150,"underscore":151,"util":143}],156:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -30677,6 +30676,7 @@ exports.AUTHORIZATION = 'Authorization';
 exports.X_BCE_DATE = 'x-bce-date';
 exports.X_BCE_ACL = 'x-bce-acl';
 exports.X_BCE_REQUEST_ID = 'x-bce-request-id';
+exports.X_BCE_SECURITY_TOKEN = 'x-bce-security-token';
 
 exports.X_HTTP_HEADERS = 'http_headers';
 exports.X_BODY = 'body';
@@ -30774,7 +30774,7 @@ util.inherits(HttpClient, EventEmitter);
  * @return {Q.defer}
  */
 HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, params,
-                                             signFunction, outputStream) {
+                                             signFunction, outputStream, retry) {
 
     var requestUrl = this._getRequestUrl(path, params);
     var options = require('url').parse(requestUrl);
@@ -30833,7 +30833,7 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
                     headers[H.X_BCE_DATE] = xbceDate;
                 }
                 debug('options = %j', options);
-                return client._doRequest(options, body, outputStream);
+                return client._doRequest(options, body, outputStream, retry);
             });
         }
         else if (typeof promise === 'string') {
@@ -30845,55 +30845,69 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
         }
     }
 
-    return client._doRequest(options, body, outputStream);
+    return client._doRequest(options, body, outputStream, retry);
 };
 
 function isPromise(obj) {
     return obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function';
 }
 
-HttpClient.prototype._doRequest = function (options, body, outputStream) {
-    var api = options.protocol === 'https:' ? https : http;
+HttpClient.prototype._doRequest = function (options, body, outputStream, retry) {
+    retry = retry || 0;
+    var delay = 100;
     var deferred = Q.defer();
-
+    var api = options.protocol === 'https:' ? https : http;
     var client = this;
-    var req = client._req = api.request(options, function (res) {
-        if (outputStream
-            && outputStream instanceof stream.Writable) {
-            res.pipe(outputStream);
-            res.on('end', function () {
-                deferred.resolve(success(client._fixHeaders(res.headers), {}));
+
+    function execute() {
+        var req = client._req = api.request(options, function (res) {
+            if (outputStream
+                && outputStream instanceof stream.Writable) {
+                res.pipe(outputStream);
+                res.on('end', function () {
+                    deferred.resolve(success(client._fixHeaders(res.headers), {}));
+                });
+                return;
+            }
+            // deferred.resolve(client._recvResponse(res));
+            client._recvResponse(res).then(function (data) {
+                deferred.resolve(data);
+            }, function (err) {
+                if (err[H.X_REQUEST_ID]) {
+                    deferred.reject(err);
+                }
+            })
+        });
+
+        if (req.xhr && typeof req.xhr.upload === 'object') {
+            u.each(['progress', 'error', 'abort'], function (eventName) {
+                req.xhr.upload.addEventListener(eventName, function (evt) {
+                    client.emit(eventName, evt);
+                }, false);
             });
-            return;
         }
 
-        // deferred.resolve(client._recvResponse(res));
-        client._recvResponse(res).then(function (data) {
-            deferred.resolve(data);
-        }, function (err) {
-            deferred.reject(err);
-        })
-    });
-
-    if (req.xhr && typeof req.xhr.upload === 'object') {
-        u.each(['progress', 'error', 'abort'], function (eventName) {
-            req.xhr.upload.addEventListener(eventName, function (evt) {
-                client.emit(eventName, evt);
-            }, false);
+        req.on('error', function (error) {
+            if (retry <= 0) {
+                deferred.reject(error);
+            }
+            else {
+                retry--;
+                setTimeout(function () {
+                    execute();
+                }, delay);
+            }
         });
+
+        try {
+            client._sendRequest(req, body);
+        }
+        catch (ex) {
+            deferred.reject(ex);
+        }
     }
 
-    req.on('error', function (error) {
-        deferred.reject(error);
-    });
-
-    try {
-        client._sendRequest(req, body);
-    }
-    catch (ex) {
-        deferred.reject(ex);
-    }
-
+    execute();
     return deferred.promise;
 };
 

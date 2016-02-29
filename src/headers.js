@@ -30,6 +30,7 @@ exports.AUTHORIZATION = 'Authorization';
 exports.X_BCE_DATE = 'x-bce-date';
 exports.X_BCE_ACL = 'x-bce-acl';
 exports.X_BCE_REQUEST_ID = 'x-bce-request-id';
+exports.X_BCE_SECURITY_TOKEN = 'x-bce-security-token';
 exports.X_BCE_CONTENT_SHA256 = 'x-bce-content-sha256';
 
 exports.X_HTTP_HEADERS = 'http_headers';
