@@ -33778,6 +33778,12 @@ var H = require('./headers');
  */
 function VodClient(vodConfig, bosConfig) {
     this.bosClient = new BosClient(u.extend({}, vodConfig, bosConfig));
+    var client = this;
+    u.each(['progress', 'error', 'abort'], function (eventName) {
+        client.bosClient.on(eventName, function (evt) {
+            client.emit(eventName, evt);
+        });
+    });
     // Vod is a global service. It doesn't support region.
     BceBaseClient.call(this, vodConfig, 'vod', false);
 }
