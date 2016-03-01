@@ -148,6 +148,7 @@ HttpClient.prototype._isValidStatus = function (statusCode) {
     return statusCode >= 200 && statusCode < 300;
 };
 
+
 HttpClient.prototype._doRequest = function (options, body, outputStream, retry) {
     retry = retry || 0;
     var delay = 100;
