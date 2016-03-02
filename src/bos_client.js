@@ -644,6 +644,7 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
         H.CONTENT_LENGTH,
         H.CONTENT_ENCODING,
         H.CONTENT_MD5,
+        H.X_BCE_CONTENT_SHA256,
         H.CONTENT_TYPE,
         H.CONTENT_DISPOSITION,
         H.ETAG

@@ -171,6 +171,23 @@ describe('BosClient', function() {
             .fin(done);
     });
 
+    it('putObjectWithInvalidSHA256', function (done) {
+        client.createBucket(bucket)
+            .then(function () {
+                return client.putObjectFromString(bucket, key, 'hello world', {
+                    'x-bce-content-sha256': 'hahahaha'
+                });
+            })
+            .then(function () {
+                fail('should not reach here');
+            })
+            .catch(function (error) {
+                expect(error.status_code).toEqual(400);
+                expect(error.code).toEqual('BadDigest');
+            })
+            .fin(done);
+    });
+
     it('putObjectFromDataUrl', function (done) {
         client.createBucket(bucket)
             .then(function() {
@@ -305,6 +322,7 @@ describe('BosClient', function() {
                 return client.getObjectToFile(bucket, path.basename(__filename), filename);
             })
             .then(function(response) {
+                debug('response = %j', response);
                 expect(fs.existsSync(filename)).toEqual(true);
                 var filesize = fs.lstatSync(filename).size;
                 expect(response.http_headers['content-length']).toEqual('' + filesize);
