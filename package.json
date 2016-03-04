@@ -1,6 +1,6 @@
 {
   "name": "baidubce-sdk",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "description": "baidu cloud engine node.js sdk",
   "main": "index.js",
   "directories": {
