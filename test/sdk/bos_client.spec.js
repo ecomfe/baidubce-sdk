@@ -260,6 +260,16 @@ describe('BosClient', function() {
             .fin(done);
     });
 
+    it('createBucketFailed', function (done) {
+        var invalidBucketName = 'invalid-bucket-\\&1231@#@#@';
+        client.createBucket(invalidBucketName)
+            .catch(function (error) {
+                expect(error.status_code).toEqual(400);
+                expect(error.code).toEqual('InvalidBucketName');
+            })
+            .fin(done);
+    });
+
     it('getObject', function(done) {
         client.createBucket(bucket)
             .then(function() {

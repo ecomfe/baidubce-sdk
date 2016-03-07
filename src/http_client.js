@@ -158,7 +158,7 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
         if (client._isValidStatus(res.statusCode) && outputStream
             && outputStream instanceof stream.Writable) {
             res.pipe(outputStream);
-            outputStream.on('close', function () {
+            outputStream.on('finish', function () {
                 deferred.resolve(success(client._fixHeaders(res.headers), {}));
             });
             outputStream.on('error', function (error) {

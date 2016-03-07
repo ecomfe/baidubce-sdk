@@ -612,7 +612,7 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
     var config = u.extend({}, this.config, args.config);
     var resource = path.normalize(path.join(
         '/v1',
-        args.bucketName || '',
+        encodeURIComponent(args.bucketName || ''),
         args.key || ''
     )).replace(/\\/g, '/');
 
