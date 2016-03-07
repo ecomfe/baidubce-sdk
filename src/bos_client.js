@@ -476,7 +476,10 @@ BosClient.prototype.uploadPartFromFile = function (bucketName, key, uploadId, pa
 
     var start = offset;
     var end = offset + partSize - 1;
-    var partFp = fs.createReadStream(filename, {start: start, end: end});
+    var partFp = fs.createReadStream(filename, {
+        start: start,
+        end: end
+    });
     return this.uploadPart(bucketName, key, uploadId, partNumber,
         partSize, partFp, options);
 };
@@ -500,7 +503,10 @@ BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, pa
         key: key,
         body: blob,
         headers: options.headers,
-        params: {partNumber: partNumber, uploadId: uploadId},
+        params: {
+            partNumber: partNumber,
+            uploadId: uploadId
+        },
         config: options.config
     });
 };
@@ -526,7 +532,10 @@ BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId,
         key: key,
         body: data,
         headers: options.headers,
-        params: {partNumber: partNumber, uploadId: uploadId},
+        params: {
+            partNumber: partNumber,
+            uploadId: uploadId
+        },
         config: options.config
     });
 };
@@ -576,7 +585,10 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
             key: key,
             body: clonedPartFp,
             headers: options.headers,
-            params: {partNumber: partNumber, uploadId: uploadId},
+            params: {
+                partNumber: partNumber,
+                uploadId: uploadId
+            },
             config: options.config
         });
     }
@@ -757,9 +769,12 @@ BosClient.prototype._uploadPartFile = function (state, isBlob) {
         var promise;
         if (isBlob) {
             var blob = task.file.slice(task.start, task.stop + 1);
-            promise = client.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob);
-        }else{
-            promise = client.uploadPartFromFile(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob, task.start);
+            promise = client.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber,
+                task.partSize, blob);
+        }
+        else {
+            promise = client.uploadPartFromFile(task.bucketName, task.key, task.uploadId, task.partNumber,
+                task.partSize, blob, task.start);
         }
         return promise.then(function (res) {
                 ++state.loaded;
@@ -793,6 +808,7 @@ BosClient.prototype._getTasks = function (file, uploadId, bucketName, key, PART_
         });
 
         leftSize -= partSize;
+        offset += partSize;
         offset += partSize;
         partNumber += 1;
     }

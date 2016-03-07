@@ -29821,7 +29821,10 @@ BosClient.prototype.uploadPartFromFile = function (bucketName, key, uploadId, pa
 
     var start = offset;
     var end = offset + partSize - 1;
-    var partFp = fs.createReadStream(filename, {start: start, end: end});
+    var partFp = fs.createReadStream(filename, {
+        start: start,
+        end: end
+    });
     return this.uploadPart(bucketName, key, uploadId, partNumber,
         partSize, partFp, partMd5, options);
 };
@@ -29845,7 +29848,10 @@ BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, pa
         key: key,
         body: blob,
         headers: options.headers,
-        params: {partNumber: partNumber, uploadId: uploadId},
+        params: {
+            partNumber: partNumber,
+            uploadId: uploadId
+        },
         config: options.config
     });
 };
@@ -29871,7 +29877,10 @@ BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId,
         key: key,
         body: data,
         headers: options.headers,
-        params: {partNumber: partNumber, uploadId: uploadId},
+        params: {
+            partNumber: partNumber,
+            uploadId: uploadId
+        },
         config: options.config
     });
 };
@@ -29921,7 +29930,10 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
             key: key,
             body: clonedPartFp,
             headers: options.headers,
-            params: {partNumber: partNumber, uploadId: uploadId},
+            params: {
+                partNumber: partNumber,
+                uploadId: uploadId
+            },
             config: options.config
         });
     }
@@ -30102,9 +30114,12 @@ BosClient.prototype._uploadPartFile = function (state, isBlob) {
         var promise;
         if (isBlob) {
             var blob = task.file.slice(task.start, task.stop + 1);
-            promise = client.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob);
-        }else{
-            promise = client.uploadPartFromFile(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob, task.start);
+            promise = client.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber,
+                task.partSize, blob);
+        }
+        else {
+            promise = client.uploadPartFromFile(task.bucketName, task.key, task.uploadId, task.partNumber,
+                task.partSize, blob, task.start);
         }
         return promise.then(function (res) {
                 ++state.loaded;
@@ -30138,6 +30153,7 @@ BosClient.prototype._getTasks = function (file, uploadId, bucketName, key, PART_
         });
 
         leftSize -= partSize;
+        offset += partSize;
         offset += partSize;
         partNumber += 1;
     }
@@ -30276,8 +30292,6 @@ var util = require('util');
 
 var Q = require('q');
 var u = require('underscore');
-var path = require('path');
-var Auth = require('./auth');
 var BosClient = require('./bos_client');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
@@ -30300,19 +30314,13 @@ util.inherits(DocClient, BceBaseClient);
 // --- B E G I N ---
 
 DocClient.prototype._buildUrl = function () {
-    var url = '/v1/document';
-    return url;
+    return '/v1/document';
 };
-
-DocClient.prototype._isValidFormat = function () {
-
-}
 
 DocClient.prototype.createDocumentFromBlob = function (file, options) {
     var self = this;
-    var url = self._buildUrl();
     options = options || {};
-    //calc md5 and sizeInBytes
+    // calc md5 and sizeInBytes
     var filename = file.name;
     var tokens = filename.split('.');
     var format = tokens.pop();
@@ -30333,7 +30341,7 @@ DocClient.prototype.createDocumentFromBlob = function (file, options) {
         var reader = new FileReader();
         reader.readAsArrayBuffer(file);
         reader.onloadend = function (e) {
-            if (e.target.readyState == FileReader.DONE) {
+            if (e.target.readyState === FileReader.DONE) {
                 var content = e.target.result;
                 deferred.resolve(content);
             }
@@ -30345,9 +30353,9 @@ DocClient.prototype.createDocumentFromBlob = function (file, options) {
         return doPromise();
     });
     function doPromise() {
-        //register
+        // register
         return self.registerDocument(options).then(function (regResult) {
-            //upload
+            // upload
             var bosConfig = JSON.parse(JSON.stringify(self._config));
             bosConfig.endpoint = regResult.bosEndpoint;
             var bosClient = new BosClient(bosConfig);
@@ -30355,8 +30363,8 @@ DocClient.prototype.createDocumentFromBlob = function (file, options) {
             return bosClient.putObjectFromBlob(regResult.bucket, regResult.object, file).then(function () {
                 return self.publishDocument(regResult.documentId);
             });
-        })
-    };
+        });
+    }
 };
 
 DocClient.prototype.registerDocument = function (options) {
@@ -30382,7 +30390,7 @@ DocClient.prototype.publishDocument = function (documentId) {
     return self.sendRequest('PUT', url, {
         params: {publish: ''}
     }).then(function (response) {
-        return response.body.documentId
+        return response.body.documentId;
     });
 };
 
@@ -30412,12 +30420,12 @@ DocClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
     );
 };
 
-//exports.DocClient = DocClient;
+// exports.DocClient = DocClient;
 module.exports = DocClient;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./auth":153,"./bce_base_client":155,"./bos_client":157,"./crypto":159,"./http_client":163,"path":106,"q":150,"underscore":151,"util":143}],161:[function(require,module,exports){
+},{"./bce_base_client":155,"./bos_client":157,"./crypto":159,"./http_client":163,"q":150,"underscore":151,"util":143}],161:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -30769,6 +30777,7 @@ util.inherits(HttpClient, EventEmitter);
  * @param {Object=} params The querystrings in url.
  * @param {function():string=} signFunction The `Authorization` signature function
  * @param {stream.Writable=} outputStream The http response body.
+ * @param {number=} retry The maximum number of network connection attempts.
  *
  * @resolve {{http_headers:Object,body:Object}}
  * @reject {Object}
@@ -30885,7 +30894,7 @@ HttpClient.prototype._doRequest = function (options, body, outputStream, retry) 
                 if (err[H.X_REQUEST_ID]) {
                     deferred.reject(err);
                 }
-            })
+            });
         });
 
         if (req.xhr && typeof req.xhr.upload === 'object') {
@@ -33715,8 +33724,6 @@ module.exports = SesClient;
 var util = require('util');
 var u = require('underscore');
 
-var debug = require('debug')('STS');
-
 var BceBaseClient = require('./bce_base_client');
 
 /**
@@ -33761,7 +33768,7 @@ module.exports = STS;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./bce_base_client":155,"debug":147,"underscore":151,"util":143}],172:[function(require,module,exports){
+},{"./bce_base_client":155,"underscore":151,"util":143}],172:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -33780,11 +33787,10 @@ module.exports = STS;
 
 /* eslint-env node */
 /* eslint max-params:[0,10] */
+/* eslint-disable fecs-camelcase */
 
 var util = require('util');
 var u = require('underscore');
-
-var debug = require('debug')('vod_client');
 
 var BceBaseClient = require('./bce_base_client');
 var BosClient = require('./bos_client');
@@ -33824,7 +33830,7 @@ VodClient.prototype.createMediaResource = function (title, description, blob, op
             return client._uploadMeida(res.body.sourceBucket, res.body.sourceKey, blob, options);
         })
         .then(function () {
-            return client._internalCreateMediaResource(mediaId, title, description, options)
+            return client._internalCreateMediaResource(mediaId, title, description, options);
         });
 };
 
@@ -33902,11 +33908,11 @@ VodClient.prototype._internalCreateMediaResource = function (mediaId, title, des
     }));
 };
 
-VodClient.prototype.buildRequest = function (verb, merdiaId, query, options) {
-    return this._buildRequest(verb, '/v1/media', merdiaId, query, options)
+VodClient.prototype.buildRequest = function (verb, mediaId, query, options) {
+    return this._buildRequest(verb, '/v1/media', mediaId, query, options);
 };
 
-VodClient.prototype._buildRequest = function (verb, url, merdiaId, query, options) {
+VodClient.prototype._buildRequest = function (verb, url, mediaId, query, options) {
     var defaultArgs = {
         body: null,
         headers: {},
@@ -33914,8 +33920,8 @@ VodClient.prototype._buildRequest = function (verb, url, merdiaId, query, option
         config: {}
     };
     options = u.extend(defaultArgs, options);
-    if (merdiaId) {
-        url += '/' + merdiaId;
+    if (mediaId) {
+        url += '/' + mediaId;
     }
     if (query) {
         options.params[query] = '';
@@ -33938,7 +33944,7 @@ module.exports = VodClient;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./bce_base_client":155,"./bos_client":157,"./headers":162,"debug":147,"underscore":151,"util":143}],173:[function(require,module,exports){
+},{"./bce_base_client":155,"./bos_client":157,"./headers":162,"underscore":151,"util":143}],173:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved

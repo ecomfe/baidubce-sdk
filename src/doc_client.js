@@ -22,8 +22,6 @@ var util = require('util');
 
 var Q = require('q');
 var u = require('underscore');
-var path = require('path');
-var Auth = require('./auth');
 var BosClient = require('./bos_client');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
@@ -46,19 +44,13 @@ util.inherits(DocClient, BceBaseClient);
 // --- B E G I N ---
 
 DocClient.prototype._buildUrl = function () {
-    var url = '/v1/document';
-    return url;
+    return '/v1/document';
 };
-
-DocClient.prototype._isValidFormat = function () {
-
-}
 
 DocClient.prototype.createDocumentFromBlob = function (file, options) {
     var self = this;
-    var url = self._buildUrl();
     options = options || {};
-    //calc md5 and sizeInBytes
+    // calc md5 and sizeInBytes
     var filename = file.name;
     var tokens = filename.split('.');
     var format = tokens.pop();
@@ -79,7 +71,7 @@ DocClient.prototype.createDocumentFromBlob = function (file, options) {
         var reader = new FileReader();
         reader.readAsArrayBuffer(file);
         reader.onloadend = function (e) {
-            if (e.target.readyState == FileReader.DONE) {
+            if (e.target.readyState === FileReader.DONE) {
                 var content = e.target.result;
                 deferred.resolve(content);
             }
@@ -91,9 +83,9 @@ DocClient.prototype.createDocumentFromBlob = function (file, options) {
         return doPromise();
     });
     function doPromise() {
-        //register
+        // register
         return self.registerDocument(options).then(function (regResult) {
-            //upload
+            // upload
             var bosConfig = JSON.parse(JSON.stringify(self._config));
             bosConfig.endpoint = regResult.bosEndpoint;
             var bosClient = new BosClient(bosConfig);
@@ -101,8 +93,8 @@ DocClient.prototype.createDocumentFromBlob = function (file, options) {
             return bosClient.putObjectFromBlob(regResult.bucket, regResult.object, file).then(function () {
                 return self.publishDocument(regResult.documentId);
             });
-        })
-    };
+        });
+    }
 };
 
 DocClient.prototype.registerDocument = function (options) {
@@ -128,7 +120,7 @@ DocClient.prototype.publishDocument = function (documentId) {
     return self.sendRequest('PUT', url, {
         params: {publish: ''}
     }).then(function (response) {
-        return response.body.documentId
+        return response.body.documentId;
     });
 };
 
@@ -158,7 +150,7 @@ DocClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
     );
 };
 
-//exports.DocClient = DocClient;
+// exports.DocClient = DocClient;
 module.exports = DocClient;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
