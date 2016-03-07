@@ -59,6 +59,7 @@ util.inherits(HttpClient, EventEmitter);
  * @param {Object=} params The querystrings in url.
  * @param {function():string=} signFunction The `Authorization` signature function
  * @param {stream.Writable=} outputStream The http response body.
+ * @param {number=} retry The maximum number of network connection attempts.
  *
  * @resolve {{http_headers:Object,body:Object}}
  * @reject {Object}
@@ -175,7 +176,7 @@ HttpClient.prototype._doRequest = function (options, body, outputStream, retry) 
                 if (err[H.X_REQUEST_ID]) {
                     deferred.reject(err);
                 }
-            })
+            });
         });
 
         if (req.xhr && typeof req.xhr.upload === 'object') {

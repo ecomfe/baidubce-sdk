@@ -35,7 +35,7 @@ $(document).ready(function () {
                         '<a href="javascript:void 0;" class="btn link-btn delete">删除</a>' +
                         '<a href="javascript:void 0;" class="btn link-btn url">获取视频地址</a>' +
                         '<a href="javascript:void 0;" class="btn link-btn code">获取播放代码</a>' +
-                        '</td></tr>'
+                        '</td></tr>';
                 }
             }
             $fileList.html(html);
@@ -120,7 +120,7 @@ $(document).ready(function () {
                 html += '<div class="panel panel-info">' +
                     '<div class="panel-heading">' + code.codeType + '</div>' +
                     '<div class="panel-body"><pre>' + code.sourceCode + '</pre></div>' +
-                    '</div>'
+                    '</div>';
             }
             $('#codeList').html(html);
             $('#code').modal();

@@ -20,8 +20,6 @@
 var util = require('util');
 var u = require('underscore');
 
-var debug = require('debug')('STS');
-
 var BceBaseClient = require('./bce_base_client');
 
 /**

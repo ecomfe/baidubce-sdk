@@ -16,11 +16,10 @@
 
 /* eslint-env node */
 /* eslint max-params:[0,10] */
+/* eslint-disable fecs-camelcase */
 
 var util = require('util');
 var u = require('underscore');
-
-var debug = require('debug')('vod_client');
 
 var BceBaseClient = require('./bce_base_client');
 var BosClient = require('./bos_client');
@@ -60,7 +59,7 @@ VodClient.prototype.createMediaResource = function (title, description, blob, op
             return client._uploadMeida(res.body.sourceBucket, res.body.sourceKey, blob, options);
         })
         .then(function () {
-            return client._internalCreateMediaResource(mediaId, title, description, options)
+            return client._internalCreateMediaResource(mediaId, title, description, options);
         });
 };
 
@@ -138,11 +137,11 @@ VodClient.prototype._internalCreateMediaResource = function (mediaId, title, des
     }));
 };
 
-VodClient.prototype.buildRequest = function (verb, merdiaId, query, options) {
-    return this._buildRequest(verb, '/v1/media', merdiaId, query, options)
+VodClient.prototype.buildRequest = function (verb, mediaId, query, options) {
+    return this._buildRequest(verb, '/v1/media', mediaId, query, options);
 };
 
-VodClient.prototype._buildRequest = function (verb, url, merdiaId, query, options) {
+VodClient.prototype._buildRequest = function (verb, url, mediaId, query, options) {
     var defaultArgs = {
         body: null,
         headers: {},
@@ -150,8 +149,8 @@ VodClient.prototype._buildRequest = function (verb, url, merdiaId, query, option
         config: {}
     };
     options = u.extend(defaultArgs, options);
-    if (merdiaId) {
-        url += '/' + merdiaId;
+    if (mediaId) {
+        url += '/' + mediaId;
     }
     if (query) {
         options.params[query] = '';

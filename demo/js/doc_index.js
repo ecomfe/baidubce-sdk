@@ -1,8 +1,8 @@
-$(document).ready(function() {
+$(document).ready(function () {
     hljs.initHighlightingOnLoad();
 
     var sdk = window.baidubceSdk;
-    //var tokenUrl = 'http://180.76.166.159:1337/ack';
+    // var tokenUrl = 'http://180.76.166.159:1337/ack';
     var docConfig = {
         credentials: {
             ak: '',
@@ -12,8 +12,8 @@ $(document).ready(function() {
 
     var $fileList = $('#fileList');
 
-    $('#upload').on('change', function(evt) {
-        return (function(evt) {
+    $('#upload').on('change', function (evt) {
+        return (function (evt) {
             var file = evt.target.files[0];
             var client = new sdk.DocClient(docConfig);
             var key = file.name;
@@ -22,7 +22,7 @@ $(document).ready(function() {
             var $row = $('<tr id="' + id + '">' +
                 '<td class="file-name">' + key + '</td>' +
                 '<td>' + fileSize(blob.size) + '</td>' +
-                '<td class="documentId">' +  '</td>' +
+                '<td class="documentId">' + '</td>' +
                 '<td class="file-detail">' +
                 '<div class="progress"><div class="progress-bar progress-bar-success" style="width: 0;"></div></div>' +
                 '</td>' +
@@ -37,22 +37,22 @@ $(document).ready(function() {
 
             var promise;
             promise = client.createDocumentFromBlob(file);
-            client.on('progress', function(evt) {
+            client.on('progress', function (evt) {
                 client.emit('overallProgress', evt);
             });
-            client.on('overallProgress', function(evt) {
+            client.on('overallProgress', function (evt) {
                 if (evt.lengthComputable) {
                     var width = (evt.loaded / evt.total) * 100;
                     $row.find('.progress-bar').css('width', width + '%')
                         .text(width.toFixed(2) + '%');
                 }
             });
-            promise.then(function(documentId) {
+            promise.then(function (documentId) {
                     toastr.success('上传成功');
                     $row.find('.documentId').html(documentId);
                     $row.find('.file-detail').html('完成');
                 })
-                .catch(function(err) {
+                .catch(function (err) {
                     toastr.error('上传失败');
                 });
         })(evt);
