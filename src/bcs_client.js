@@ -300,7 +300,8 @@ BcsClient.prototype._prepareObjectHeaders = function (options) {
         H.CONTENT_MD5,
         H.CONTENT_TYPE,
         H.CONTENT_DISPOSITION,
-        H.ETAG
+        H.ETAG,
+        H.SEESION_TOKEN
     ];
     var metaSize = 0;
     var headers = u.pick(options, function (value, key) {

@@ -37,9 +37,6 @@ var BceBaseClient = require('./bce_base_client');
  * @extends {BceBaseClient}
  */
 function DocClient(config) {
-    if (!config.protocol) {
-        config["protocol"] = 'http';
-    }
     BceBaseClient.call(this, config, 'doc', false);
     this._config = config;
     this._documentId = null;

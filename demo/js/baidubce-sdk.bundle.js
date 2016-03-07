@@ -28986,7 +28986,7 @@ BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
 
     if (config.sessionToken) {
         signatureFun = null;
-        args.headers[H.X_BCE_SECURITY_TOKEN] = config.sessionToken;
+        args.headers[H.SESSION_TOKEN] = config.sessionToken;
     }
     else {
         signatureFun = u.bind(this.createSignature, this);
@@ -29305,7 +29305,8 @@ BcsClient.prototype._prepareObjectHeaders = function (options) {
         H.CONTENT_MD5,
         H.CONTENT_TYPE,
         H.CONTENT_DISPOSITION,
-        H.ETAG
+        H.ETAG,
+        H.SEESION_TOKEN
     ];
     var metaSize = 0;
     var headers = u.pick(options, function (value, key) {
@@ -30290,9 +30291,6 @@ var BceBaseClient = require('./bce_base_client');
  * @extends {BceBaseClient}
  */
 function DocClient(config) {
-    if (!config.protocol) {
-        config["protocol"] = 'http';
-    }
     BceBaseClient.call(this, config, 'doc', false);
     this._config = config;
     this._documentId = null;
@@ -30680,7 +30678,6 @@ exports.AUTHORIZATION = 'Authorization';
 exports.X_BCE_DATE = 'x-bce-date';
 exports.X_BCE_ACL = 'x-bce-acl';
 exports.X_BCE_REQUEST_ID = 'x-bce-request-id';
-exports.X_BCE_SECURITY_TOKEN = 'x-bce-security-token';
 exports.X_BCE_CONTENT_SHA256 = 'x-bce-content-sha256';
 
 exports.X_HTTP_HEADERS = 'http_headers';

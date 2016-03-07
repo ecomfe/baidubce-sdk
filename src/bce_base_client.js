@@ -99,7 +99,7 @@ BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
 
     if (config.sessionToken) {
         signatureFun = null;
-        args.headers[H.X_BCE_SECURITY_TOKEN] = config.sessionToken;
+        args.headers[H.SESSION_TOKEN] = config.sessionToken;
     }
     else {
         signatureFun = u.bind(this.createSignature, this);
