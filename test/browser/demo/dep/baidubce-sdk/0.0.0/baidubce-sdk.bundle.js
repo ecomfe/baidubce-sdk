@@ -28460,7 +28460,7 @@ return Q;
 },{}],152:[function(require,module,exports){
 module.exports={
   "name": "baidubce-sdk",
-  "version": "0.0.17",
+  "version": "0.0.19",
   "description": "baidu cloud engine node.js sdk",
   "main": "index.js",
   "directories": {
@@ -28472,7 +28472,7 @@ module.exports={
   },
   "repository": {
     "type": "git",
-    "url": "http://gitlab.baidu.com/inf/bos-js-sdk.git"
+    "url": "https://github.com/baidubce/bce-sdk-js.git"
   },
   "author": "leeight@gmail.com",
   "license": "MIT",
@@ -30009,6 +30009,7 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
         H.CONTENT_LENGTH,
         H.CONTENT_ENCODING,
         H.CONTENT_MD5,
+        H.X_BCE_CONTENT_SHA256,
         H.CONTENT_TYPE,
         H.CONTENT_DISPOSITION,
         H.ETAG,
@@ -30168,7 +30169,10 @@ module.exports = BosClient;
 
 exports.DEFAULT_SERVICE_DOMAIN = 'baidubce.com';
 
-exports.DEFAULT_CONFIG = {};
+exports.DEFAULT_CONFIG = {
+    protocol: 'http',
+    region: 'bj'
+};
 
 
 
@@ -30677,6 +30681,7 @@ exports.X_BCE_DATE = 'x-bce-date';
 exports.X_BCE_ACL = 'x-bce-acl';
 exports.X_BCE_REQUEST_ID = 'x-bce-request-id';
 exports.X_BCE_SECURITY_TOKEN = 'x-bce-security-token';
+exports.X_BCE_CONTENT_SHA256 = 'x-bce-content-sha256';
 
 exports.X_HTTP_HEADERS = 'http_headers';
 exports.X_BODY = 'body';
@@ -30852,6 +30857,10 @@ function isPromise(obj) {
     return obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function';
 }
 
+HttpClient.prototype._isValidStatus = function (statusCode) {
+    return statusCode >= 200 && statusCode < 300;
+};
+
 HttpClient.prototype._doRequest = function (options, body, outputStream, retry) {
     retry = retry || 0;
     var delay = 100;
@@ -30861,11 +30870,14 @@ HttpClient.prototype._doRequest = function (options, body, outputStream, retry) 
 
     function execute() {
         var req = client._req = api.request(options, function (res) {
-            if (outputStream
+            if (client._isValidStatus(res.statusCode) && outputStream
                 && outputStream instanceof stream.Writable) {
                 res.pipe(outputStream);
-                res.on('end', function () {
+                outputStream.on('close', function () {
                     deferred.resolve(success(client._fixHeaders(res.headers), {}));
+                });
+                outputStream.on('error', function (error) {
+                    deferred.reject(error);
                 });
                 return;
             }
