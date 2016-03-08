@@ -28,6 +28,7 @@ var Q = require('q');
 var debug = require('debug')('HttpClient');
 
 var H = require('./headers');
+var strings = require('./strings');
 
 /**
  * The HttpClient
@@ -284,7 +285,9 @@ HttpClient.prototype._recvResponse = function (res) {
             payload.push(new Buffer(chunk));
         }
     });
-    res.on('error', function (e) { deferred.reject(e); });
+    res.on('error', function (e) {
+        deferred.reject(e);
+    });
     /*eslint-enable*/
     res.on('end', function () {
         var raw = Buffer.concat(payload);
@@ -357,7 +360,7 @@ HttpClient.prototype.buildQueryString = function (params) {
 };
 
 HttpClient.prototype._getRequestUrl = function (path, params) {
-    var uri = encodeURI(path);
+    var uri = path;
     var qs = this.buildQueryString(params);
     if (qs) {
         uri += '?' + qs;

@@ -26,6 +26,7 @@ var u = require('underscore');
 var Q = require('q');
 
 var H = require('./headers');
+var strings = require('./strings');
 var Auth = require('./auth');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
@@ -91,8 +92,8 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
 
     var resource = path.normalize(path.join(
         '/v1',
-        bucketName || '',
-        key || ''
+        strings.normalize(bucketName || ''),
+        strings.normalize(key || '', false)
     )).replace(/\\/g, '/');
 
     headers = headers || {};
@@ -112,9 +113,10 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
 BosClient.prototype.generateUrl = function (bucketName, key, pipeline, cdn) {
     var resource = path.normalize(path.join(
         '/v1',
-        bucketName || '',
-        key || ''
+        strings.normalize(bucketName || ''),
+        strings.normalize(key || '', false)
     )).replace(/\\/g, '/');
+
     // pipeline表示如何对图片进行处理.
     var command = '';
     if (pipeline) {
@@ -395,8 +397,8 @@ BosClient.prototype.copyObject = function (sourceBucketName, sourceKey, targetBu
             return true;
         }
     });
-    options.headers['x-bce-copy-source'] = encodeURI(util.format('/%s/%s',
-        sourceBucketName, sourceKey));
+    options.headers['x-bce-copy-source'] = strings.normalize(util.format('/%s/%s',
+        sourceBucketName, sourceKey), false);
     if (u.has(options.headers, 'ETag')) {
         options.headers['x-bce-copy-source-if-match'] = options.headers.ETag;
     }
@@ -612,8 +614,8 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
     var config = u.extend({}, this.config, args.config);
     var resource = path.normalize(path.join(
         '/v1',
-        encodeURIComponent(args.bucketName || ''),
-        args.key || ''
+        strings.normalize(args.bucketName || ''),
+        strings.normalize(args.key || '', false)
     )).replace(/\\/g, '/');
 
     var client = this;

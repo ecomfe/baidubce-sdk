@@ -24481,7 +24481,7 @@ return Q;
 },{}],187:[function(require,module,exports){
 module.exports={
   "name": "baidubce-sdk",
-  "version": "0.0.18",
+  "version": "0.0.20",
   "description": "baidu cloud engine node.js sdk",
   "main": "index.js",
   "directories": {
@@ -24533,6 +24533,7 @@ var util = require('util');
 var debug = require('debug')('auth');
 
 var H = require('./headers');
+var strings = require('./strings');
 
 /**
  * Auth
@@ -24590,10 +24591,7 @@ Auth.prototype.generateAuthorization = function (method, resource, params,
 };
 
 Auth.prototype.uriCanonicalization = function (uri) {
-    var canonicalUri = uri.replace(/[^a-zA-Z0-9\-\._~\/]/g, function (item) {
-        return encodeURIComponent(item);
-    });
-    return canonicalUri;
+    return uri;
 };
 
 /**
@@ -24606,14 +24604,12 @@ Auth.prototype.uriCanonicalization = function (uri) {
 Auth.prototype.queryStringCanonicalization = function (params) {
     var canonicalQueryString = [];
     Object.keys(params).forEach(function (key) {
-        if (key === 'authorization') {
+        if (key.toLowerCase() === H.AUTHORIZATION.toLowerCase()) {
             return;
         }
 
         var value = params[key] == null ? '' : params[key];
-        canonicalQueryString.push(
-            encodeURIComponent(key) + '=' + encodeURIComponent(value)
-        );
+        canonicalQueryString.push(key + '=' + strings.normalize(value));
     });
 
     canonicalQueryString.sort();
@@ -24633,6 +24629,7 @@ Auth.prototype.headersCanonicalization = function (headers, headersToSign) {
     if (!headersToSign || !headersToSign.length) {
         headersToSign = [H.HOST, H.CONTENT_MD5, H.CONTENT_LENGTH, H.CONTENT_TYPE];
     }
+    debug('headers = %j, headersToSign = %j', headers, headersToSign);
 
     var headersMap = {};
     headersToSign.forEach(function (item) {
@@ -24649,7 +24646,8 @@ Auth.prototype.headersCanonicalization = function (headers, headersToSign) {
         key = key.toLowerCase();
         if (/^x\-bce\-/.test(key) || headersMap[key] === true) {
             canonicalHeaders.push(util.format('%s:%s',
-                encodeURIComponent(key), encodeURIComponent(value)));
+                // encodeURIComponent(key), encodeURIComponent(value)));
+                strings.normalize(key), strings.normalize(value)));
         }
     });
 
@@ -24681,7 +24679,7 @@ module.exports = Auth;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./headers":196,"crypto":4,"debug":182,"util":175}],189:[function(require,module,exports){
+},{"./headers":196,"./strings":205,"crypto":4,"debug":182,"util":175}],189:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -25410,6 +25408,7 @@ var u = require('underscore');
 var Q = require('q');
 
 var H = require('./headers');
+var strings = require('./strings');
 var Auth = require('./auth');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
@@ -25475,8 +25474,8 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
 
     var resource = path.normalize(path.join(
         '/v1',
-        bucketName || '',
-        key || ''
+        strings.normalize(bucketName || ''),
+        strings.normalize(key || '', false)
     )).replace(/\\/g, '/');
 
     headers = headers || {};
@@ -25496,9 +25495,10 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
 BosClient.prototype.generateUrl = function (bucketName, key, pipeline, cdn) {
     var resource = path.normalize(path.join(
         '/v1',
-        bucketName || '',
-        key || ''
+        strings.normalize(bucketName || ''),
+        strings.normalize(key || '', false)
     )).replace(/\\/g, '/');
+
     // pipeline表示如何对图片进行处理.
     var command = '';
     if (pipeline) {
@@ -25779,8 +25779,8 @@ BosClient.prototype.copyObject = function (sourceBucketName, sourceKey, targetBu
             return true;
         }
     });
-    options.headers['x-bce-copy-source'] = encodeURI(util.format('/%s/%s',
-        sourceBucketName, sourceKey));
+    options.headers['x-bce-copy-source'] = strings.normalize(util.format('/%s/%s',
+        sourceBucketName, sourceKey), false);
     if (u.has(options.headers, 'ETag')) {
         options.headers['x-bce-copy-source-if-match'] = options.headers.ETag;
     }
@@ -25996,8 +25996,8 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
     var config = u.extend({}, this.config, args.config);
     var resource = path.normalize(path.join(
         '/v1',
-        args.bucketName || '',
-        args.key || ''
+        strings.normalize(args.bucketName || ''),
+        strings.normalize(args.key || '', false)
     )).replace(/\\/g, '/');
 
     var client = this;
@@ -26078,7 +26078,7 @@ module.exports = BosClient;
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require("buffer").Buffer)
-},{"./auth":188,"./bce_base_client":190,"./crypto":194,"./headers":196,"./http_client":197,"./mime.types":201,"./wm_stream":205,"buffer":178,"fs":2,"path":154,"q":185,"querystring":159,"underscore":186,"url":173,"util":175}],193:[function(require,module,exports){
+},{"./auth":188,"./bce_base_client":190,"./crypto":194,"./headers":196,"./http_client":197,"./mime.types":201,"./strings":205,"./wm_stream":206,"buffer":178,"fs":2,"path":154,"q":185,"querystring":159,"underscore":186,"url":173,"util":175}],193:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -26494,6 +26494,7 @@ var Q = require('q');
 var debug = require('debug')('HttpClient');
 
 var H = require('./headers');
+var strings = require('./strings');
 
 /**
  * The HttpClient
@@ -26624,8 +26625,11 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
         if (client._isValidStatus(res.statusCode) && outputStream
             && outputStream instanceof stream.Writable) {
             res.pipe(outputStream);
-            res.on('end', function () {
+            outputStream.on('finish', function () {
                 deferred.resolve(success(client._fixHeaders(res.headers), {}));
+            });
+            outputStream.on('error', function (error) {
+                deferred.reject(error);
             });
             return;
         }
@@ -26747,7 +26751,9 @@ HttpClient.prototype._recvResponse = function (res) {
             payload.push(new Buffer(chunk));
         }
     });
-    res.on('error', function (e) { deferred.reject(e); });
+    res.on('error', function (e) {
+        deferred.reject(e);
+    });
     /*eslint-enable*/
     res.on('end', function () {
         var raw = Buffer.concat(payload);
@@ -26820,7 +26826,7 @@ HttpClient.prototype.buildQueryString = function (params) {
 };
 
 HttpClient.prototype._getRequestUrl = function (path, params) {
-    var uri = encodeURI(path);
+    var uri = path;
     var qs = this.buildQueryString(params);
     if (qs) {
         uri += '?' + qs;
@@ -26866,7 +26872,7 @@ module.exports = HttpClient;
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"../package.json":187,"./headers":196,"_process":155,"buffer":178,"debug":182,"events":145,"http":146,"https":150,"q":185,"querystring":159,"stream":171,"underscore":186,"url":173,"util":175}],198:[function(require,module,exports){
+},{"../package.json":187,"./headers":196,"./strings":205,"_process":155,"buffer":178,"debug":182,"events":145,"http":146,"https":150,"q":185,"querystring":159,"stream":171,"underscore":186,"url":173,"util":175}],198:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -29429,6 +29435,52 @@ module.exports = SesClient;
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{"./bce_base_client":190,"fs":2,"path":154,"util":175}],205:[function(require,module,exports){
+/**
+ * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+var kEscapedMap = {
+    '!' : '%21',
+    '\'': '%27',
+    '(' : '%28',
+    ')' : '%29',
+    '*' : '%2A'
+};
+
+exports.normalize = function (string, encodingSlash) {
+    var result = encodeURIComponent(string);
+    result = result.replace(/[!'\(\)\*]/g, function ($1) {
+        return kEscapedMap[$1];
+    });
+
+    if (encodingSlash === false) {
+        result = result.replace(/%2F/gi, '/');
+    }
+
+    return result;
+};
+
+
+
+
+
+
+
+
+
+
+/* vim: set ts=4 sw=4 sts=4 tw=120: */
+
+},{}],206:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved

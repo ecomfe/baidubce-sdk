@@ -22,6 +22,7 @@ var util = require('util');
 var debug = require('debug')('auth');
 
 var H = require('./headers');
+var strings = require('./strings');
 
 /**
  * Auth
@@ -79,10 +80,7 @@ Auth.prototype.generateAuthorization = function (method, resource, params,
 };
 
 Auth.prototype.uriCanonicalization = function (uri) {
-    var canonicalUri = uri.replace(/[^a-zA-Z0-9\-\._~\/]/g, function (item) {
-        return encodeURIComponent(item);
-    });
-    return canonicalUri;
+    return uri;
 };
 
 /**
@@ -95,14 +93,12 @@ Auth.prototype.uriCanonicalization = function (uri) {
 Auth.prototype.queryStringCanonicalization = function (params) {
     var canonicalQueryString = [];
     Object.keys(params).forEach(function (key) {
-        if (key === 'authorization') {
+        if (key.toLowerCase() === H.AUTHORIZATION.toLowerCase()) {
             return;
         }
 
         var value = params[key] == null ? '' : params[key];
-        canonicalQueryString.push(
-            encodeURIComponent(key) + '=' + encodeURIComponent(value)
-        );
+        canonicalQueryString.push(key + '=' + strings.normalize(value));
     });
 
     canonicalQueryString.sort();
@@ -122,6 +118,7 @@ Auth.prototype.headersCanonicalization = function (headers, headersToSign) {
     if (!headersToSign || !headersToSign.length) {
         headersToSign = [H.HOST, H.CONTENT_MD5, H.CONTENT_LENGTH, H.CONTENT_TYPE];
     }
+    debug('headers = %j, headersToSign = %j', headers, headersToSign);
 
     var headersMap = {};
     headersToSign.forEach(function (item) {
@@ -138,7 +135,8 @@ Auth.prototype.headersCanonicalization = function (headers, headersToSign) {
         key = key.toLowerCase();
         if (/^x\-bce\-/.test(key) || headersMap[key] === true) {
             canonicalHeaders.push(util.format('%s:%s',
-                encodeURIComponent(key), encodeURIComponent(value)));
+                // encodeURIComponent(key), encodeURIComponent(value)));
+                strings.normalize(key), strings.normalize(value)));
         }
     });
 

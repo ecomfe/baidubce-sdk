@@ -22,6 +22,9 @@ exports.fail = function (spec) {
         if (error instanceof Error) {
             failImpl(error);
         }
+        else if (Buffer.isBuffer(error)) {
+            failImpl(new Error(error.toString()));
+        }
         else {
             failImpl(new Error(JSON.stringify(error)));
         }
