@@ -161,7 +161,7 @@ HttpClient.prototype._doRequest = function (options, body, outputStream, retry) 
             if (client._isValidStatus(res.statusCode) && outputStream
                 && outputStream instanceof stream.Writable) {
                 res.pipe(outputStream);
-            outputStream.on('finish', function () {
+                outputStream.on('finish', function () {
                     deferred.resolve(success(client._fixHeaders(res.headers), {}));
                 });
                 outputStream.on('error', function (error) {
@@ -340,9 +340,15 @@ HttpClient.prototype._recvResponse = function (res) {
 
 /*eslint-disable*/
 function isXHR2Compatible(obj) {
-    if (typeof Blob !== 'undefined' && obj instanceof Blob) return true;
-    if (typeof ArrayBuffer !== 'undefined' && obj instanceof ArrayBuffer) return true;
-    if (typeof FormData !== 'undefined' && obj instanceof FormData) return true;
+    if (typeof Blob !== 'undefined' && obj instanceof Blob) {
+        return true;
+    }
+    if (typeof ArrayBuffer !== 'undefined' && obj instanceof ArrayBuffer) {
+        return true;
+    }
+    if (typeof FormData !== 'undefined' && obj instanceof FormData) {
+        return true;
+    }
 }
 /*eslint-enable*/
 
