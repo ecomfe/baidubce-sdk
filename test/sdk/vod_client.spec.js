@@ -24,7 +24,23 @@ var debug = require('debug')('vod_client.spec');
 var config = require('../config');
 var VodClient = require('../../').VodClient;
 var helper = require('./helper');
-
+var bosConfig = {
+    credentials: {
+        ak: '3e50573ecad74f1e8032b1c8a1c43265',
+        sk: '3c81cdfbf6d34a6d8c5ec520ca77beba'
+    },
+    endpoint: 'http://bos.bj.baidubce.com'
+};
+var vodConfig = {
+    credentials: {
+        ak: '3e50573ecad74f1e8032b1c8a1c43265',
+        sk: '3c81cdfbf6d34a6d8c5ec520ca77beba'
+    },
+    endpoint: 'http://vod.baidubce.com',
+    retry: 50
+};
+config.media = vodConfig;
+config.media_bos = bosConfig;
 var MediaStatus = {
     PUBLISHED: 'PUBLISHED',
     FAILED: 'FAILED',
@@ -53,22 +69,20 @@ describe('VodClient', function () {
         done();
     });
 
-    it('ok', function () {
-    });
-
     it('Create Media Source', function (done) {
         var vod = new VodClient(config.media, config.media_bos);
-        vod.createMediaResource(title, description, './Two Steps From Hell - Victory.mp3')
+        var filePath = path.join(__dirname, '123.mp3');
+        vod.createMediaResource(title, description, filePath)
             .then(function (response) {
-                expect(mediaId).not.toBeUndefined();
                 mediaId = response.body.mediaId;
+                expect(mediaId).not.toBeUndefined();
             })
             .catch(fail)
             .fin(function () {
                 // wait two minuets for encoding media
                 setTimeout(done, 120000);
             });
-    });
+    }, 150000);
     it('Get Media Source', function (done) {
         expect(mediaId).not.toBeUndefined();
         var vod = new VodClient(config.media, config.media_bos);
@@ -99,10 +113,8 @@ describe('VodClient', function () {
     it('Disable Media Source', function (done) {
         expect(mediaId).not.toBeUndefined();
         var vod = new VodClient(config.media, config.media_bos);
-        vod.publishMediaResource(mediaId)
+        vod.stopMediaResource(mediaId)
             .then(function () {
-                return vod.stopMediaResource(mediaId);
-            }).then(function () {
                 return vod.getMediaResource(mediaId);
             })
             .then(function (response) {
@@ -115,10 +127,8 @@ describe('VodClient', function () {
     it('Publish Media Source', function (done) {
         expect(mediaId).not.toBeUndefined();
         var vod = new VodClient(config.media, config.media_bos);
-        vod.stopMediaResource(mediaId)
+        vod.publishMediaResource(mediaId)
             .then(function () {
-                return vod.publishMediaResource(mediaId);
-            }).then(function () {
                 return vod.getMediaResource(mediaId);
             })
             .then(function (response) {
@@ -145,10 +155,10 @@ describe('VodClient', function () {
             .catch(fail)
             .fin(done);
     });
-    it('Get Playable Url', function (done) {
+    it('Get Player Code', function (done) {
         expect(mediaId).not.toBeUndefined();
         var vod = new VodClient(config.media, config.media_bos);
-        vod.getPlayableUrl(mediaId)
+        vod.getPlayerCode(mediaId, 800, 600, true)
             .then(function (response) {
                 var codes = u.filter(response.body.codes, function (code) {
                     return u.contains(CodeType, code.codeType);
@@ -162,6 +172,33 @@ describe('VodClient', function () {
                         expect(code.sourceCode).toMatch(/[a-zA-Z0-9+/]+/);
                     }
                 });
+            })
+            .catch(fail)
+            .fin(done);
+    });
+    it('Get Playable Url', function (done) {
+        expect(mediaId).not.toBeUndefined();
+        var vod = new VodClient(config.media, config.media_bos);
+        vod.getPlayableUrl(mediaId)
+            .then(function (response) {
+                expect(response.body.result.file).toMatch(/^http:\/\//);
+                expect(response.body.result.media_id).toEqual(mediaId);
+            })
+            .catch(fail)
+            .fin(done);
+    });
+    it('Delete Media Source', function (done) {
+        expect(mediaId).not.toBeUndefined();
+        var vod = new VodClient(config.media, config.media_bos);
+        vod.deleteMediaResource(mediaId)
+            .then(function () {
+                return vod.listMediaResource();
+            })
+            .then(function (response) {
+                var uploadMedia = u.filter(response.body.medias, function (media) {
+                    return media.mediaId === mediaId;
+                });
+                expect(uploadMedia.length).toEqual(0);
             })
             .catch(fail)
             .fin(done);

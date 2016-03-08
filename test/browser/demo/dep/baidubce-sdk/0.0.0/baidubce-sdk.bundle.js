@@ -30081,7 +30081,7 @@ BosClient.prototype.uploadFecade = function (bucketName, key, blob, partSize, th
     return client.initiateMultipartUpload(bucketName, key, options).then(function (res) {
         uploadId = res.body.uploadId;
         var deferred = Q.defer();
-        var tasks = client._getTasks(blob, uploadId, bucketName, key, partSize);
+        var tasks = client._getTasks(blob, uploadId, bucketName, key, partSize, size);
         var state = {
             lengthComputable: true,
             loaded: 0,
@@ -30119,7 +30119,7 @@ BosClient.prototype._uploadPartFile = function (state, isBlob) {
         }
         else {
             promise = client.uploadPartFromFile(task.bucketName, task.key, task.uploadId, task.partNumber,
-                task.partSize, blob, task.start);
+                task.partSize, task.file, task.start);
         }
         return promise.then(function (res) {
                 ++state.loaded;
@@ -30132,8 +30132,8 @@ BosClient.prototype._uploadPartFile = function (state, isBlob) {
     };
 };
 
-BosClient.prototype._getTasks = function (file, uploadId, bucketName, key, PART_SIZE) {
-    var leftSize = file.size;
+BosClient.prototype._getTasks = function (file, uploadId, bucketName, key, PART_SIZE, size) {
+    var leftSize = size;
     var offset = 0;
     var partNumber = 1;
 
@@ -30153,7 +30153,6 @@ BosClient.prototype._getTasks = function (file, uploadId, bucketName, key, PART_
         });
 
         leftSize -= partSize;
-        offset += partSize;
         offset += partSize;
         partNumber += 1;
     }
@@ -33845,10 +33844,10 @@ VodClient.prototype.listMediaResource = function (options) {
 VodClient.prototype.updateMediaResource = function (mediaId, title, description, options) {
     options = options || {};
     return this.buildRequest('PUT', mediaId, 'attributes', u.extend(options, {
-        params: {
+        body: JSON.stringify({
             title: title,
             description: description
-        }
+        })
     }));
 };
 
@@ -33882,6 +33881,7 @@ VodClient.prototype.getPlayerCode = function (mediaId, width, height, autoStart,
     return this._buildRequest('GET', '/v1/service/code', null, null, u.extend(options, {
         params: {
             media_id: mediaId,
+            ak: this.config.credentials.ak,
             width: width,
             height: height,
             auto_start: autoStart

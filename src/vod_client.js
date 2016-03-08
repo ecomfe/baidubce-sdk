@@ -74,10 +74,10 @@ VodClient.prototype.listMediaResource = function (options) {
 VodClient.prototype.updateMediaResource = function (mediaId, title, description, options) {
     options = options || {};
     return this.buildRequest('PUT', mediaId, 'attributes', u.extend(options, {
-        params: {
+        body: JSON.stringify({
             title: title,
             description: description
-        }
+        })
     }));
 };
 
@@ -111,6 +111,7 @@ VodClient.prototype.getPlayerCode = function (mediaId, width, height, autoStart,
     return this._buildRequest('GET', '/v1/service/code', null, null, u.extend(options, {
         params: {
             media_id: mediaId,
+            ak: this.config.credentials.ak,
             width: width,
             height: height,
             auto_start: autoStart
