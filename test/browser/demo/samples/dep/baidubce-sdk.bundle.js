@@ -23090,7 +23090,7 @@ exports.DocClient = require('./src/doc_client');
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./src/auth":153,"./src/bcc_client":154,"./src/bcs_client":156,"./src/bos_client":157,"./src/doc_client":160,"./src/face_client":161,"./src/http_client":163,"./src/lss_client":164,"./src/mct_client":165,"./src/media_client":166,"./src/mime.types":167,"./src/ocr_client":168,"./src/qns_client":169,"./src/ses_client":170,"./src/sts":171,"./src/vod_client":172,"q":150}],146:[function(require,module,exports){
+},{"./src/auth":153,"./src/bcc_client":154,"./src/bcs_client":156,"./src/bos_client":157,"./src/doc_client":160,"./src/face_client":161,"./src/http_client":163,"./src/lss_client":164,"./src/mct_client":165,"./src/media_client":166,"./src/mime.types":167,"./src/ocr_client":168,"./src/qns_client":169,"./src/ses_client":170,"./src/sts":172,"./src/vod_client":173,"q":150}],146:[function(require,module,exports){
 (function (process,global){
 /*!
  * async
@@ -28460,7 +28460,7 @@ return Q;
 },{}],152:[function(require,module,exports){
 module.exports={
   "name": "baidubce-sdk",
-  "version": "0.0.19",
+  "version": "0.0.21",
   "description": "baidu cloud engine node.js sdk",
   "main": "index.js",
   "directories": {
@@ -28513,6 +28513,7 @@ var util = require('util');
 var debug = require('debug')('auth');
 
 var H = require('./headers');
+var strings = require('./strings');
 
 /**
  * Auth
@@ -28570,10 +28571,7 @@ Auth.prototype.generateAuthorization = function (method, resource, params,
 };
 
 Auth.prototype.uriCanonicalization = function (uri) {
-    var canonicalUri = uri.replace(/[^a-zA-Z0-9\-\._~\/]/g, function (item) {
-        return encodeURIComponent(item);
-    });
-    return canonicalUri;
+    return uri;
 };
 
 /**
@@ -28586,14 +28584,12 @@ Auth.prototype.uriCanonicalization = function (uri) {
 Auth.prototype.queryStringCanonicalization = function (params) {
     var canonicalQueryString = [];
     Object.keys(params).forEach(function (key) {
-        if (key === 'authorization') {
+        if (key.toLowerCase() === H.AUTHORIZATION.toLowerCase()) {
             return;
         }
 
         var value = params[key] == null ? '' : params[key];
-        canonicalQueryString.push(
-            encodeURIComponent(key) + '=' + encodeURIComponent(value)
-        );
+        canonicalQueryString.push(key + '=' + strings.normalize(value));
     });
 
     canonicalQueryString.sort();
@@ -28613,6 +28609,7 @@ Auth.prototype.headersCanonicalization = function (headers, headersToSign) {
     if (!headersToSign || !headersToSign.length) {
         headersToSign = [H.HOST, H.CONTENT_MD5, H.CONTENT_LENGTH, H.CONTENT_TYPE];
     }
+    debug('headers = %j, headersToSign = %j', headers, headersToSign);
 
     var headersMap = {};
     headersToSign.forEach(function (item) {
@@ -28629,7 +28626,8 @@ Auth.prototype.headersCanonicalization = function (headers, headersToSign) {
         key = key.toLowerCase();
         if (/^x\-bce\-/.test(key) || headersMap[key] === true) {
             canonicalHeaders.push(util.format('%s:%s',
-                encodeURIComponent(key), encodeURIComponent(value)));
+                // encodeURIComponent(key), encodeURIComponent(value)));
+                strings.normalize(key), strings.normalize(value)));
         }
     });
 
@@ -28661,7 +28659,7 @@ module.exports = Auth;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./headers":162,"crypto":55,"debug":147,"util":143}],154:[function(require,module,exports){
+},{"./headers":162,"./strings":171,"crypto":55,"debug":147,"util":143}],154:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -29391,6 +29389,7 @@ var Q = require('q');
 var async = require('async');
 
 var H = require('./headers');
+var strings = require('./strings');
 var Auth = require('./auth');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
@@ -29457,8 +29456,8 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
 
     var resource = path.normalize(path.join(
         '/v1',
-        bucketName || '',
-        key || ''
+        strings.normalize(bucketName || ''),
+        strings.normalize(key || '', false)
     )).replace(/\\/g, '/');
 
     headers = headers || {};
@@ -29478,9 +29477,10 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
 BosClient.prototype.generateUrl = function (bucketName, key, pipeline, cdn) {
     var resource = path.normalize(path.join(
         '/v1',
-        bucketName || '',
-        key || ''
+        strings.normalize(bucketName || ''),
+        strings.normalize(key || '', false)
     )).replace(/\\/g, '/');
+
     // pipeline表示如何对图片进行处理.
     var command = '';
     if (pipeline) {
@@ -29761,8 +29761,8 @@ BosClient.prototype.copyObject = function (sourceBucketName, sourceKey, targetBu
             return true;
         }
     });
-    options.headers['x-bce-copy-source'] = encodeURI(util.format('/%s/%s',
-        sourceBucketName, sourceKey));
+    options.headers['x-bce-copy-source'] = strings.normalize(util.format('/%s/%s',
+        sourceBucketName, sourceKey), false);
     if (u.has(options.headers, 'ETag')) {
         options.headers['x-bce-copy-source-if-match'] = options.headers.ETag;
     }
@@ -29990,8 +29990,8 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
     var config = u.extend({}, this.config, args.config);
     var resource = path.normalize(path.join(
         '/v1',
-        args.bucketName || '',
-        args.key || ''
+        strings.normalize(args.bucketName || ''),
+        strings.normalize(args.key || '', false)
     )).replace(/\\/g, '/');
 
     var client = this;
@@ -30164,7 +30164,7 @@ module.exports = BosClient;
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require("buffer").Buffer)
-},{"./auth":153,"./bce_base_client":155,"./crypto":159,"./headers":162,"./http_client":163,"./mime.types":167,"./wm_stream":173,"async":146,"buffer":46,"fs":1,"path":106,"q":150,"querystring":118,"underscore":151,"url":141,"util":143}],158:[function(require,module,exports){
+},{"./auth":153,"./bce_base_client":155,"./crypto":159,"./headers":162,"./http_client":163,"./mime.types":167,"./strings":171,"./wm_stream":174,"async":146,"buffer":46,"fs":1,"path":106,"q":150,"querystring":118,"underscore":151,"url":141,"util":143}],158:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -30745,6 +30745,7 @@ var Q = require('q');
 var debug = require('debug')('HttpClient');
 
 var H = require('./headers');
+var strings = require('./strings');
 
 /**
  * The HttpClient
@@ -30878,7 +30879,7 @@ HttpClient.prototype._doRequest = function (options, body, outputStream, retry) 
             if (client._isValidStatus(res.statusCode) && outputStream
                 && outputStream instanceof stream.Writable) {
                 res.pipe(outputStream);
-                outputStream.on('close', function () {
+                outputStream.on('finish', function () {
                     deferred.resolve(success(client._fixHeaders(res.headers), {}));
                 });
                 outputStream.on('error', function (error) {
@@ -31057,9 +31058,15 @@ HttpClient.prototype._recvResponse = function (res) {
 
 /*eslint-disable*/
 function isXHR2Compatible(obj) {
-    if (typeof Blob !== 'undefined' && obj instanceof Blob) return true;
-    if (typeof ArrayBuffer !== 'undefined' && obj instanceof ArrayBuffer) return true;
-    if (typeof FormData !== 'undefined' && obj instanceof FormData) return true;
+    if (typeof Blob !== 'undefined' && obj instanceof Blob) {
+        return true;
+    }
+    if (typeof ArrayBuffer !== 'undefined' && obj instanceof ArrayBuffer) {
+        return true;
+    }
+    if (typeof FormData !== 'undefined' && obj instanceof FormData) {
+        return true;
+    }
 }
 /*eslint-enable*/
 
@@ -31100,7 +31107,7 @@ HttpClient.prototype.buildQueryString = function (params) {
 };
 
 HttpClient.prototype._getRequestUrl = function (path, params) {
-    var uri = encodeURI(path);
+    var uri = path;
     var qs = this.buildQueryString(params);
     if (qs) {
         uri += '?' + qs;
@@ -31138,7 +31145,7 @@ module.exports = HttpClient;
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"../package.json":152,"./headers":162,"_process":108,"buffer":46,"debug":147,"events":83,"http":91,"https":94,"q":150,"querystring":118,"stream":139,"underscore":151,"url":141,"util":143}],164:[function(require,module,exports){
+},{"../package.json":152,"./headers":162,"./strings":171,"_process":108,"buffer":46,"debug":147,"events":83,"http":91,"https":94,"q":150,"querystring":118,"stream":139,"underscore":151,"url":141,"util":143}],164:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -33712,6 +33719,52 @@ module.exports = SesClient;
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
+ */
+
+var kEscapedMap = {
+    '!' : '%21',
+    '\'': '%27',
+    '(' : '%28',
+    ')' : '%29',
+    '*' : '%2A'
+};
+
+exports.normalize = function (string, encodingSlash) {
+    var result = encodeURIComponent(string);
+    result = result.replace(/[!'\(\)\*]/g, function ($1) {
+        return kEscapedMap[$1];
+    });
+
+    if (encodingSlash === false) {
+        result = result.replace(/%2F/gi, '/');
+    }
+
+    return result;
+};
+
+
+
+
+
+
+
+
+
+
+/* vim: set ts=4 sw=4 sts=4 tw=120: */
+
+},{}],172:[function(require,module,exports){
+/**
+ * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  *
  * @file src/sts.js
  * @author zhouhua
@@ -33767,7 +33820,7 @@ module.exports = STS;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./bce_base_client":155,"underscore":151,"util":143}],172:[function(require,module,exports){
+},{"./bce_base_client":155,"underscore":151,"util":143}],173:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -33944,7 +33997,7 @@ module.exports = VodClient;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./bce_base_client":155,"./bos_client":157,"./headers":162,"underscore":151,"util":143}],173:[function(require,module,exports){
+},{"./bce_base_client":155,"./bos_client":157,"./headers":162,"underscore":151,"util":143}],174:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
