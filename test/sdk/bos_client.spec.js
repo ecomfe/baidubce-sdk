@@ -207,6 +207,41 @@ describe('BosClient', function() {
             .fin(done);
     });
 
+    it('putObjectFromString2', function (done) {
+        var objectName = '/this/is/a/file.txt';
+        client.createBucket(bucket)
+            .then(function() {
+                return client.putObjectFromString(bucket, objectName, 'hello world');
+            })
+            .then(function() {
+                return client.getObjectMetadata(bucket, objectName);
+            })
+            .then(function(response) {
+                expect(response.http_headers['content-length']).toEqual('11');
+                expect(response.http_headers['content-md5']).toEqual(
+                    require('../../src/crypto').md5sum('hello world')
+                );
+
+                return client.generatePresignedUrl(bucket, objectName, 0, 1800, null, {'x-bce-range': '0-5'});
+            })
+            .then(function(url) {
+                debug('url = %s', url);
+                return helper.get(url);
+            })
+            .then(function (body) {
+                expect(body.toString()).toEqual('hello ');
+                return client.generatePresignedUrl(bucket, objectName);
+            })
+            .then(function (url) {
+                return helper.get(url);
+            })
+            .then(function (body) {
+               expect(body.toString()).toEqual('hello world');
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
     it('putObjectFromString', function(done) {
         client.createBucket(bucket)
             .then(function() {
@@ -227,7 +262,6 @@ describe('BosClient', function() {
                 debug('url = %s', url);
                 return helper.get(url);
             })
-            /*
             .then(function (body) {
                 expect(body.toString()).toEqual('hello ');
                 return client.generatePresignedUrl(bucket, key);
@@ -238,7 +272,6 @@ describe('BosClient', function() {
             .then(function (body) {
                expect(body.toString()).toEqual('hello world');
             })
-            */
             .catch(fail)
             .fin(done);
     });
