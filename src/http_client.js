@@ -28,7 +28,6 @@ var Q = require('q');
 var debug = require('debug')('HttpClient');
 
 var H = require('./headers');
-var strings = require('./strings');
 
 /**
  * The HttpClient
