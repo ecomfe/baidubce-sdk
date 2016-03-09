@@ -173,7 +173,7 @@ HttpClient.prototype._doRequest = function (options, body, outputStream, retry) 
             client._recvResponse(res).then(function (data) {
                 deferred.resolve(data);
             }, function (err) {
-                if (err[H.X_REQUEST_ID]) {
+                if (!client._isValidStatus(err.status_code)) {
                     deferred.reject(err);
                 }
             });
