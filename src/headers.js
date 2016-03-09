@@ -39,7 +39,7 @@ exports.X_MESSAGE = 'message';
 exports.X_CODE = 'code';
 exports.X_REQUEST_ID = 'request_id';
 
-exports.SEESION_TOKEN = 'x-bce-security-token';
+exports.SESSION_TOKEN = 'x-bce-security-token';
 
 exports.X_VOD_MEDIA_TITLE = 'x-vod-media-title';
 exports.X_VOD_MEDIA_DESCRIPTION = 'x-vod-media-description';

@@ -656,9 +656,17 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
             client.emit(eventName, u.extend(evt, u.pick(args.params, 'partNumber', 'uploadId')));
         });
     });
+    var signatureFun;
+    if (config.sessionToken) {
+        signatureFun = null;
+        args.headers[H.SESSION_TOKEN] = config.sessionToken;
+    }
+    else {
+        signatureFun = u.bind(this.createSignature, this);
+    }
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
-        args.headers, args.params, u.bind(this.createSignature, this),
-        args.outputStream
+        args.headers, args.params, signatureFun,
+        args.outputStream, config.retry || 0
     );
 };
 
@@ -681,7 +689,7 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
         H.CONTENT_TYPE,
         H.CONTENT_DISPOSITION,
         H.ETAG,
-        H.SEESION_TOKEN
+        H.SESSION_TOKEN
     ];
     var metaSize = 0;
     var headers = u.pick(options, function (value, key) {
