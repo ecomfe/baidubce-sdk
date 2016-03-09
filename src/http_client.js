@@ -97,8 +97,8 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     // Check the content-length
     if (!headers.hasOwnProperty(H.CONTENT_LENGTH)) {
         var contentLength = this._guessContentLength(body);
-        if (!(contentLength === 0 && /GET/i.test(httpMethod))) {
-            // 如果是 GET 请求，并且 Content-Length 是 0，那么 Request Header 里面就不要出现 Content-Length
+        if (!(contentLength === 0 && /GET|HEAD/i.test(httpMethod))) {
+            // 如果是 GET 或 HEAD 请求，并且 Content-Length 是 0，那么 Request Header 里面就不要出现 Content-Length
             // 否则本地计算签名的时候会计算进去，但是浏览器发请求的时候不一定会有，此时导致 Signature Mismatch 的情况
             headers[H.CONTENT_LENGTH] = contentLength;
         }
