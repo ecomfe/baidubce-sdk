@@ -28,6 +28,7 @@ var Q = require('q');
 var H = require('./headers');
 var strings = require('./strings');
 var Auth = require('./auth');
+var crypto = require('./crypto');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
 var MimeType = require('./mime.types');
@@ -301,7 +302,7 @@ BosClient.prototype.putObjectFromString = function (bucketName, key, data, optio
     var headers = {};
     headers[H.CONTENT_LENGTH] = Buffer.byteLength(data);
     headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(key));
-    headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
+    headers[H.CONTENT_MD5] = crypto.md5sum(data);
     options = u.extend(headers, options);
 
     return this.putObject(bucketName, key, data, options);
@@ -311,7 +312,17 @@ BosClient.prototype.putObjectFromFile = function (bucketName, key, filename, opt
     options = options || {};
 
     var headers = {};
-    headers[H.CONTENT_LENGTH] = fs.statSync(filename).size;
+
+    // 如果没有显式的设置，就使用默认值
+    var fileSize = fs.statSync(filename).size;
+    var contentLength = u.has(options, H.CONTENT_LENGTH)
+                        ? options[H.CONTENT_LENGTH]
+                        : fileSize;
+    if (contentLength > fileSize) {
+        throw new Error('options[\'Content-Length\'] should less than ' + fileSize);
+    }
+
+    headers[H.CONTENT_LENGTH] = contentLength;
 
     // 因为Firefox会在发起请求的时候自动给 Content-Type 添加 charset 属性
     // 导致我们计算签名的时候使用的 Content-Type 值跟服务器收到的不一样，为了
@@ -319,15 +330,21 @@ BosClient.prototype.putObjectFromFile = function (bucketName, key, filename, opt
     headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(filename));
     options = u.extend(headers, options);
 
-    var fp = fs.createReadStream(filename);
+    var streamOptions = {
+        start: 0,
+        end: Math.max(0, contentLength - 1)
+    };
+    var fp = fs.createReadStream(filename, streamOptions);
     if (!u.has(options, H.CONTENT_MD5)) {
         var me = this;
-        return require('./crypto').md5file(filename)
+        var fp2 = fs.createReadStream(filename, streamOptions);
+        return crypto.md5stream(fp2)
             .then(function (md5sum) {
                 options[H.CONTENT_MD5] = md5sum;
                 return me.putObject(bucketName, key, fp, options);
             });
     }
+
     return this.putObject(bucketName, key, fp, options);
 };
 
@@ -543,7 +560,7 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
     options = u.extend(headers, options);
 
     if (!options[H.CONTENT_MD5]) {
-        return require('./crypto').md5stream(partFp)
+        return crypto.md5stream(partFp)
             .then(function (md5sum) {
                 options[H.CONTENT_MD5] = md5sum;
                 return newPromise();

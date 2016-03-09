@@ -15,6 +15,7 @@
  */
 
 var path = require('path');
+var fs = require('fs');
 
 var crypto = require('../../src/crypto');
 
@@ -27,6 +28,16 @@ describe('crypto', function () {
         crypto.md5file(path.join(__dirname, '..', 'Makefile'))
             .then(function (md5sum) {
                 expect(md5sum).toEqual('Dpj3XVdR6SDwmRCas3UDcw==');
+            })
+            .fin(done);
+    });
+
+    it('md5stream', function (done) {
+        var fp = fs.createReadStream(__filename, {start: 0, end: 99});
+        var buffer = fs.readFileSync(__filename).slice(0, 100);
+        crypto.md5stream(fp)
+            .then(function (md5sum) {
+                expect(md5sum).toEqual(crypto.md5sum(buffer));
             })
             .fin(done);
     });

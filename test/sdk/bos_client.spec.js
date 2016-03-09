@@ -296,6 +296,29 @@ describe('BosClient', function() {
             .fin(done);
     });
 
+    it('putObjectFromFileWithContentLength', function (done) {
+        var options = {
+            'Content-Length': 100
+        };
+        client.createBucket(bucket)
+            .then(function () {
+                return client.putObjectFromFile(bucket, path.basename(__filename), __filename, options);
+            })
+            .then(function () {
+                return client.getObjectMetadata(bucket, path.basename(__filename))
+            })
+            .then(function(response) {
+                expect(response.http_headers['content-length']).toEqual('100');
+                expect(response.http_headers['content-type']).toEqual('application/javascript');
+                return require('../../src/crypto').md5stream(fs.createReadStream(__filename, {start: 0, end: 99}))
+                    .then(function(md5sum) {
+                        expect(response.http_headers['content-md5']).toEqual(md5sum);
+                    });
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
     it('createBucketFailed', function (done) {
         var invalidBucketName = 'invalid-bucket-你好\\&1231@#@#@';
         client.createBucket(invalidBucketName)
