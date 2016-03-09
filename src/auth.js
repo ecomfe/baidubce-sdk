@@ -128,7 +128,7 @@ Auth.prototype.headersCanonicalization = function (headers, headersToSign) {
     var canonicalHeaders = [];
     Object.keys(headers).forEach(function (key) {
         var value = headers[key];
-        if (value == null || value === '' || value === 0) {
+        if (value == null || value === '') {
             return;
         }
 
