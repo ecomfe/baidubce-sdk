@@ -84,14 +84,14 @@ describe('STS', function () {
     });
 
     afterEach(function (done) {
-        clearBucket(bucket).then(done);
+        clearBucket(bucket).fin(done);
     });
 
     it('Read From BOS', function (done) {
         stsClient.getSessionToken(6000, {
                 accessControlList: [{
                     service: 'bce:bos',
-                    resource: [bucket],
+                    resource: [bucket+'/*'],
                     region: '*',
                     effect: 'Allow',
                     permission: ['READ']
@@ -101,6 +101,9 @@ describe('STS', function () {
                 tempAk = response.body.accessKeyId;
                 tempSk = response.body.secretAccessKey;
                 sessionToken = response.body.sessionToken;
+                console.log(tempAk);
+                console.log(tempSk);
+                console.log(sessionToken);
                 var tempBosClient = new BosClient(u.extend({}, config.bos, {
                     credentials: {
                         ak: tempAk,
@@ -124,7 +127,7 @@ describe('STS', function () {
         stsClient.getSessionToken(6000, {
                 accessControlList: [{
                     service: 'bce:bos',
-                    resource: [bucket],
+                    resource: [bucket+'/*'],
                     region: '*',
                     effect: 'Allow',
                     permission: ['READ', 'WRITE']
