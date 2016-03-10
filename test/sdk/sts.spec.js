@@ -26,25 +26,6 @@ var STS = require('../../').STS;
 var BosClient = require('../../').BosClient;
 var helper = require('./helper');
 
-var bosConfig = {
-    credentials: {
-        ak: '9fe103ae98de4798aabb34a433a3058b',
-        sk: 'b084ab23d1ef44c997d10d2723dd8014'
-    },
-    endpoint: 'http://bos.bj.baidubce.com'
-};
-
-var stsConfig = {
-    credentials: {
-        ak: '9fe103ae98de4798aabb34a433a3058b',
-        sk: 'b084ab23d1ef44c997d10d2723dd8014'
-    },
-    region: 'bj',
-    protocol: 'http'
-};
-config.sts = stsConfig;
-config.bos = bosConfig;
-
 describe('STS', function () {
     var fail;
     var tempAk;

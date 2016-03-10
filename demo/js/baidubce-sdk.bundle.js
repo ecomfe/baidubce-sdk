@@ -29854,8 +29854,10 @@ BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, pa
     // 对于浏览器调用API的时候，默认不添加 H.CONTENT_MD5 字段，因为计算起来比较慢
     // headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
 
-    options = this._checkOptions(u.extend(headers, options));var client = this;
+    options = this._checkOptions(u.extend(headers, options));
+    var client = this;
     var retry = this.config.retry;
+
     function newPromise() {
         var deferred = Q.defer();
         options = client._checkOptions(options);
@@ -29874,7 +29876,7 @@ BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, pa
         }, function (err) {
             if (retry > 0 && !err.status_code) {
                 retry--;
-                newPromise(deferred.resolve, deferred.reject);
+                newPromise.then(deferred.resolve, deferred.reject);
             }
             else {
                 deferred.reject(err);
@@ -29904,6 +29906,7 @@ BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId,
     options = this._checkOptions(u.extend(headers, options));
     var client = this;
     var retry = this.config.retry;
+
     function newPromise() {
         var deferred = Q.defer();
         options = client._checkOptions(options);
@@ -29922,7 +29925,7 @@ BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId,
         }, function (err) {
             if (retry > 0 && !err.status_code) {
                 retry--;
-                newPromise(deferred.resolve, deferred.reject);
+                newPromise.then(deferred.resolve, deferred.reject);
             }
             else {
                 deferred.reject(err);
@@ -29991,7 +29994,7 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
         }, function (err) {
             if (retry > 0 && !err.status_code) {
                 retry--;
-                newPromise(deferred.resolve, deferred.reject);
+                newPromise.then(deferred.resolve, deferred.reject);
             }
             else {
                 deferred.reject(err);
@@ -30945,12 +30948,12 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
             });
             return;
         }
-        // deferred.resolve(client._recvResponse(res));
-        client._recvResponse(res).then(function (data) {
-            deferred.resolve(data);
-        }, function (err) {
-            deferred.reject(err);
-        });
+         deferred.resolve(client._recvResponse(res));
+        //client._recvResponse(res).then(function (data) {
+        //    deferred.resolve(data);
+        //}, function (err) {
+        //    deferred.reject(err);
+        //});
     });
 
     if (req.xhr && typeof req.xhr.upload === 'object') {
