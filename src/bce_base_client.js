@@ -101,7 +101,7 @@ BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
     }
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
-        args.outputStream, config.retry || 0
+        args.outputStream
     );
 };
 
