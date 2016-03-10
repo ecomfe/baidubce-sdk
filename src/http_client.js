@@ -166,12 +166,7 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
             });
             return;
         }
-        // deferred.resolve(client._recvResponse(res));
-        client._recvResponse(res).then(function (data) {
-            deferred.resolve(data);
-        }, function (err) {
-            deferred.reject(err);
-        });
+        deferred.resolve(client._recvResponse(res));
     });
 
     if (req.xhr && typeof req.xhr.upload === 'object') {
