@@ -4,11 +4,12 @@ $(document).ready(function () {
     var sdk = window.baidubceSdk;
     var tokenUrl = 'http://180.76.166.159:1337/ack';
     var bosConfig = {
-        //credentials: {
-        //    ak: '9fe103ae98de4798aabb34a433a3058b',
-        //    sk: 'b084ab23d1ef44c997d10d2723dd8014'
-        //},
-        endpoint: 'http://bos.bj.baidubce.com'
+        credentials: {
+            ak: '9fe103ae98de4798aabb34a433a3058b',
+            sk: 'b084ab23d1ef44c997d10d2723dd8014'
+        },
+        endpoint: 'http://bos.bj.baidubce.com',
+        retry: 50
     };
     var PART_SIZE = 5 * 1024 * 1024; // 分块大小
     var THREADS = 2; // 同时上传的分块数量
@@ -43,7 +44,7 @@ $(document).ready(function () {
                 'Content-Type': mimeType
             };
 
-            client.createSignature = function (_, httpMethod, path, params, headers) {
+            /*client.createSignature = function (_, httpMethod, path, params, headers) {
                 if (/\bed=([\w\.]+)\b/.test(location.search)) {
                     headers.Host = RegExp.$1;
                 }
@@ -69,7 +70,7 @@ $(document).ready(function () {
                     }
                 });
                 return deferred.promise;
-            };
+            };*/
             var promise;
             if (blob.size < PART_SIZE) {
                 // 小于5M的文件直接上传
@@ -92,7 +93,7 @@ $(document).ready(function () {
                             loaded: 0,
                             total: tasks.length
                         };
-                        async.mapLimit(tasks, THREADS, uploadPartFile(state, client), function (err, results) {
+                        async.mapLimit(tasks, 1, uploadPartFile(state, client), function (err, results) {
                             if (err) {
                                 deferred.reject(err);
                             }

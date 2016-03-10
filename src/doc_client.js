@@ -22,6 +22,7 @@ var util = require('util');
 
 var Q = require('q');
 var u = require('underscore');
+var H = require('./headers');
 var BosClient = require('./bos_client');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
@@ -84,7 +85,8 @@ DocClient.prototype.createDocumentFromBlob = function (file, options) {
     });
     function doPromise() {
         // register
-        return self.registerDocument(options).then(function (regResult) {
+        return self.registerDocument(options).then(function (response) {
+            var regResult = response.body;
             // upload
             var bosConfig = JSON.parse(JSON.stringify(self._config));
             bosConfig.endpoint = regResult.bosEndpoint;
@@ -103,13 +105,6 @@ DocClient.prototype.registerDocument = function (options) {
     return self.sendRequest('POST', url, {
         params: {register: ''},
         body: JSON.stringify(options)
-    }).then(function (response) {
-        return {
-            documentId: response.body.documentId,
-            bucket: response.body.bucket,
-            object: response.body.object,
-            bosEndpoint: response.body.bosEndpoint
-        };
     });
 };
 
@@ -119,9 +114,7 @@ DocClient.prototype.publishDocument = function (documentId) {
     url = url + '/' + documentId;
     return self.sendRequest('PUT', url, {
         params: {publish: ''}
-    }).then(function (response) {
-        return response.body.documentId;
-    });
+    })
 };
 
 // --- E   N   D ---
@@ -144,6 +137,9 @@ DocClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
             client.emit(eventName, evt);
         });
     });
+    if (config.sessionToken) {
+        args.headers[H.SESSION_TOKEN] = config.sessionToken;
+    }
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
         args.outputStream

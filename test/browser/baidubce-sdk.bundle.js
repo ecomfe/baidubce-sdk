@@ -28460,7 +28460,7 @@ return Q;
 },{}],152:[function(require,module,exports){
 module.exports={
   "name": "baidubce-sdk",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "baidu cloud engine node.js sdk",
   "main": "index.js",
   "directories": {
@@ -28980,18 +28980,13 @@ BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
             client.emit(eventName, evt);
         });
     });
-    var signatureFun;
 
     if (config.sessionToken) {
-        signatureFun = null;
         args.headers[H.SESSION_TOKEN] = config.sessionToken;
     }
-    else {
-        signatureFun = u.bind(this.createSignature, this);
-    }
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
-        args.headers, args.params, signatureFun,
-        args.outputStream, config.retry || 0
+        args.headers, args.params, u.bind(this.createSignature, this),
+        args.outputStream
     );
 };
 
@@ -29391,6 +29386,7 @@ var async = require('async');
 var H = require('./headers');
 var strings = require('./strings');
 var Auth = require('./auth');
+var crypto = require('./crypto');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
 var MimeType = require('./mime.types');
@@ -29665,7 +29661,7 @@ BosClient.prototype.putObjectFromString = function (bucketName, key, data, optio
     var headers = {};
     headers[H.CONTENT_LENGTH] = Buffer.byteLength(data);
     headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(key));
-    headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
+    headers[H.CONTENT_MD5] = crypto.md5sum(data);
     options = u.extend(headers, options);
 
     return this.putObject(bucketName, key, data, options);
@@ -29675,7 +29671,17 @@ BosClient.prototype.putObjectFromFile = function (bucketName, key, filename, opt
     options = options || {};
 
     var headers = {};
-    headers[H.CONTENT_LENGTH] = fs.statSync(filename).size;
+
+    // 如果没有显式的设置，就使用默认值
+    var fileSize = fs.statSync(filename).size;
+    var contentLength = u.has(options, H.CONTENT_LENGTH)
+        ? options[H.CONTENT_LENGTH]
+        : fileSize;
+    if (contentLength > fileSize) {
+        throw new Error('options[\'Content-Length\'] should less than ' + fileSize);
+    }
+
+    headers[H.CONTENT_LENGTH] = contentLength;
 
     // 因为Firefox会在发起请求的时候自动给 Content-Type 添加 charset 属性
     // 导致我们计算签名的时候使用的 Content-Type 值跟服务器收到的不一样，为了
@@ -29683,15 +29689,21 @@ BosClient.prototype.putObjectFromFile = function (bucketName, key, filename, opt
     headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(filename));
     options = u.extend(headers, options);
 
-    var fp = fs.createReadStream(filename);
+    var streamOptions = {
+        start: 0,
+        end: Math.max(0, contentLength - 1)
+    };
+    var fp = fs.createReadStream(filename, streamOptions);
     if (!u.has(options, H.CONTENT_MD5)) {
         var me = this;
-        return require('./crypto').md5file(filename)
+        var fp2 = fs.createReadStream(filename, streamOptions);
+        return crypto.md5stream(fp2)
             .then(function (md5sum) {
                 options[H.CONTENT_MD5] = md5sum;
                 return me.putObject(bucketName, key, fp, options);
             });
     }
+
     return this.putObject(bucketName, key, fp, options);
 };
 
@@ -29842,18 +29854,36 @@ BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, pa
     // 对于浏览器调用API的时候，默认不添加 H.CONTENT_MD5 字段，因为计算起来比较慢
     // headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
 
-    options = this._checkOptions(u.extend(headers, options));
-    return this.sendRequest('PUT', {
-        bucketName: bucketName,
-        key: key,
-        body: blob,
-        headers: options.headers,
-        params: {
-            partNumber: partNumber,
-            uploadId: uploadId
-        },
-        config: options.config
-    });
+    options = this._checkOptions(u.extend(headers, options));var client = this;
+    var retry = this.config.retry;
+    function newPromise() {
+        var deferred = Q.defer();
+        options = client._checkOptions(options);
+        client.sendRequest('PUT', {
+            bucketName: bucketName,
+            key: key,
+            body: blob,
+            headers: options.headers,
+            params: {
+                partNumber: partNumber,
+                uploadId: uploadId
+            },
+            config: options.config
+        }).then(function (response) {
+            deferred.resolve(response);
+        }, function (err) {
+            if (retry > 0 && !err.status_code) {
+                retry--;
+                newPromise(deferred.resolve, deferred.reject);
+            }
+            else {
+                deferred.reject(err);
+            }
+        });
+        return deferred.promise;
+    }
+
+    return newPromise();
 };
 
 BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId, partNumber,
@@ -29872,17 +29902,36 @@ BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId,
     // headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
 
     options = this._checkOptions(u.extend(headers, options));
-    return this.sendRequest('PUT', {
-        bucketName: bucketName,
-        key: key,
-        body: data,
-        headers: options.headers,
-        params: {
-            partNumber: partNumber,
-            uploadId: uploadId
-        },
-        config: options.config
-    });
+    var client = this;
+    var retry = this.config.retry;
+    function newPromise() {
+        var deferred = Q.defer();
+        options = client._checkOptions(options);
+        client.sendRequest('PUT', {
+            bucketName: bucketName,
+            key: key,
+            body: data,
+            headers: options.headers,
+            params: {
+                partNumber: partNumber,
+                uploadId: uploadId
+            },
+            config: options.config
+        }).then(function (response) {
+            deferred.resolve(response);
+        }, function (err) {
+            if (retry > 0 && !err.status_code) {
+                retry--;
+                newPromise(deferred.resolve, deferred.reject);
+            }
+            else {
+                deferred.reject(err);
+            }
+        });
+        return deferred.promise;
+    }
+
+    return newPromise();
 };
 
 BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber,
@@ -29914,9 +29963,10 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
     headers[H.CONTENT_TYPE] = 'application/octet-stream';
     headers[H.CONTENT_MD5] = partMd5;
     options = u.extend(headers, options);
+    var retry = this.config.retry || 0;
 
     if (!options[H.CONTENT_MD5]) {
-        return require('./crypto').md5stream(partFp)
+        return crypto.md5stream(partFp)
             .then(function (md5sum) {
                 options[H.CONTENT_MD5] = md5sum;
                 return newPromise();
@@ -29924,8 +29974,9 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
     }
 
     function newPromise() {
+        var deferred = Q.defer();
         options = client._checkOptions(options);
-        return client.sendRequest('PUT', {
+        client.sendRequest('PUT', {
             bucketName: bucketName,
             key: key,
             body: clonedPartFp,
@@ -29935,7 +29986,18 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
                 uploadId: uploadId
             },
             config: options.config
+        }).then(function (response) {
+            deferred.resolve(response);
+        }, function (err) {
+            if (retry > 0 && !err.status_code) {
+                retry--;
+                newPromise(deferred.resolve, deferred.reject);
+            }
+            else {
+                deferred.reject(err);
+            }
         });
+        return deferred.promise;
     }
 
     return newPromise();
@@ -30001,17 +30063,12 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
             client.emit(eventName, u.extend(evt, u.pick(args.params, 'partNumber', 'uploadId')));
         });
     });
-    var signatureFun;
     if (config.sessionToken) {
-        signatureFun = null;
         args.headers[H.SESSION_TOKEN] = config.sessionToken;
     }
-    else {
-        signatureFun = u.bind(this.createSignature, this);
-    }
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
-        args.headers, args.params, signatureFun,
-        args.outputStream, config.retry || 0
+        args.headers, args.params, u.bind(this.createSignature, this),
+        args.outputStream
     );
 };
 
@@ -30230,6 +30287,7 @@ exports.DEFAULT_CONFIG = {
 /* eslint-env node */
 
 var fs = require('fs');
+var crypto = require('crypto');
 
 var Q = require('q');
 
@@ -30238,7 +30296,7 @@ exports.md5sum = function (data, enc, digest) {
         data = new Buffer(data, enc || 'UTF-8');
     }
 
-    var md5 = require('crypto').createHash('md5');
+    var md5 = crypto.createHash('md5');
     md5.update(data);
 
     return md5.digest(digest || 'base64');
@@ -30247,7 +30305,7 @@ exports.md5sum = function (data, enc, digest) {
 exports.md5stream = function (stream, digest) {
     var deferred = Q.defer();
 
-    var md5 = require('crypto').createHash('md5');
+    var md5 = crypto.createHash('md5');
     stream.on('data', function (chunk) {
         md5.update(chunk);
     });
@@ -30299,6 +30357,7 @@ var util = require('util');
 
 var Q = require('q');
 var u = require('underscore');
+var H = require('./headers');
 var BosClient = require('./bos_client');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
@@ -30361,7 +30420,8 @@ DocClient.prototype.createDocumentFromBlob = function (file, options) {
     });
     function doPromise() {
         // register
-        return self.registerDocument(options).then(function (regResult) {
+        return self.registerDocument(options).then(function (response) {
+            var regResult = response.body;
             // upload
             var bosConfig = JSON.parse(JSON.stringify(self._config));
             bosConfig.endpoint = regResult.bosEndpoint;
@@ -30380,13 +30440,6 @@ DocClient.prototype.registerDocument = function (options) {
     return self.sendRequest('POST', url, {
         params: {register: ''},
         body: JSON.stringify(options)
-    }).then(function (response) {
-        return {
-            documentId: response.body.documentId,
-            bucket: response.body.bucket,
-            object: response.body.object,
-            bosEndpoint: response.body.bosEndpoint
-        };
     });
 };
 
@@ -30396,9 +30449,7 @@ DocClient.prototype.publishDocument = function (documentId) {
     url = url + '/' + documentId;
     return self.sendRequest('PUT', url, {
         params: {publish: ''}
-    }).then(function (response) {
-        return response.body.documentId;
-    });
+    })
 };
 
 // --- E   N   D ---
@@ -30421,6 +30472,9 @@ DocClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
             client.emit(eventName, evt);
         });
     });
+    if (config.sessionToken) {
+        args.headers[H.SESSION_TOKEN] = config.sessionToken;
+    }
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
         args.outputStream
@@ -30432,7 +30486,7 @@ module.exports = DocClient;
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./bce_base_client":155,"./bos_client":157,"./crypto":159,"./http_client":163,"q":150,"underscore":151,"util":143}],161:[function(require,module,exports){
+},{"./bce_base_client":155,"./bos_client":157,"./crypto":159,"./headers":162,"./http_client":163,"q":150,"underscore":151,"util":143}],161:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -30753,7 +30807,6 @@ var Q = require('q');
 var debug = require('debug')('HttpClient');
 
 var H = require('./headers');
-var strings = require('./strings');
 
 /**
  * The HttpClient
@@ -30823,8 +30876,8 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     // Check the content-length
     if (!headers.hasOwnProperty(H.CONTENT_LENGTH)) {
         var contentLength = this._guessContentLength(body);
-        if (!(contentLength === 0 && /GET/i.test(httpMethod))) {
-            // 如果是 GET 请求，并且 Content-Length 是 0，那么 Request Header 里面就不要出现 Content-Length
+        if (!(contentLength === 0 && /GET|HEAD/i.test(httpMethod))) {
+            // 如果是 GET 或 HEAD 请求，并且 Content-Length 是 0，那么 Request Header 里面就不要出现 Content-Length
             // 否则本地计算签名的时候会计算进去，但是浏览器发请求的时候不一定会有，此时导致 Signature Mismatch 的情况
             headers[H.CONTENT_LENGTH] = contentLength;
         }
@@ -30852,7 +30905,7 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
                     headers[H.X_BCE_DATE] = xbceDate;
                 }
                 debug('options = %j', options);
-                return client._doRequest(options, body, outputStream, retry);
+                return client._doRequest(options, body, outputStream);
             });
         }
         else if (typeof promise === 'string') {
@@ -30864,7 +30917,7 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
         }
     }
 
-    return client._doRequest(options, body, outputStream, retry);
+    return client._doRequest(options, body, outputStream);
 };
 
 function isPromise(obj) {
@@ -30875,65 +30928,49 @@ HttpClient.prototype._isValidStatus = function (statusCode) {
     return statusCode >= 200 && statusCode < 300;
 };
 
-HttpClient.prototype._doRequest = function (options, body, outputStream, retry) {
-    retry = retry || 0;
-    var delay = 100;
+HttpClient.prototype._doRequest = function (options, body, outputStream) {
     var deferred = Q.defer();
     var api = options.protocol === 'https:' ? https : http;
     var client = this;
 
-    function execute() {
-        var req = client._req = api.request(options, function (res) {
-            if (client._isValidStatus(res.statusCode) && outputStream
-                && outputStream instanceof stream.Writable) {
-                res.pipe(outputStream);
-                outputStream.on('finish', function () {
-                    deferred.resolve(success(client._fixHeaders(res.headers), {}));
-                });
-                outputStream.on('error', function (error) {
-                    deferred.reject(error);
-                });
-                return;
-            }
-            // deferred.resolve(client._recvResponse(res));
-            client._recvResponse(res).then(function (data) {
-                deferred.resolve(data);
-            }, function (err) {
-                if (!client._isValidStatus(err.status_code)) {
-                    deferred.reject(err);
-                }
+    var req = client._req = api.request(options, function (res) {
+        if (client._isValidStatus(res.statusCode) && outputStream
+            && outputStream instanceof stream.Writable) {
+            res.pipe(outputStream);
+            outputStream.on('finish', function () {
+                deferred.resolve(success(client._fixHeaders(res.headers), {}));
             });
-        });
-
-        if (req.xhr && typeof req.xhr.upload === 'object') {
-            u.each(['progress', 'error', 'abort'], function (eventName) {
-                req.xhr.upload.addEventListener(eventName, function (evt) {
-                    client.emit(eventName, evt);
-                }, false);
-            });
-        }
-
-        req.on('error', function (error) {
-            if (retry <= 0) {
+            outputStream.on('error', function (error) {
                 deferred.reject(error);
-            }
-            else {
-                retry--;
-                setTimeout(function () {
-                    execute();
-                }, delay);
-            }
+            });
+            return;
+        }
+        // deferred.resolve(client._recvResponse(res));
+        client._recvResponse(res).then(function (data) {
+            deferred.resolve(data);
+        }, function (err) {
+            deferred.reject(err);
         });
+    });
 
-        try {
-            client._sendRequest(req, body);
-        }
-        catch (ex) {
-            deferred.reject(ex);
-        }
+    if (req.xhr && typeof req.xhr.upload === 'object') {
+        u.each(['progress', 'error', 'abort'], function (eventName) {
+            req.xhr.upload.addEventListener(eventName, function (evt) {
+                client.emit(eventName, evt);
+            }, false);
+        });
     }
 
-    execute();
+    req.on('error', function (error) {
+        deferred.reject(error);
+    });
+
+    try {
+        client._sendRequest(req, body);
+    }
+    catch (ex) {
+        deferred.reject(ex);
+    }
     return deferred.promise;
 };
 
@@ -31153,7 +31190,7 @@ module.exports = HttpClient;
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"../package.json":152,"./headers":162,"./strings":171,"_process":108,"buffer":46,"debug":147,"events":83,"http":91,"https":94,"q":150,"querystring":118,"stream":139,"underscore":151,"url":141,"util":143}],164:[function(require,module,exports){
+},{"../package.json":152,"./headers":162,"_process":108,"buffer":46,"debug":147,"events":83,"http":91,"https":94,"q":150,"querystring":118,"stream":139,"underscore":151,"url":141,"util":143}],164:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -33727,6 +33764,9 @@ module.exports = SesClient;
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
+ *
+ * @file strings.js
+ * @author leeight
  */
 
 var kEscapedMap = {
