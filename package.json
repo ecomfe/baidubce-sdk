@@ -1,6 +1,6 @@
 {
   "name": "baidubce-sdk",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "baidu cloud engine node.js sdk",
   "main": "index.js",
   "directories": {
@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "make -C test",
-    "pack": "node_modules/.bin/browserify -s baidubce-sdk index.js -o baidubce-sdk.bundle.js"
+    "pack": "node_modules/.bin/browserify -s baidubce.sdk index.js | uglifyjs --compress --mangle -o baidubce-sdk.bundle.js"
   },
   "repository": {
     "type": "git",
