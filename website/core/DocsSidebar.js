@@ -30,6 +30,8 @@ var DocsSidebar = React.createClass({
       }
     }
 
+    console.log(previous);
+
     // Find the first element which doesn't have any previous
     var first = null;
     for (var i = 0; i < metadatas.length; ++i) {

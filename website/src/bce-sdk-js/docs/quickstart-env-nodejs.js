@@ -20,8 +20,8 @@ import {BosClient} from 'bce-sdk-js';
 const config = {
     endpoint: 'http://bos.bj.baidubce.com',
     credentials: {
-        ak: 'ak',
-        sk: 'sk'
+        ak: '您的ak',
+        sk: '您的sk'
     }
 };
 
@@ -34,7 +34,7 @@ client.putObjectFromFile(bucket, key, __filename)
     .catch(error => console.error(error));      // 失败
 \`\`\`
 
-Next, let's go into the basics of the API and learn what else you can do with Draft.js.
+所有的接口均返回一个promise对象。
 `
 var Post = React.createClass({
   statics: {

@@ -5,155 +5,67 @@
 module.exports = {
   "files": [
     {
-      "id": "advanced-topics-block-components",
-      "title": "服务端动态签名",
+      "id": "advanced-topics-basic-example-in-browser",
+      "title": "在浏览器中直接上传文件到bos",
       "layout": "docs",
       "category": "Advanced Topics",
-      "next": "advanced-topics-inline-styles",
-      "permalink": "docs/advanced-topics-block-components.html"
+      "next": "advanced-topics-security-issue",
+      "permalink": "docs/advanced-topics-basic-example-in-browser.html"
     },
     {
-      "id": "advanced-topics-block-styling",
-      "title": "STS临时授权",
-      "layout": "docs",
-      "category": "Advanced Topics",
-      "next": "advanced-topics-block-components",
-      "permalink": "docs/advanced-topics-block-styling.html"
-    },
-    {
-      "id": "advanced-topics-decorators",
-      "title": "断点续传",
-      "layout": "docs",
-      "category": "Advanced Topics",
-      "next": "advanced-topics-key-bindings",
-      "permalink": "docs/advanced-topics-decorators.html"
-    },
-    {
-      "id": "advanced-topics-entities",
+      "id": "advanced-topics-multiupload",
       "title": "大文件分块上传",
       "layout": "docs",
       "category": "Advanced Topics",
-      "next": "advanced-topics-decorators",
-      "permalink": "docs/advanced-topics-entities.html"
+      "next": "advanced-topics-postobject",
+      "permalink": "docs/advanced-topics-multiupload.html"
     },
     {
-      "id": "advanced-topics-inline-styles",
-      "title": "Complex Inline Styles",
-      "layout": "docs",
-      "category": "Advanced Topics",
-      "next": "advanced-topics-nested-lists",
-      "permalink": "docs/advanced-topics-inline-styles.html"
-    },
-    {
-      "id": "advanced-topics-issues-and-pitfalls",
-      "title": "Issues and Pitfalls",
-      "layout": "docs",
-      "category": "Advanced Topics",
-      "next": "api-reference-editor",
-      "permalink": "docs/advanced-topics-issues-and-pitfalls.html"
-    },
-    {
-      "id": "advanced-topics-key-bindings",
+      "id": "advanced-topics-postobject",
       "title": "IE低版本的处理",
       "layout": "docs",
       "category": "Advanced Topics",
-      "next": "advanced-topics-managing-focus",
-      "permalink": "docs/advanced-topics-key-bindings.html"
+      "next": "api-reference-bos",
+      "permalink": "docs/advanced-topics-postobject.html"
     },
     {
-      "id": "advanced-topics-managing-focus",
+      "id": "advanced-topics-security-issue",
       "title": "AK和SK的安全性问题",
       "layout": "docs",
       "category": "Advanced Topics",
-      "next": "advanced-topics-block-styling",
-      "permalink": "docs/advanced-topics-managing-focus.html"
+      "next": "advanced-topics-server-signature",
+      "permalink": "docs/advanced-topics-security-issue.html"
     },
     {
-      "id": "advanced-topics-nested-lists",
-      "title": "Nested Lists",
+      "id": "advanced-topics-server-signature",
+      "title": "服务端签名",
       "layout": "docs",
       "category": "Advanced Topics",
-      "next": "advanced-topics-text-direction",
-      "permalink": "docs/advanced-topics-nested-lists.html"
+      "next": "advanced-topics-sts",
+      "permalink": "docs/advanced-topics-server-signature.html"
     },
     {
-      "id": "advanced-topics-text-direction",
-      "title": "Text Direction",
+      "id": "advanced-topics-sts",
+      "title": "STS临时认证",
       "layout": "docs",
       "category": "Advanced Topics",
-      "next": "advanced-topics-issues-and-pitfalls",
-      "permalink": "docs/advanced-topics-text-direction.html"
+      "next": "advanced-topics-multiupload",
+      "permalink": "docs/advanced-topics-sts.html"
     },
     {
-      "id": "api-reference-character-metadata",
-      "title": "CharacterMetadata",
+      "id": "api-reference-bos",
+      "title": "BOS - api",
       "layout": "docs",
       "category": "API Reference",
-      "next": "api-reference-entity",
-      "permalink": "docs/api-reference-character-metadata.html"
+      "next": "api-reference-vod",
+      "permalink": "docs/api-reference-bos.html"
     },
     {
-      "id": "api-reference-content-block",
-      "title": "ContentBlock",
+      "id": "api-reference-vod",
+      "title": "VOD - api",
       "layout": "docs",
       "category": "API Reference",
-      "next": "api-reference-character-metadata",
-      "permalink": "docs/api-reference-content-block.html"
-    },
-    {
-      "id": "api-reference-content-state",
-      "title": "ContentState",
-      "layout": "docs",
-      "category": "API Reference",
-      "next": "api-reference-content-block",
-      "permalink": "docs/api-reference-content-state.html"
-    },
-    {
-      "id": "api-reference-data-conversion",
-      "title": "Data Conversion",
-      "layout": "docs",
-      "category": "API Reference",
-      "next": "api-reference-modifier",
-      "permalink": "docs/api-reference-data-conversion.html"
-    },
-    {
-      "id": "api-reference-editor",
-      "title": "Editor Component",
-      "layout": "docs",
-      "category": "API Reference",
-      "next": "api-reference-editor-state",
-      "permalink": "docs/api-reference-editor.html"
-    },
-    {
-      "id": "api-reference-editor-state",
-      "title": "EditorState",
-      "layout": "docs",
-      "category": "API Reference",
-      "next": "api-reference-content-state",
-      "permalink": "docs/api-reference-editor-state.html"
-    },
-    {
-      "id": "api-reference-entity",
-      "title": "Entity",
-      "layout": "docs",
-      "category": "API Reference",
-      "next": "api-reference-selection-state",
-      "permalink": "docs/api-reference-entity.html"
-    },
-    {
-      "id": "api-reference-modifier",
-      "title": "Modifier",
-      "layout": "docs",
-      "category": "API Reference",
-      "permalink": "docs/api-reference-modifier.html"
-    },
-    {
-      "id": "api-reference-selection-state",
-      "title": "SelectionState",
-      "layout": "docs",
-      "category": "API Reference",
-      "next": "api-reference-data-conversion",
-      "permalink": "docs/api-reference-selection-state.html"
+      "permalink": "docs/api-reference-vod.html"
     },
     {
       "id": "getting-started",
@@ -164,19 +76,11 @@ module.exports = {
       "permalink": "docs/overview.html"
     },
     {
-      "id": "quickstart-api-basics",
-      "title": "API Basics",
-      "layout": "docs",
-      "category": "Quick Start",
-      "next": "quickstart-rich-styling",
-      "permalink": "docs/quickstart-api-basics.html"
-    },
-    {
       "id": "quickstart-env-browser",
       "title": "浏览器环境",
       "layout": "docs",
       "category": "Quick Start",
-      "next": "quickstart-api-basics",
+      "next": "advanced-topics-basic-example-in-browser",
       "permalink": "docs/quickstart-env-browser.html"
     },
     {
@@ -186,14 +90,6 @@ module.exports = {
       "category": "Quick Start",
       "next": "quickstart-env-browser",
       "permalink": "docs/quickstart-env-nodejs.html"
-    },
-    {
-      "id": "quickstart-rich-styling",
-      "title": "Rich Styling",
-      "layout": "docs",
-      "category": "Quick Start",
-      "next": "advanced-topics-entities",
-      "permalink": "docs/quickstart-rich-styling.html"
     }
   ]
 };

@@ -3,7 +3,7 @@ id: quickstart-env-browser
 title: 浏览器环境
 layout: docs
 category: Quick Start
-next: quickstart-api-basics
+next: advanced-topics-basic-example-in-browser
 permalink: docs/quickstart-env-browser.html
 ---
 
@@ -42,8 +42,8 @@ bower install bce-sdk-js
 const config = {
     endpoint: 'http://bos.bj.baidubce.com',
     credentials: {
-        ak: 'ak',
-        sk: 'sk'
+        ak: '您的ak',
+        sk: '您的sk'
     }
 };
 
@@ -56,4 +56,4 @@ client.putObjectFromString(bucket, key, 'hello world')
     .catch(error => console.error(error));      // 失败
 ```
 
-Next, let's go into the basics of the API and learn what else you can do with Draft.js.
+所有的接口均返回一个promise对象。
