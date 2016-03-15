@@ -17,7 +17,7 @@ module.exports = {
       "title": "大文件分块上传",
       "layout": "docs",
       "category": "Advanced Topics",
-      "next": "advanced-topics-postobject",
+      "next": "advanced-topics-uploader",
       "permalink": "docs/advanced-topics-multiupload.html"
     },
     {
@@ -51,6 +51,14 @@ module.exports = {
       "category": "Advanced Topics",
       "next": "advanced-topics-multiupload",
       "permalink": "docs/advanced-topics-sts.html"
+    },
+    {
+      "id": "advanced-topics-uploader",
+      "title": "bce bos uploader",
+      "layout": "docs",
+      "category": "Advanced Topics",
+      "next": "advanced-topics-postobject",
+      "permalink": "docs/advanced-topics-uploader.html"
     },
     {
       "id": "api-reference-bos",

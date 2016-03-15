@@ -15,13 +15,13 @@ permalink: docs/quickstart-env-browser.html
 bower install bce-sdk-js
 ```
 
-或者直接引入一个CDN地址：
+通过`<script>`来加载`baidubce-sdk.bundle.min.js`到页面：
 
 ```html
-<script src="//sdk.bceimg.com/js/latest.js"></script>
+<script src="bower_components/bce-sdk-js/baidubce-sdk.bundle.min.js"></script>
 ```
 
-当 js 加载到页面之后，可以用过全局变量`baidubceSdk`来使用 sdk 的功能。
+当 js 加载到页面之后，可以用过全局变量`baidubce.sdk`来使用 sdk 的功能。
 
 ### 支持的浏览器版本
 
@@ -34,7 +34,7 @@ bower install bce-sdk-js
 |Opera|17.0+|
 |Android Browser|4.3+|
 
-> IE低版本（IE8, IE9）有特殊的支持方式，请参考[IE低版本的处理](advanced-topics-key-bindings.html)
+> IE低版本（IE8, IE9）有特殊的支持方式，请参考[IE低版本的处理](advanced-topics-postobject.html)
 
 ### 基本用法
 
@@ -49,7 +49,7 @@ const config = {
 
 let bucket = 'my-bucket';
 let key = 'hello.js';
-let client = new baidubceSdk.BosClient(config);
+let client = new baidubce.sdk.BosClient(config);
 
 client.putObjectFromString(bucket, key, 'hello world')
     .then(response => console.log(response))    // 成功

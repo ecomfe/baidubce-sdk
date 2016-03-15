@@ -3,7 +3,9 @@
  */
 var React = require("React");
 var Layout = require("DocsLayout");
-var content = ``
+var content = `
+> TODO
+`
 var Post = React.createClass({
   statics: {
     content: content
