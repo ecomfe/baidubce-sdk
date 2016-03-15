@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "make -C test",
-    "pack": "node_modules/.bin/browserify -s baidubce.sdk index.js | uglifyjs --compress --mangle -o baidubce-sdk.bundle.js"
+    "pack": "node_modules/.bin/browserify -s baidubce.sdk index.js -o baidubce-sdk.bundle.js && uglifyjs baidubce-sdk.bundle.js --compress --mangle -o baidubce-sdk.bundle.min.js"
   },
   "repository": {
     "type": "git",
