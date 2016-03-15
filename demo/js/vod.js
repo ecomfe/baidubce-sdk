@@ -14,8 +14,7 @@ $(document).ready(function () {
             ak: '3e50573ecad74f1e8032b1c8a1c43265',
             sk: '3c81cdfbf6d34a6d8c5ec520ca77beba'
         },
-        endpoint: 'http://vod.baidubce.com',
-        retry: 50
+        endpoint: 'http://vod.baidubce.com'
     };
 
     var $fileList = $('#fileList');
@@ -24,9 +23,9 @@ $(document).ready(function () {
     function updateList() {
         vodClient.listMediaResource().then(function (data) {
             var html = "";
-            if (data && data.body && data.body.medias) {
-                for (var i = 0; i < data.body.medias.length; i++) {
-                    var media = data.body.medias[i];
+            if (data && data.body && data.body.media) {
+                for (var i = 0; i < data.body.media.length; i++) {
+                    var media = data.body.media[i];
                     html += '<tr data-id="' + media.mediaId + '">' +
                         '<td>' + media.attributes.title + '</td>' +
                         '<td>' + media.attributes.description + '</td>' +

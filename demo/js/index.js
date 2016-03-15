@@ -8,8 +8,7 @@ $(document).ready(function () {
             ak: '9fe103ae98de4798aabb34a433a3058b',
             sk: 'b084ab23d1ef44c997d10d2723dd8014'
         },
-        endpoint: 'http://bos.bj.baidubce.com',
-        retry: 50
+        endpoint: 'http://bos.bj.baidubce.com'
     };
     var PART_SIZE = 5 * 1024 * 1024; // 分块大小
     var THREADS = 2; // 同时上传的分块数量
