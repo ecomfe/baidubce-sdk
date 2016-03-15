@@ -67,7 +67,7 @@ util.inherits(HttpClient, EventEmitter);
  * @return {Q.defer}
  */
 HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, params,
-                                             signFunction, outputStream, retry) {
+                                             signFunction, outputStream) {
 
     var requestUrl = this._getRequestUrl(path, params);
     var options = require('url').parse(requestUrl);

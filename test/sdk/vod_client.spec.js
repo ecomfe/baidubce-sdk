@@ -36,8 +36,7 @@ var helper = require('./helper');
 //        ak: '3e50573ecad74f1e8032b1c8a1c43265',
 //        sk: '3c81cdfbf6d34a6d8c5ec520ca77beba'
 //    },
-//    endpoint: 'http://vod.baidubce.com',
-//    retry: 50
+//    endpoint: 'http://vod.baidubce.com'
 //};
 //config.media = vodConfig;
 //config.media_bos = bosConfig;
@@ -101,7 +100,7 @@ describe('VodClient', function () {
         var vod = new VodClient(config.media, config.media_bos);
         vod.listMediaResource()
             .then(function (response) {
-                var uploadMedia = u.filter(response.body.medias, function (media) {
+                var uploadMedia = u.filter(response.body.media, function (media) {
                     return media.mediaId === mediaId;
                 });
                 expect(uploadMedia.length).toEqual(1);
@@ -196,7 +195,7 @@ describe('VodClient', function () {
                 return vod.listMediaResource();
             })
             .then(function (response) {
-                var uploadMedia = u.filter(response.body.medias, function (media) {
+                var uploadMedia = u.filter(response.body.media, function (media) {
                     return media.mediaId === mediaId;
                 });
                 expect(uploadMedia.length).toEqual(0);

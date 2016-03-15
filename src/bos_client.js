@@ -318,8 +318,8 @@ BosClient.prototype.putObjectFromFile = function (bucketName, key, filename, opt
     // 如果没有显式的设置，就使用默认值
     var fileSize = fs.statSync(filename).size;
     var contentLength = u.has(options, H.CONTENT_LENGTH)
-        ? options[H.CONTENT_LENGTH]
-        : fileSize;
+                        ? options[H.CONTENT_LENGTH]
+                        : fileSize;
     if (contentLength > fileSize) {
         throw new Error('options[\'Content-Length\'] should less than ' + fileSize);
     }
@@ -498,37 +498,17 @@ BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, pa
     // headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
 
     options = this._checkOptions(u.extend(headers, options));
-    var client = this;
-    var retry = this.config.retry;
-
-    function newPromise() {
-        var deferred = Q.defer();
-        options = client._checkOptions(options);
-        client.sendRequest('PUT', {
-            bucketName: bucketName,
-            key: key,
-            body: blob,
-            headers: options.headers,
-            params: {
-                partNumber: partNumber,
-                uploadId: uploadId
-            },
-            config: options.config
-        }).then(function (response) {
-            deferred.resolve(response);
-        }, function (err) {
-            if (retry > 0 && !err.status_code) {
-                retry--;
-                newPromise.then(deferred.resolve, deferred.reject);
-            }
-            else {
-                deferred.reject(err);
-            }
-        });
-        return deferred.promise;
-    }
-
-    return newPromise();
+    return this.sendRequest('PUT', {
+        bucketName: bucketName,
+        key: key,
+        body: blob,
+        headers: options.headers,
+        params: {
+            partNumber: partNumber,
+            uploadId: uploadId
+        },
+        config: options.config
+    });
 };
 
 BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId, partNumber,
@@ -547,37 +527,17 @@ BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId,
     // headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
 
     options = this._checkOptions(u.extend(headers, options));
-    var client = this;
-    var retry = this.config.retry;
-
-    function newPromise() {
-        var deferred = Q.defer();
-        options = client._checkOptions(options);
-        client.sendRequest('PUT', {
-            bucketName: bucketName,
-            key: key,
-            body: data,
-            headers: options.headers,
-            params: {
-                partNumber: partNumber,
-                uploadId: uploadId
-            },
-            config: options.config
-        }).then(function (response) {
-            deferred.resolve(response);
-        }, function (err) {
-            if (retry > 0 && !err.status_code) {
-                retry--;
-                newPromise.then(deferred.resolve, deferred.reject);
-            }
-            else {
-                deferred.reject(err);
-            }
-        });
-        return deferred.promise;
-    }
-
-    return newPromise();
+    return this.sendRequest('PUT', {
+        bucketName: bucketName,
+        key: key,
+        body: data,
+        headers: options.headers,
+        params: {
+            partNumber: partNumber,
+            uploadId: uploadId
+        },
+        config: options.config
+    });
 };
 
 BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber,
@@ -609,7 +569,6 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
     headers[H.CONTENT_TYPE] = 'application/octet-stream';
     // headers[H.CONTENT_MD5] = partMd5;
     options = u.extend(headers, options);
-    var retry = this.config.retry || 0;
 
     if (!options[H.CONTENT_MD5]) {
         return crypto.md5stream(partFp)
@@ -620,9 +579,8 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
     }
 
     function newPromise() {
-        var deferred = Q.defer();
         options = client._checkOptions(options);
-        client.sendRequest('PUT', {
+        return client.sendRequest('PUT', {
             bucketName: bucketName,
             key: key,
             body: clonedPartFp,
@@ -632,18 +590,7 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
                 uploadId: uploadId
             },
             config: options.config
-        }).then(function (response) {
-            deferred.resolve(response);
-        }, function (err) {
-            if (retry > 0 && !err.status_code) {
-                retry--;
-                newPromise.then(deferred.resolve, deferred.reject);
-            }
-            else {
-                deferred.reject(err);
-            }
         });
-        return deferred.promise;
     }
 
     return newPromise();
