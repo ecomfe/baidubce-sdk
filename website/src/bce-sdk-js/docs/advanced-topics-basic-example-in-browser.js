@@ -18,7 +18,7 @@ var content = `
 
 如下图所示：
 
-![](http://bcesdk.bceimg.com/cors.png)
+![](http://google.bceimg.com/cors.png)
 
 > 注意：Origins里面的配置，不应该有最后的 '/'。例如：https://*.github.io/ 是错误的配置
 
