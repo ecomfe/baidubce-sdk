@@ -63,7 +63,9 @@ describe('BosClient', function() {
             .then(function(response) {
                 var defers = [];
                 (response.body.buckets || []).forEach(function(bucket) {
-                    defers.push(deleteBucket(bucket.name));
+                    if (/^test\-bucket/.test(bucket.name)) {
+                        defers.push(deleteBucket(bucket.name));
+                    }
                 });
                 return Q.all(defers);
             })
@@ -82,8 +84,11 @@ describe('BosClient', function() {
     it('listBuckets', function(done) {
         client.listBuckets()
             .then(function(response) {
-                expect(response.body.buckets.length).toEqual(0);
-                expect(response.body.owner).toEqual(config.bos.account);
+                var buckets = u.filter(response.body.buckets, function (bucket) {
+                    return /^test\-bucket/.test(bucket);
+                });
+                expect(buckets.length).toEqual(0);
+                // expect(response.body.owner).toEqual(config.bos.account);
             })
             .catch(fail)
             .fin(done);
@@ -165,7 +170,8 @@ describe('BosClient', function() {
                 return client.getBucketAcl(bucket)
             })
             .then(function(response) {
-                expect(response.body.accessControlList).toEqual(grant_list);
+                expect(response.body.accessControlList[0]).toEqual(grant_list[0]);
+                expect(response.body.accessControlList[1]).toEqual(grant_list[1]);
             })
             .catch(fail)
             .fin(done);
@@ -431,7 +437,7 @@ describe('BosClient', function() {
     });
 
     it('copyObjectAndCopyMeta', function(done) {
-        var target_bucket_name = 'this-is-a-test-bucket';
+        var target_bucket_name = 'test-bucket-a-is-this';
         client.createBucket(bucket)
             .then(function() {
                 return client.createBucket(target_bucket_name);
@@ -463,7 +469,7 @@ describe('BosClient', function() {
     });
 
     it('copyObjectWithCustomMeta', function(done) {
-        var target_bucket_name = 'this-is-a-test-bucket';
+        var target_bucket_name = 'test-bucket-a-is-this';
         client.createBucket(bucket)
             .then(function() {
                 return client.createBucket(target_bucket_name);

@@ -470,13 +470,13 @@ BosClient.prototype.completeMultipartUpload = function (bucketName, key, uploadI
 };
 
 BosClient.prototype.uploadPartFromFile = function (bucketName, key, uploadId, partNumber,
-                                                   partSize, filename, offset, partMd5, options) {
+                                                   partSize, filename, offset, options) {
 
     var start = offset;
     var end = offset + partSize - 1;
     var partFp = fs.createReadStream(filename, {start: start, end: end});
     return this.uploadPart(bucketName, key, uploadId, partNumber,
-        partSize, partFp, partMd5, options);
+        partSize, partFp, options);
 };
 
 BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, partNumber,
@@ -530,7 +530,7 @@ BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId,
 };
 
 BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber,
-                                           partSize, partFp, partMd5, options) {
+                                           partSize, partFp, options) {
 
     /*eslint-disable*/
     if (!bucketName) {
@@ -556,7 +556,7 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
     var headers = {};
     headers[H.CONTENT_LENGTH] = partSize;
     headers[H.CONTENT_TYPE] = 'application/octet-stream';
-    headers[H.CONTENT_MD5] = partMd5;
+    // headers[H.CONTENT_MD5] = partMd5;
     options = u.extend(headers, options);
 
     if (!options[H.CONTENT_MD5]) {
