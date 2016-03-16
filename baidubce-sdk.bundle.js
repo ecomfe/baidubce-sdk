@@ -24480,7 +24480,7 @@ return Q;
 
 },{}],187:[function(require,module,exports){
 module.exports={
-  "name": "baidubce-sdk",
+  "name": "bce-sdk-js",
   "version": "0.0.23",
   "description": "baidu cloud engine node.js sdk",
   "main": "index.js",
@@ -24488,7 +24488,7 @@ module.exports={
     "test": "test"
   },
   "scripts": {
-    "test": "make -C test",
+    "test": "node_modules/.bin/jasmine-node --verbose --growl --captureExceptions test/sdk/bos_client.spec.js",
     "pack": "node_modules/.bin/browserify -s baidubce.sdk index.js -o baidubce-sdk.bundle.js && uglifyjs baidubce-sdk.bundle.js --compress --mangle -o baidubce-sdk.bundle.min.js"
   },
   "repository": {
@@ -25852,13 +25852,13 @@ BosClient.prototype.completeMultipartUpload = function (bucketName, key, uploadI
 };
 
 BosClient.prototype.uploadPartFromFile = function (bucketName, key, uploadId, partNumber,
-                                                   partSize, filename, offset, partMd5, options) {
+                                                   partSize, filename, offset, options) {
 
     var start = offset;
     var end = offset + partSize - 1;
     var partFp = fs.createReadStream(filename, {start: start, end: end});
     return this.uploadPart(bucketName, key, uploadId, partNumber,
-        partSize, partFp, partMd5, options);
+        partSize, partFp, options);
 };
 
 BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, partNumber,
@@ -25912,7 +25912,7 @@ BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId,
 };
 
 BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber,
-                                           partSize, partFp, partMd5, options) {
+                                           partSize, partFp, options) {
 
     /*eslint-disable*/
     if (!bucketName) {
@@ -25938,7 +25938,7 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
     var headers = {};
     headers[H.CONTENT_LENGTH] = partSize;
     headers[H.CONTENT_TYPE] = 'application/octet-stream';
-    headers[H.CONTENT_MD5] = partMd5;
+    // headers[H.CONTENT_MD5] = partMd5;
     options = u.extend(headers, options);
 
     if (!options[H.CONTENT_MD5]) {
