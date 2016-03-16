@@ -497,6 +497,7 @@ promise = client.initiateMultipartUpload(bucket, key, options)
                 eTag: response.http_headers.etag
             });
         });
+
         return client.completeMultipartUpload(bucket, key, uploadId, partList); // 完成上传
     });
 }
