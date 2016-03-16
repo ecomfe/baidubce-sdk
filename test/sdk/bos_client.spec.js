@@ -32,6 +32,8 @@ describe('BosClient', function() {
     var filename;
 
     beforeEach(function() {
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 30 * 1000;
+
         fail = helper.fail(this);
 
         var id = Math.floor(Math.random() * 100000) + 900;
