@@ -1,5 +1,5 @@
 {
-  "name": "baidubce-sdk",
+  "name": "bce-sdk-js",
   "version": "0.0.23",
   "description": "baidu cloud engine node.js sdk",
   "main": "index.js",

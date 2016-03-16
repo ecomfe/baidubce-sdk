@@ -32,7 +32,7 @@ describe('BosClient', function() {
     var filename;
 
     beforeEach(function() {
-        jasmine.DEFAULT_TIMEOUT_INTERVAL = 30 * 1000;
+        jasmine.getEnv().defaultTimeoutInterval = 30 * 1000;
 
         fail = helper.fail(this);
 
