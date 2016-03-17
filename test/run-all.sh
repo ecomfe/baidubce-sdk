@@ -55,5 +55,5 @@ SPECS=(
   sdk/vod_client.spec.js
 )
 
-
+cd $(dirname "$0")
 ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions ${SPECS[@]}
