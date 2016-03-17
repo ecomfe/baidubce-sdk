@@ -2,13 +2,6 @@ $(document).ready(function () {
     hljs.initHighlightingOnLoad();
 
     var sdk = window.baidubceSdk;
-    var bosConfig = {
-        credentials: {
-            ak: '3e50573ecad74f1e8032b1c8a1c43265',
-            sk: '3c81cdfbf6d34a6d8c5ec520ca77beba'
-        },
-        endpoint: 'http://bos.bj.baidubce.com'
-    };
     var vodConfig = {
         credentials: {
             ak: '3e50573ecad74f1e8032b1c8a1c43265',
@@ -18,7 +11,7 @@ $(document).ready(function () {
     };
 
     var $fileList = $('#fileList');
-    var vodClient = new sdk.VodClient(vodConfig, bosConfig);
+    var vodClient = new sdk.VodClient(vodConfig);
 
     function updateList() {
         vodClient.listMediaResource().then(function (data) {
