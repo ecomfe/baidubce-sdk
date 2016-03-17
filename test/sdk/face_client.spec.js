@@ -29,6 +29,7 @@ describe('FaceClient', function () {
     var fail;
 
     beforeEach(function () {
+        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
         fail = helper.fail(this);
         client = new FaceClient(config.face);
     });
@@ -212,7 +213,7 @@ describe('FaceClient', function () {
 
     }, 60 * 1000);
 
-    it('createPerson & deletePerson & updatePerson & getPerson', function (done) {
+    xit('createPerson & deletePerson & updatePerson & getPerson', function (done) {
         var appId;
         var groupName = 'mygroup';
         var personName = 'leeight';

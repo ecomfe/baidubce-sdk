@@ -30,7 +30,10 @@ describe('SesClient', function () {
     var client;
 
     beforeEach(function () {
+        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
+
         fail = helper.fail(this);
+
         client = new SesClient(config.ses);
     });
 
@@ -44,7 +47,7 @@ describe('SesClient', function () {
         client.addVerifiedEmail('liyubei@baidu.com').then(function (response) {
             debug('%j', response);
         }).catch(function (error) {
-            if (error.code === 207) {
+            if (error.code == '207') {
                 expect(error.status_code).toEqual(500);
                 expect(error.message).toEqual('mail addr [liyubei@baidu.com] already verified, please not re-verify');
                 expect(error.code).toEqual('207');
@@ -53,6 +56,22 @@ describe('SesClient', function () {
                 fail(error);
             }
         }).fin(done);
+    });
+
+    it('getAllVerifiedEmails', function (done) {
+        client.getAllVerifiedEmails()
+            .then(function (response) {
+                expect(response.body).toEqual({
+                    details: [
+                        {
+                            address: 'liyubei@baidu.com',
+                            status: 0
+                        }
+                    ]
+                });
+            })
+            .catch(fail)
+            .fin(done);
     });
 
     it('sendMail', function (done) {

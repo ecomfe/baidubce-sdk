@@ -29,7 +29,7 @@ describe('MctClient', function () {
     var fail;
 
     beforeEach(function (done) {
-        jasmine.DEFAULT_TIMEOUT_INTERVAL = 10 * 1000;
+        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
 
         fail = helper.fail(this);
 
@@ -49,7 +49,7 @@ describe('MctClient', function () {
     it('Watermark.create', function (done) {
         var watermark = new MctClient.Watermark(config.media);
         var options = {
-            bucket: 'baidubce',
+            bucket: 'bcesdk',
             key: 'Screenshot_2014-11-17-15-13-31.png',
             // top, center, bottom
             verticalAlignment: 'top',
@@ -84,29 +84,30 @@ describe('MctClient', function () {
 
     it('MediaInfo.get', function (done) {
         var mediaInfo = new MctClient.MediaInfo(config.media);
-        mediaInfo.get('apple', 'big_buck_bunny_1080p_surround.mp4')
+        mediaInfo.get('bcesdk', 'big_buck_bunny_720p_surround.avi')
             .then(function (response) {
                 var info = {
-                  bucket: 'apple',
-                  key: 'big_buck_bunny_1080p_surround.mp4',
-                  fileSizeInByte: 266565031,
+                  bucket: 'bcesdk',
+                  key: 'big_buck_bunny_720p_surround.avi',
+                  fileSizeInByte: 332243668,
                   type: 'video',
-                  container: 'mov,mp4,m4a,3gp,3g2,mj2',
+                  // container: 'mov,mp4,m4a,3gp,3g2,mj2',
+                  container: 'avi',
                   durationInSecond: 596,
                   video: {
-                    codec: 'h264',
-                    heightInPixel: 1080,
-                    widthInPixel: 1920,
-                    bitRateInBps: 3339490,
+                    codec: 'mpeg4',
+                    heightInPixel: 720,
+                    widthInPixel: 1280,
+                    // bitRateInBps: 3339490,
                     frameRate: 24
                   },
                   audio: {
-                    codec: 'aac',
-                    channels: 2,
-                    sampleRateInHz: 44100,
-                    bitRateInBps: 148455
+                    codec: 'ac3',
+                    channels: 6,
+                    sampleRateInHz: 48000,
+                    bitRateInBps: 437500
                   },
-                  etag: '9ab9279f3cf42129efb3092009bbbb05'
+                  etag: '0da8fe124595f5b206d64cb1400bbefc'
                 };
                 expect(response.body).toEqual(info);
             })
@@ -119,7 +120,7 @@ describe('MctClient', function () {
 
     it('MediaInfo.get invalid media info', function (done) {
         var mediaInfo = new MctClient.MediaInfo(config.media);
-        mediaInfo.get('apple', 'KCon.zip')
+        mediaInfo.get('bcesdk', 'KCon.zip')
             .catch(function (error) {
                 expect(u.omit(error, 'request_id')).toEqual({
                     status_code: 400,
@@ -151,7 +152,7 @@ describe('MctClient', function () {
         var options = {
             pipelineName: pipelineName,
             description: pipelineName + ' description',
-            sourceBucket: 'apple',
+            sourceBucket: 'bcesdk',
             targetBucket: 'asset',
             config: {
                 // 0 ~ 100
@@ -182,10 +183,10 @@ describe('MctClient', function () {
                 expect(response.body.jobs).toEqual([]);
                 return pipeline.addTranscodingJob({
                     source: {
-                        sourceKey: 'big_buck_bunny_1080p_surround.mp4'
+                        sourceKey: 'big_buck_bunny_720p_surround.avi'
                     },
                     target: {
-                        targetKey: 'big_buck_bunny_1080p_surround.mp4',
+                        targetKey: 'big_buck_bunny_720p_surround.avi',
                         presetName: 'bce.video_mp4_1920x1080_3660kbps'
                     }
                 });
@@ -198,20 +199,20 @@ describe('MctClient', function () {
                 var jobInfo = response.body;
                 expect(jobInfo.pipelineName).toEqual(pipelineName);
                 expect(jobInfo.source).toEqual({
-                    sourceKey: 'big_buck_bunny_1080p_surround.mp4'
+                    sourceKey: 'big_buck_bunny_720p_surround.avi'
                 });
                 expect(jobInfo.target).toEqual({
-                    targetKey: 'big_buck_bunny_1080p_surround.mp4',
+                    targetKey: 'big_buck_bunny_720p_surround.avi',
                     presetName: 'bce.video_mp4_1920x1080_3660kbps'
                 });
             })
             .then(function (response) {
                 return pipeline.addThumbnailJob({
                     source: {
-                        key: 'big_buck_bunny_1080p_surround.mp4'
+                        key: 'big_buck_bunny_720p_surround.avi'
                     },
                     target: {
-                        keyPrefix: 'thumbnails/big_buck_bunny_1080p_surround/',
+                        keyPrefix: 'thumbnails/big_buck_bunny_720p_surround/',
                         format: 'jpg',
                         // keep、shrinkToFit、stretch
                         sizingPolicy: 'keep',

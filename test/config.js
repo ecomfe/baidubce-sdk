@@ -19,10 +19,9 @@ module.exports = {
             'ak': process.env.BOS_AK,
             'sk': process.env.BOS_SK,
         },
-        'connection_timeout_in_mills': 5000,    // 5 seconds
         'account': {
-            'id': '04e0d2c9e8ef478c951b97714c092f77',
-            'displayName': 'PASSPORT:105016607'
+            'id': process.env.ONLINE_USER_ID || '04e0d2c9e8ef478c951b97714c092f77',
+            'displayName': process.env.ONLINE_USER_NAME || 'PASSPORT:105016607'
         }
     },
     'bcc': {
@@ -85,10 +84,16 @@ module.exports = {
             'sk': process.env.MEDIA_SK
         }
     },
+    'vod': {
+        'endpoint': process.env.VOD_ENDPOINT,
+        'credentials': {
+            'ak': process.env.VOD_AK,
+            'sk': process.env.VOD_SK
+        }
+    },
     'sts': {
         // 'endpoint': 'http://multimedia.bce-testinternal.baidu.com',
-        'region': 'bj',
-        'protocol': 'http',
+        'endpoint': process.env.STS_ENDPOINT,
         'credentials': {
             'ak': process.env.STS_AK,
             'sk': process.env.STS_SK

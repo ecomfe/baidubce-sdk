@@ -12,9 +12,11 @@
  */
 
 var http = require('http');
+var https = require('https');
 
+var async = require('async');
 var Q = require('q');
-var debug = require('debug')('helper');
+var debug = require('debug')('helper.spec');
 
 exports.fail = function (spec) {
     var failImpl = spec.fail.bind(spec);
@@ -37,9 +39,41 @@ exports.delayMs = function (ms) {
     return deferred.promise;
 };
 
-exports.get = function (url) {
+/**
+ * @param {number} maxWaitSeconds 最长的等待时间.
+ * @param {number} tickSeconds 周期性的检查时间.
+ * @param {Function} iterate 执行检查的逻辑，返回（）
+ */
+exports.loop = function (maxWaitSeconds, tickSeconds, iterate) {
     var deferred = Q.defer();
-    http.get(url, function (res) {
+
+    var startTime = Date.now();
+    function check() {
+        var now = Date.now();
+        if ((now - startTime) >= maxWaitSeconds * 1000) {
+            deferred.reject('helper.loop(' + maxWaitSeconds + 's) Timeout.');
+            return;
+        }
+
+        iterate().then(deferred.resolve).catch(function (error) {
+            if (error === '$continue') {
+                debug('enter next loop');
+                setTimeout(check, tickSeconds * 1000);
+            }
+            else {
+                deferred.reject(error);
+            }
+        });
+    }
+    setTimeout(check, tickSeconds * 1000);
+
+    return deferred.promise;
+};
+
+exports.get = function (url) {
+    var client = /^https/.test(url) ? https : http;
+    var deferred = Q.defer();
+    client.get(url, function (res) {
             var buffer = [];
             res.on('data', function (data) {
                 buffer.push(data);

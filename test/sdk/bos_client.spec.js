@@ -574,7 +574,7 @@ describe('BosClient', function() {
             })
             .catch(fail)
             .fin(done);
-    }, 60 * 1000);
+    });
 
     it('testMultipartUploadSmallSuperfileX', function(done) {
         var MIN_PART_SIZE = 5 * 1024 * 1024;
@@ -631,7 +631,7 @@ describe('BosClient', function() {
             })
             .catch(fail)
             .fin(done);
-    }, 60 * 1000);
+    });
 });
 
 

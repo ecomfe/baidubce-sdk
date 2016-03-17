@@ -27,7 +27,7 @@ describe('crypto', function () {
     it('md5file', function (done) {
         crypto.md5file(path.join(__dirname, '..', 'Makefile'))
             .then(function (md5sum) {
-                expect(md5sum).toEqual('Dpj3XVdR6SDwmRCas3UDcw==');
+                expect(md5sum).toEqual('yRK9tU4xvtCYzRI7VHTRhg==');
             })
             .fin(done);
     });

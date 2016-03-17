@@ -29,6 +29,8 @@ describe('LssClient', function () {
     var fail;
 
     beforeEach(function (done) {
+        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
+
         fail = helper.fail(this);
 
         Q.all([
@@ -153,7 +155,7 @@ describe('LssClient', function () {
         var session = new LssClient.Session(config.media);
         var options = {
             target: {
-                bosBucket: 'apple',
+                bosBucket: 'bcesdk',
                 userDomain: 'www.baidu.com'
             },
             presetName: 'lss.rtmp_forward_only',

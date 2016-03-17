@@ -25,7 +25,7 @@ var EventEmitter = require('events').EventEmitter;
 
 var u = require('underscore');
 var Q = require('q');
-var debug = require('debug')('HttpClient');
+var debug = require('debug')('bce-sdk.HttpClient');
 
 var H = require('./headers');
 
@@ -390,7 +390,7 @@ function failure(statusCode, message, code, requestId) {
     var response = {};
 
     response[H.X_STATUS_CODE] = statusCode;
-    response[H.X_MESSAGE] = message;
+    response[H.X_MESSAGE] = Buffer.isBuffer(message) ? String(message) : message;
     if (code) {
         response[H.X_CODE] = code;
     }

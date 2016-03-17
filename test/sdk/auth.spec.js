@@ -15,6 +15,7 @@
  */
 
 var Auth = require('../../src/auth');
+var strings = require('../../src/strings');
 
 describe('Auth', function () {
     it('queryStringCanonicalization', function () {
@@ -31,8 +32,8 @@ describe('Auth', function () {
     it('uriCanonicalization', function () {
         var auth = new Auth('ak', 'sk');
 
-        expect(auth.uriCanonicalization('this is an example for 测试'))
-            .toEqual('this%20is%20an%20example%20for%20%E6%B5%8B%E8%AF%95');
+        expect(strings.normalize('!\'()*this is an example for 测试'))
+            .toEqual('%21%27%28%29%2Athis%20is%20an%20example%20for%20%E6%B5%8B%E8%AF%95');
     });
 
     it('headersCanonicalization', function () {
