@@ -12,7 +12,7 @@ var content = `
 * 上传分块（uploadPartFromBlob）
 * 上传完成（completeMultipartUpload）
 
-### 前端代码示例
+### 浏览器端代码示例
 
 按照指定的分块大小对文件进行分块
 
@@ -109,6 +109,50 @@ client.initiateMultipartUpload(bucket, key, options)
     .catch(function (err) {
         // 上传失败，添加您的代码
         console.error(err);
+    });
+\`\`\`
+
+### nodejs端使用分块上传
+
+与浏览器端很类似，直接上传只需要调用putObjectFromFile就可以了，而分块上传需要分为三个阶段：
+
+* 开始上传（initiateMultipartUpload）
+* 上传分块（uploadPartFromFile）
+* 上传完成（completeMultipartUpload）
+
+### 取消分块上传事件
+
+用户可以使用abortMultipartUpload方法取消分块上传。
+
+\`\`\`js
+client.abortMultipartUpload(<bucketName>, <key>, <uploadId>);
+\`\`\`
+
+### 获取未完成的分块上传事件
+
+用户可以使用listMultipartUploads方法获取Bucket内未完成的分块上传事件。
+
+\`\`\`js
+client.listMultipartUploads(<bucketName>)
+    .then(function(response) {
+        // 遍历所有上传事件
+        for(var upload in response.body.multipartUploads) {
+            console.log(upload.uploadId);
+        }
+    });
+\`\`\`
+
+### 获取所有已上传的块信息
+
+用户可以使用listParts方法获取某个上传事件中所有已上传的块。
+
+\`\`\`js
+client.listParts(<bucketName>, <key>, <uploadId>)
+    .then(function(response) {
+        // 遍历所有上传事件
+        for(var part in response.body.parts) {
+            console.log(part.partNumber);
+        }
     });
 \`\`\`
 `
