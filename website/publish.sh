@@ -21,5 +21,5 @@ rm -Rf build/
 cd ../../${REPOS}-gh-pages
 git add --all
 git commit -m "update website"
-git push
+git push origin gh-pages
 cd ../${REPOS}/website

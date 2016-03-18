@@ -6,11 +6,11 @@ var Layout = require("DocsLayout");
 var content = `
 [百度 VOD (Video On Demand)](https://bce.baidu.com/doc/VOD/index.html) 是百度开放云 BCE (Baidu Cloud Engine) 提供的面向音视频点播的 PaaS (Platform as a Service) 服务平台，为开发者提供音视频文件的存储、管理及播放服务。您无需了解音视频存储、转码、加密、分发、播放等技术细节，即可快速搭建安全可靠、高可定制的点播平台和应用。
 
-## BosClient
+## VodClient
 
-BosClient是VOD服务的javascript客户端，为调用者与VOD服务进行交互提供了一系列的方法。
+VodClient是VOD服务的javascript客户端，为调用者与VOD服务进行交互提供了一系列的方法。
 
-- 浏览器端：\`var BosClient = baidubce.sdk.VodClient\`
+- 浏览器端：\`var VodClient = baidubce.sdk.VodClient\`
 - nodejs：\`import {VodClient} from 'bce-sdk-js'\`
 
 ### 初始化

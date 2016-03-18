@@ -193,29 +193,23 @@ function fail(fail) {
 }
 
 // 以字符串形式上传
-client.putObjectFromString(bucket, 'hello world')
+client.putObjectFromString(bucket, object, 'hello world')
     .then(done)
     .catch(fail);
 
 // 以DataUrl形式上传
 var dataUrl = new Buffer('hello world').toString('base64');
-client.putObjectFromDataUrl(bucket, dataUrl)
-    .then(done)
-    .catch(fail);
-
-// 以DataUrl形式上传
-var dataUrl = new Buffer('hello world').toString('base64');
-client.putObjectFromDataUrl(bucket, dataUrl)
+client.putObjectFromDataUrl(bucket, object, dataUrl)
     .then(done)
     .catch(fail);
 
 // 以文件形式上传，仅支持nodejs环境
-client.putObjectFromFile(bucket, <path-to-file>)
+client.putObjectFromFile(bucket, object, <path-to-file>)
     .then(done)
     .catch(fail);
 
 // 以blob对象形式上传，仅支持浏览器环境
-client.putObjectFromBlob(bucket, <blob对象>)
+client.putObjectFromBlob(bucket, object, <blob对象>)
     .then(done)
     .catch(fail);
 \`\`\`
@@ -234,7 +228,7 @@ var options = {
     x-bce-meta-foo2: 'bar2', // 添加自定义meta信息
     x-bce-meta-foo3: 'bar3' // 添加自定义meta信息
 }
-client.putObjectFromFile(bucket, <path-to-file>, options)
+client.putObjectFromFile(bucket, object, <path-to-file>, options)
     .then(done)
     .catch(fail);
 \`\`\`
