@@ -33,7 +33,7 @@ var bosConfig = {
     endpoint: 'http://bos.bj.baidubce.com' // 根据您选用bos服务的区域配置相应的endpoint
 };
 var bucket = 'bce-javascript-sdk-demo-test'; // 设置您想要操作的bucket
-var client = new baidubce.sdk.BosClient(bosConfig));
+var client = new baidubce.sdk.BosClient(bosConfig);
 \`\`\`
 
 后续我们可以使用client这个实例来进行bos相关操作。

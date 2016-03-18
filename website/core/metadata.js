@@ -29,6 +29,14 @@ module.exports = {
       "permalink": "docs/advanced-topics-postobject.html"
     },
     {
+      "id": "advanced-topics-programming-style",
+      "title": "多种异步编程风格",
+      "layout": "docs",
+      "category": "Advanced Topics",
+      "next": "advanced-topics-postobject",
+      "permalink": "docs/advanced-topics-programming-style.html"
+    },
+    {
       "id": "advanced-topics-security-issue",
       "title": "AK和SK的安全性问题",
       "layout": "docs",
@@ -57,7 +65,7 @@ module.exports = {
       "title": "bce bos uploader",
       "layout": "docs",
       "category": "Advanced Topics",
-      "next": "advanced-topics-postobject",
+      "next": "advanced-topics-programming-style",
       "permalink": "docs/advanced-topics-uploader.html"
     },
     {
