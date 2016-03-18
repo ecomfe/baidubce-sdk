@@ -23,7 +23,7 @@ var config = {
         sk: '您的sk'
     }
 };
-var client = VodClient(config);
+var client = new VodClient(config);
 \`\`\`
 
 ## 媒资管理

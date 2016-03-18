@@ -17,7 +17,55 @@ permalink: docs/advanced-topics-sts.html
 
 #### nodejs服务端代码
 
-<script src="https://gist.github.com/leeight/9602b43a6b9385dbe6e1.js"></script>
+```js
+var koa = require('koa');
+var logger = require('koa-logger');
+var router = require('koa-router')();
+var app = koa();
+var url = require('url');
+
+var STS = require('bce-sdk-js').STS;
+
+var kCredentials = {
+    ak: '您的AK',
+    sk: '您的SK'
+};
+var kRegion = 'bj';
+
+function safeParse(text) {
+    try {
+        return JSON.parse(text);
+    }
+    catch (ex) {
+        return null;
+    }
+}
+app.use(logger());
+
+router
+    .get('/sts', function *(next){
+        var stsClient = new STS({
+            credentials: kCredentials,
+            region: kRegion,
+            protocol: 'http'
+        });
+        var res = yield stsClient.getSessionToken(6000, {
+            accessControlList: [{
+                service: 'bce:bos',
+                resource: ['bce-javascript-sdk-demo-test'],
+                region: '*',
+                effect: 'Allow',
+                permission: ['READ', 'WRITE']
+            }]
+        });
+        this.body = JSON.stringify(res.body);
+    });
+
+app.use(router.routes())
+    .use(router.allowedMethods());
+
+app.listen(3000);
+```
 
 在服务器端，用与创建bosClient实例类似的方式创建一个stsClient实例。对于stsClient实例，主要有一个方法，那就是getSessionToken。这个方法接收两个参数，第一个参数是临时授权的有效期，以秒为单位；第二个单位是具体的权限控制，参见STS[服务接口文档](https://bce.baidu.com/doc/BOS/API.html#STS.20.E6.9C.8D.E5.8A.A1.E6.8E.A5.E5.8F.A3)。
 

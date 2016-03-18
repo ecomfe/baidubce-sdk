@@ -34,7 +34,7 @@ var config = {
         sk: '您的sk'
     }
 };
-var client = BosClient(config);
+var client = new BosClient(config);
 \`\`\`
 
 ## Bucket

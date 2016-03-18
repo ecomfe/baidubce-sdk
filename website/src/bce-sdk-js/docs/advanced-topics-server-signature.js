@@ -28,11 +28,110 @@ var content = `
 
 #### nodejs 后端示例
 
-<script src="https://gist.github.com/leeight/c7928d68aeef88c00f93.js"></script>
+\`\`\`js
+var http = require\('http');
+var url = require\('url');
+var util = require\('util');
+
+var Auth = require\('bce-sdk-js').Auth;
+
+var kCredentials = {
+    ak: '您的AK',
+    sk: '您的SK'
+};
+
+http.createServer(function (req, res) {
+    var query = url.parse(req.url, true).query;
+    var statusCode = 200;
+    var signature = null;
+    if (!query.httpMethod || !query.path || !query.params || !query.headers) {
+        statusCode = 403;
+    }
+    else {
+        var httpMethod = query.httpMethod;
+        var path = query.path;
+        var params = safeParse(query.params) || {};
+        var headers = safeParse(query.headers) || {};
+
+        // 添加您自己的额外逻辑
+
+        var auth = new Auth(kCredentials.ak, kCredentials.sk);
+        signature = auth.generateAuthorization(httpMethod, path, params, headers);
+    }
+
+    var payload = {
+        statusCode: statusCode,
+        signature: signature,
+        xbceDate: new Date().toISOString().replace(/\\.\\d+Z$/, 'Z')
+    };
+    res.writeHead(statusCode, {'Content-Type': 'text/javascript; charset=utf-8'});
+    if (query.callback) {
+        res.end(util.format('%s(%s)', query.callback, JSON.stringify(payload)));
+    }
+    else {
+        res.end(JSON.stringify(payload));
+    }
+}).listen(1337);
+console.log('Server running at http://0.0.0.0:1337/');
+\`\`\`
 
 #### C# 后端实现
 
-<script src="https://gist.github.com/leeight/2ff85e853c5472a4aa55.js"></script>
+\`\`\`csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Mvc.Ajax;
+using BaiduBce;
+using BaiduBce.Auth;
+using BaiduBce.Internal;
+using Newtonsoft.Json;
+using BaiduBce.Util;
+
+namespace BaiduCloudEngine.Controllers
+{
+  class SignatureResult {
+    public int statusCode { get; set; }
+    public string signature { get; set; }
+    public string xbceDate { get; set; }
+  }
+
+  public class HomeController : Controller
+  {
+    public string Index(string httpMethod, string path, string queries, string headers, string callback) {
+      BceClientConfiguration config = new BceClientConfiguration();
+      config.Credentials = new DefaultBceCredentials("AK", "SK");
+      BceV1Signer bceV1Signer = new BceV1Signer();
+      InternalRequest internalRequest = new InternalRequest();
+      internalRequest.Config = config;
+      internalRequest.Uri = new Uri("http://www.baidu.com" + path);
+      internalRequest.HttpMethod = httpMethod;
+      if (headers != null) {
+        internalRequest.Headers = JsonConvert.DeserializeObject> (headers);
+      }
+      if (queries != null) {
+        internalRequest.Parameters = JsonConvert.DeserializeObject> (queries);
+      }
+      var sign = bceV1Signer.Sign(internalRequest);
+
+      var xbceDate = DateUtils.FormatAlternateIso8601Date (DateTime.Now);
+      var result = JsonConvert.SerializeObject (new SignatureResult() {
+        statusCode = 200,
+        signature = sign,
+        xbceDate = xbceDate
+      });
+
+      if (callback != null) {
+        result = callback + "(" + result + ")";
+      }
+
+      return result;
+    }
+  }
+}
+\`\`\`
 
 #### 浏览器前端实现
 
