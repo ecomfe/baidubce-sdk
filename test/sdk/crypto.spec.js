@@ -17,17 +17,19 @@
 var path = require('path');
 var fs = require('fs');
 
+var expect = require('expect.js');
+
 var crypto = require('../../src/crypto');
 
 describe('crypto', function () {
     it('md5sum', function () {
-        expect(crypto.md5sum('hello world')).toEqual('XrY7u+Ae7tCTyyK7j1rNww==');
+        expect(crypto.md5sum('hello world')).to.eql('XrY7u+Ae7tCTyyK7j1rNww==');
     });
 
     it('md5file', function (done) {
         crypto.md5file(path.join(__dirname, '..', 'Makefile'))
             .then(function (md5sum) {
-                expect(md5sum).toEqual('yRK9tU4xvtCYzRI7VHTRhg==');
+                expect(md5sum).to.eql('yRK9tU4xvtCYzRI7VHTRhg==');
             })
             .fin(done);
     });
@@ -37,7 +39,7 @@ describe('crypto', function () {
         var buffer = fs.readFileSync(__filename).slice(0, 100);
         crypto.md5stream(fp)
             .then(function (md5sum) {
-                expect(md5sum).toEqual(crypto.md5sum(buffer));
+                expect(md5sum).to.eql(crypto.md5sum(buffer));
             })
             .fin(done);
     });

@@ -16,6 +16,7 @@ var fs = require('fs');
 
 var Q = require('q');
 var u = require('underscore');
+var expect = require('expect.js');
 var debug = require('debug')('upload_helper.spec');
 
 var config = require('../config');
@@ -23,7 +24,7 @@ var helper = require('./helper');
 var BosClient = require('../..').BosClient;
 var UploadHelper = require('../../src/helper');
 
-describe('BosClient', function() {
+describe('UploadHelper', function() {
     var client;
     var fail;
 
@@ -31,8 +32,10 @@ describe('BosClient', function() {
     var key;
     var filename;
 
+    this.timeout(10 * 60 * 1000);
+
     beforeEach(function(done) {
-        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
+        // jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
 
         fail = helper.fail(this);
 
@@ -98,8 +101,8 @@ describe('BosClient', function() {
                 return client.getObjectMetadata(bucket, key);
             })
             .then(function (response) {
-                expect(response.http_headers['content-type']).toEqual('application/javascript');
-                expect(response.http_headers['content-length']).toEqual(
+                expect(response.http_headers['content-type']).to.eql('application/javascript');
+                expect(response.http_headers['content-length']).to.eql(
                     '' + fs.lstatSync(__filename).size);
                 debug(response);
             })
@@ -116,8 +119,8 @@ describe('BosClient', function() {
                 return client.getObjectMetadata(bucket, key);
             })
             .then(function (response) {
-                expect(response.http_headers['content-type']).toEqual('application/octet-stream');
-                expect(response.http_headers['content-length']).toEqual(
+                expect(response.http_headers['content-type']).to.eql('application/octet-stream');
+                expect(response.http_headers['content-length']).to.eql(
                     '' + fs.lstatSync(filename).size);
                 debug(response);
             })
@@ -134,8 +137,8 @@ describe('BosClient', function() {
                 return client.getObjectMetadata(bucket, key);
             })
             .then(function (response) {
-                expect(response.http_headers['content-type']).toEqual('application/octet-stream');
-                expect(response.http_headers['content-length']).toEqual(
+                expect(response.http_headers['content-type']).to.eql('application/octet-stream');
+                expect(response.http_headers['content-length']).to.eql(
                     '' + fs.lstatSync(__filename).size);
                 debug(response);
             })
@@ -156,12 +159,12 @@ describe('BosClient', function() {
             })
             .then(function (response) {
                 debug(response);
-                expect(response.http_headers['content-type']).toEqual('application/octet-stream');
-                expect(response.http_headers['content-length']).toEqual(
+                expect(response.http_headers['content-type']).to.eql('application/octet-stream');
+                expect(response.http_headers['content-length']).to.eql(
                     '' + fs.lstatSync(filename).size);
                 return require('../../src/crypto').md5file(filename)
                     .then(function(md5sum) {
-                        expect(response.http_headers['content-md5']).toEqual(md5sum);
+                        expect(response.http_headers['content-md5']).to.eql(md5sum);
                     });
             })
             .catch(fail)
@@ -177,8 +180,8 @@ describe('BosClient', function() {
                 return client.getObjectMetadata(bucket, key);
             })
             .then(function (response) {
-                expect(response.http_headers['content-type']).toEqual('application/javascript');
-                expect(response.http_headers['content-length']).toEqual(
+                expect(response.http_headers['content-type']).to.eql('application/javascript');
+                expect(response.http_headers['content-length']).to.eql(
                     '' + fs.lstatSync(__filename).size);
                 debug(response);
             })
@@ -199,8 +202,8 @@ describe('BosClient', function() {
             })
             .then(function (response) {
                 debug(response);
-                expect(response.http_headers['content-type']).toEqual('application/javascript');
-                expect(response.http_headers['content-length']).toEqual(
+                expect(response.http_headers['content-type']).to.eql('application/javascript');
+                expect(response.http_headers['content-length']).to.eql(
                     '' + fs.lstatSync(filename).size);
             })
             .catch(fail)

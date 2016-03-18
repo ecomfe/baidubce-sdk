@@ -25753,7 +25753,7 @@ return Q;
 },{}],188:[function(require,module,exports){
 module.exports={
   "name": "bce-sdk-js",
-  "version": "0.0.24",
+  "version": "0.1.0",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
@@ -25777,7 +25777,10 @@ module.exports={
   },
   "devDependencies": {
     "browserify": "10.2.6",
-    "jasmine-node": "^1.14.5"
+    "coveralls": "^2.11.8",
+    "expect.js": "^0.3.1",
+    "istanbul": "^0.4.2",
+    "mocha": "^2.4.5"
   }
 }
 

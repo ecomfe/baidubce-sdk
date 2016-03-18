@@ -11,9 +11,12 @@
 * specific language governing permissions and limitations under the License.
 */
 
+var expect = require('expect.js');
+
 var Auth = require('../../src/auth');
 var HttpClient = require('../../src/http_client');
 var WMStream = require('../../src/wm_stream');
+var helper = require('./helper');
 
 var config = require('../config').bos;
 
@@ -23,9 +26,15 @@ function sign_function(credentials, http_method, path, params, headers) {
 }
 
 describe('HttpClient', function() {
-    it('invalidUrl', function(done) {
-        var fail = this.fail.bind(this);
+    var fail;
 
+    this.timeout(10 * 60 * 1000);
+
+    beforeEach(function() {
+        fail = helper.fail(this);
+    });
+
+    xit('invalidUrl', function(done) {
         var config = {
             'endpoint': 'http://no-such-url',
         };
@@ -36,7 +45,7 @@ describe('HttpClient', function() {
                     fail('Should not reach here');
                 },
                 function(e) {
-                    expect(e.code).toEqual('ENOTFOUND');
+                    expect(e.code).to.eql('ENOTFOUND');
                 }
             )
             .then(done);
@@ -50,10 +59,10 @@ describe('HttpClient', function() {
 
         client.sendRequest('GET', '/adtest/test.json')
             .then(function(response) {
-                expect(response.body).toEqual({hello: 'world'});
-                expect(response.http_headers['content-type']).toEqual('text/json');
-                expect(response.http_headers.server).toEqual('POMS/CloudUI 1.0');
-                expect(response.http_headers.etag).toEqual('d0b8560f261410878a68bbe070d81853');
+                expect(response.body).to.eql({hello: 'world'});
+                expect(response.http_headers['content-type']).to.eql('text/json');
+                expect(response.http_headers.server).to.eql('POMS/CloudUI 1.0');
+                expect(response.http_headers.etag).to.eql('d0b8560f261410878a68bbe070d81853');
             })
             .then(done);
     });
@@ -67,37 +76,31 @@ describe('HttpClient', function() {
             .then(
                 function(){ fail('Should not reach here'); },
                 function(e) {
-                    expect(e.status_code).toEqual(403);
+                    expect(e.status_code).to.eql(403);
                 }
             )
             .then(done);
     });
 
     it('sendRequest', function(done) {
-        var fail = this.fail.bind(this);
-
         var client = new HttpClient(config);
 
         client.sendRequest('GET', '/v1', null, null, null, sign_function)
             .then(
                 function(response) {
-                    expect(response.http_headers['content-type']).toEqual('application/json; charset=utf-8');
-                    expect(response.http_headers.hasOwnProperty('x-bce-request-id')).toEqual(true);
-                    expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).toEqual(true);
-                    expect(response.body.owner).toEqual(config.account);
-                    expect(Array.isArray(response.body.buckets)).toEqual(true);
-                },
-                function(e) {
-                    fail(e);
+                    expect(response.http_headers['content-type']).to.eql('application/json; charset=utf-8');
+                    expect(response.http_headers.hasOwnProperty('x-bce-request-id')).to.eql(true);
+                    expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).to.eql(true);
+                    expect(response.body.owner).to.eql(config.account);
+                    expect(Array.isArray(response.body.buckets)).to.eql(true);
                 }
             )
+            .catch(fail)
             .then(done);
     });
 
 
     it('readRequestBodyFromBuffer', function(done) {
-        var fail = this.fail.bind(this);
-
         var grant_list = [
             {
                 grantee: [
@@ -128,12 +131,12 @@ describe('HttpClient', function() {
                     return client.sendRequest('PUT', path, body, null, params, sign_function);
                 })
                 .then(function(response) {
-                    expect(response.http_headers.hasOwnProperty('x-bce-request-id')).toEqual(true);
-                    expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).toEqual(true);
-                    expect(response.http_headers.hasOwnProperty('content-length')).toEqual(true);
-                    expect(response.http_headers.hasOwnProperty('date')).toEqual(true);
-                    expect(response.http_headers.hasOwnProperty('server')).toEqual(true);
-                    expect(response.body).toEqual({});
+                    expect(response.http_headers.hasOwnProperty('x-bce-request-id')).to.eql(true);
+                    expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).to.eql(true);
+                    expect(response.http_headers.hasOwnProperty('content-length')).to.eql(true);
+                    expect(response.http_headers.hasOwnProperty('date')).to.eql(true);
+                    expect(response.http_headers.hasOwnProperty('server')).to.eql(true);
+                    expect(response.body).to.eql({});
                 })
                 .then(function() {
                     return client.sendRequest('DELETE', path, null, null, null, sign_function);
@@ -144,8 +147,6 @@ describe('HttpClient', function() {
     });
 
     it('readRequestBodyFromString', function(done) {
-        var fail = this.fail.bind(this);
-
         var grant_list = [
             {
                 grantee: [
@@ -176,12 +177,12 @@ describe('HttpClient', function() {
                     return client.sendRequest('PUT', path, body, null, params, sign_function);
                 })
                 .then(function(response) {
-                    expect(response.http_headers.hasOwnProperty('x-bce-request-id')).toEqual(true);
-                    expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).toEqual(true);
-                    expect(response.http_headers.hasOwnProperty('content-length')).toEqual(true);
-                    expect(response.http_headers.hasOwnProperty('date')).toEqual(true);
-                    expect(response.http_headers.hasOwnProperty('server')).toEqual(true);
-                    expect(response.body).toEqual({});
+                    expect(response.http_headers.hasOwnProperty('x-bce-request-id')).to.eql(true);
+                    expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).to.eql(true);
+                    expect(response.http_headers.hasOwnProperty('content-length')).to.eql(true);
+                    expect(response.http_headers.hasOwnProperty('date')).to.eql(true);
+                    expect(response.http_headers.hasOwnProperty('server')).to.eql(true);
+                    expect(response.body).to.eql({});
                 })
                 .then(function() {
                     return client.sendRequest('DELETE', path, null, null, null, sign_function);
@@ -192,8 +193,6 @@ describe('HttpClient', function() {
     });
 
     it('readRequestBodyFromStream', function(done) {
-        var fail = this.fail.bind(this);
-
         var grant_list = [
             {
                 grantee: [
@@ -229,12 +228,12 @@ describe('HttpClient', function() {
                     return client.sendRequest('PUT', path, body, headers, params, sign_function);
                 })
                 .then(function(response) {
-                    expect(response.http_headers.hasOwnProperty('x-bce-request-id')).toEqual(true);
-                    expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).toEqual(true);
-                    expect(response.http_headers.hasOwnProperty('content-length')).toEqual(true);
-                    expect(response.http_headers.hasOwnProperty('date')).toEqual(true);
-                    expect(response.http_headers.hasOwnProperty('server')).toEqual(true);
-                    expect(response.body).toEqual({});
+                    expect(response.http_headers.hasOwnProperty('x-bce-request-id')).to.eql(true);
+                    expect(response.http_headers.hasOwnProperty('x-bce-debug-id')).to.eql(true);
+                    expect(response.http_headers.hasOwnProperty('content-length')).to.eql(true);
+                    expect(response.http_headers.hasOwnProperty('date')).to.eql(true);
+                    expect(response.http_headers.hasOwnProperty('server')).to.eql(true);
+                    expect(response.body).to.eql({});
                 })
                 .then(function() {
                     return client.sendRequest('DELETE', path, null, null, null, sign_function);
@@ -245,17 +244,15 @@ describe('HttpClient', function() {
     });
 
     it('sendRequestWithOutputStream', function(done) {
-        var fail = this.fail.bind(this);
-
         var client = new HttpClient(config);
 
         var output_stream = new WMStream();
         client.sendRequest('GET', '/v1', null, null, null, sign_function, output_stream)
             .then(function(response) {
-                expect(response.body).toEqual({});
-                expect(output_stream.store.length).toBeGreaterThan(0);
+                expect(response.body).to.eql({});
+                expect(output_stream.store.length).to.be.greaterThan(0);
                 var owner = JSON.parse(output_stream.store.toString()).owner;
-                expect(owner).toEqual(config.account);
+                expect(owner).to.eql(config.account);
             })
             .catch(fail)
             .fin(done);

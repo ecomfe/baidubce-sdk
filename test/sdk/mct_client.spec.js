@@ -19,6 +19,7 @@ var fs = require('fs');
 
 var Q = require('q');
 var u = require('underscore');
+var expect = require('expect.js');
 var debug = require('debug')('mct_client.spec');
 
 var config = require('../config');
@@ -28,8 +29,10 @@ var helper = require('./helper');
 describe('MctClient', function () {
     var fail;
 
+    this.timeout(10 * 60 * 1000);
+
     beforeEach(function (done) {
-        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
+        // jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
 
         fail = helper.fail(this);
 
@@ -62,21 +65,21 @@ describe('MctClient', function () {
         };
         watermark.create(options)
             .then(function (response) {
-                expect(response.body.watermarkId).not.toBeUndefined();
+                expect(response.body.watermarkId).not.to.beUndefined();
                 return watermark.get();
             })
             .then(function (response) {
                 expect(u.pick(response.body, 'bucket', 'key',
                     'verticalAlignment', 'horizontalAlignment',
-                    'verticalOffsetInPixel', 'horizontalOffsetInPixel')).toEqual(options);
+                    'verticalOffsetInPixel', 'horizontalOffsetInPixel')).to.eql(options);
                 return watermark.list();
             })
             .then(function (response) {
-                expect(response.body.watermarks.length).toEqual(1);
+                expect(response.body.watermarks.length).to.eql(1);
                 return watermark.remove();
             })
             .then(function (response) {
-                expect(response.body).toEqual({});
+                expect(response.body).to.eql({});
             })
             .catch(fail)
             .fin(done);
@@ -109,7 +112,7 @@ describe('MctClient', function () {
                   },
                   etag: '0da8fe124595f5b206d64cb1400bbefc'
                 };
-                expect(response.body).toEqual(info);
+                expect(response.body).to.eql(info);
             })
             .then(function (response) {
                 debug('%j', response);
@@ -122,7 +125,7 @@ describe('MctClient', function () {
         var mediaInfo = new MctClient.MediaInfo(config.media);
         mediaInfo.get('bcesdk', 'KCon.zip')
             .catch(function (error) {
-                expect(u.omit(error, 'request_id')).toEqual({
+                expect(u.omit(error, 'request_id')).to.eql({
                     status_code: 400,
                     message: 'Get media info failed with errno: 1001',
                     code: 'VideoExceptions.GetMediaInfoFailed'
@@ -140,7 +143,7 @@ describe('MctClient', function () {
                     // 有 running/pending 在运行的 Pipeline 无法删除
                     var status = item.jobStatus;
                     return (status.running + status.pending) <= 0;
-                })).toEqual([]);
+                })).to.eql([]);
             })
             .catch(fail)
             .fin(done);
@@ -163,24 +166,24 @@ describe('MctClient', function () {
         };
         pipeline.create(options)
             .then(function (response) {
-                expect(response.body).toEqual({});
+                expect(response.body).to.eql({});
                 return pipeline.get();
             })
             .then(function (response) {
                 var p = response.body;
-                expect(p.pipelineName).toEqual(options.pipelineName);
-                expect(p.sourceBucket).toEqual(options.sourceBucket);
-                expect(p.targetBucket).toEqual(options.targetBucket);
-                expect(p.config.capacity).toEqual(options.config.capacity);
-                expect(p.config.notification).toEqual(null);
-                expect(p.state).toEqual('ACTIVE');
-                expect(p.description).toEqual(options.description);
-                expect(p.createTime).not.toBeUndefined();
+                expect(p.pipelineName).to.eql(options.pipelineName);
+                expect(p.sourceBucket).to.eql(options.sourceBucket);
+                expect(p.targetBucket).to.eql(options.targetBucket);
+                expect(p.config.capacity).to.eql(options.config.capacity);
+                expect(p.config.notification).to.eql(null);
+                expect(p.state).to.eql('ACTIVE');
+                expect(p.description).to.eql(options.description);
+                expect(p.createTime).not.to.beUndefined();
 
                 return pipeline.getTranscodingJobs();
             })
             .then(function (response) {
-                expect(response.body.jobs).toEqual([]);
+                expect(response.body.jobs).to.eql([]);
                 return pipeline.addTranscodingJob({
                     source: {
                         sourceKey: 'big_buck_bunny_720p_surround.avi'
@@ -192,16 +195,16 @@ describe('MctClient', function () {
                 });
             })
             .then(function (job) {
-                expect(job._jobId).not.toBe(null);
+                expect(job._jobId).not.to.be(null);
                 return job.get();
             })
             .then(function (response) {
                 var jobInfo = response.body;
-                expect(jobInfo.pipelineName).toEqual(pipelineName);
-                expect(jobInfo.source).toEqual({
+                expect(jobInfo.pipelineName).to.eql(pipelineName);
+                expect(jobInfo.source).to.eql({
                     sourceKey: 'big_buck_bunny_720p_surround.avi'
                 });
-                expect(jobInfo.target).toEqual({
+                expect(jobInfo.target).to.eql({
                     targetKey: 'big_buck_bunny_720p_surround.avi',
                     presetName: 'bce.video_mp4_1920x1080_3660kbps'
                 });
@@ -231,7 +234,7 @@ describe('MctClient', function () {
                 });
             })
             .then(function (job) {
-                expect(job._jobId).not.toBe(null);
+                expect(job._jobId).not.to.be(null);
             })
             .catch(fail)
             .fin(done);
@@ -249,12 +252,12 @@ describe('MctClient', function () {
                 return preset.create(options);
             })
             .then(function (response) {
-                expect(preset._name).toEqual(target);
-                expect(response.body).toEqual({});
+                expect(preset._name).to.eql(target);
+                expect(response.body).to.eql({});
                 return preset.get();
             })
             .then(function (response) {
-                expect(response.body.presetName).toEqual(target);
+                expect(response.body.presetName).to.eql(target);
                 return preset.remove();
             })
             .catch(fail)

@@ -18,6 +18,7 @@ var fs = require('fs');
 var Q = require('q');
 var u = require('underscore');
 var debug = require('debug')('face_client.spec');
+var expect = require('expect.js');
 
 var config = require('../config');
 var crypto = require('../../src/crypto');
@@ -28,8 +29,10 @@ describe('FaceClient', function () {
     var client;
     var fail;
 
+    this.timeout(10 * 60 * 1000);
+
     beforeEach(function () {
-        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
+        // jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
         fail = helper.fail(this);
         client = new FaceClient(config.face);
     });
@@ -79,7 +82,7 @@ describe('FaceClient', function () {
     it('createApp & listApps', function (done) {
         client.listApps()
             .then(function (response) {
-                expect(Array.isArray(response.body.apps)).toBe(true);
+                expect(Array.isArray(response.body.apps)).to.be(true);
                 if (!response.body.apps.length) {
                     return client.createApp('leeight');
                 }
@@ -93,7 +96,7 @@ describe('FaceClient', function () {
             })
             .then(function (response) {
                 debug('response = %j', response);
-                expect(response.body.appId).not.toBeUndefined();
+                expect(response.body.appId).not.to.be(undefined);
             })
             .catch(fail)
             .fin(done);
@@ -138,7 +141,7 @@ describe('FaceClient', function () {
             })
             .then(function (response) {
                 debug('getGroup = %j', response);
-                expect(response.body).toEqual({groupName: 'mygroup'});
+                expect(response.body).to.eql({groupName: 'mygroup'});
             })
             .catch(fail)
             .fin(done);
@@ -189,7 +192,7 @@ describe('FaceClient', function () {
                 return client.listPersons(appId, {groupName: groupName2});
             })
             .then(function (response) {
-                expect(response.body).toEqual({
+                expect(response.body).to.eql({
                     persons: [
                         {
                             personName: personName2,
@@ -240,7 +243,7 @@ describe('FaceClient', function () {
             })
             .then(function (response) {
                 debug('getGroup = %j', response);
-                expect(response.body).toEqual({groupName: groupName});
+                expect(response.body).to.eql({groupName: groupName});
                 return client.createPerson(appId, groupName, personName, faces);
             })
             .then(function (response) {
@@ -248,8 +251,8 @@ describe('FaceClient', function () {
             })
             .then(function (response) {
                 return client.createPerson(appId, groupName, personName, faces).catch(function (error) {
-                    expect(error.status_code).toEqual(400);
-                    expect(error.code).toEqual('DuplicatePerson');
+                    expect(error.status_code).to.eql(400);
+                    expect(error.code).to.eql('DuplicatePerson');
                 });
             })
             .then(function () {
@@ -259,7 +262,7 @@ describe('FaceClient', function () {
                 return client.getPerson(appId, personName);
             })
             .then(function (response) {
-                expect(response.body).toEqual({
+                expect(response.body).to.eql({
                     personName: personName,
                     groupName: groupName,
                     faces: [
@@ -274,7 +277,7 @@ describe('FaceClient', function () {
             })
             .then(function (response) {
                 debug('Verify Response = %j', response);
-                expect(response.body).toEqual({
+                expect(response.body).to.eql({
                     personName: personName,
                     confidence: 100
                 });
@@ -283,7 +286,7 @@ describe('FaceClient', function () {
             })
             .then(function (response) {
                 debug('Identify Response = %j', response);
-                expect(response.body).toEqual({
+                expect(response.body).to.eql({
                     personName: personName,
                     confidence: 100
                 });
@@ -300,7 +303,7 @@ describe('FaceClient', function () {
             .then(function (response) {
                 var persons = response.body.persons;
                 debug('Persons = %j', persons);
-                expect(persons.length).toEqual(0);
+                expect(persons.length).to.eql(0);
             })
             .catch(fail)
             .fin(done);

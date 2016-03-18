@@ -20,6 +20,7 @@ var path = require('path');
 var fs = require('fs');
 
 var debug = require('debug')('ses_client.spec');
+var expect = require('expect.js');
 
 var config = require('../config');
 var SesClient = require('../../').SesClient;
@@ -29,8 +30,10 @@ describe('SesClient', function () {
     var fail;
     var client;
 
+    this.timeout(10 * 60 * 1000);
+
     beforeEach(function () {
-        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
+        // jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
 
         fail = helper.fail(this);
 
@@ -48,9 +51,9 @@ describe('SesClient', function () {
             debug('%j', response);
         }).catch(function (error) {
             if (error.code == '207') {
-                expect(error.status_code).toEqual(500);
-                expect(error.message).toEqual('mail addr [liyubei@baidu.com] already verified, please not re-verify');
-                expect(error.code).toEqual('207');
+                expect(error.status_code).to.eql(500);
+                expect(error.message).to.eql('mail addr [liyubei@baidu.com] already verified, please not re-verify');
+                expect(error.code).to.eql('207');
             }
             else {
                 fail(error);
@@ -61,7 +64,7 @@ describe('SesClient', function () {
     it('getAllVerifiedEmails', function (done) {
         client.getAllVerifiedEmails()
             .then(function (response) {
-                expect(response.body).toEqual({
+                expect(response.body).to.eql({
                     details: [
                         {
                             address: 'liyubei@baidu.com',
@@ -110,15 +113,15 @@ describe('SesClient', function () {
                 }
             ]
         }).then(function (response) {
-            expect(response.body.message_id).not.toBeUndefined();
+            expect(response.body.message_id).not.to.be(undefined);
         }).catch(fail).fin(done);
     });
 
     it('getQuota', function (done) {
         client.getQuota().then(function (response) {
-            expect(response.body.maxPerDay).not.toBeUndefined();
-            expect(response.body.maxPerSecond).not.toBeUndefined();
-            expect(response.body.usedToday).not.toBeUndefined();
+            expect(response.body.maxPerDay).not.to.be(undefined);
+            expect(response.body.maxPerSecond).not.to.be(undefined);
+            expect(response.body.usedToday).not.to.be(undefined);
         }).catch(fail).fin(done);
     });
 
@@ -127,7 +130,7 @@ describe('SesClient', function () {
             maxPerDay: 100
         };
         client.setQuota(quota).then(function (response) {
-            expect(response.body).toEqual({});
+            expect(response.body).to.eql({});
         }).catch(fail).fin(done);
     });
 });

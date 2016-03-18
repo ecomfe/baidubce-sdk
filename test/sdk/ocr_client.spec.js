@@ -17,6 +17,7 @@ var fs = require('fs');
 
 var Q = require('q');
 var u = require('underscore');
+var expect = require('expect.js');
 var debug = require('debug')('ocr_client.spec');
 
 var config = require('../config');
@@ -27,6 +28,8 @@ var helper = require('./helper');
 describe('OCRClient', function () {
     var client;
     var fail;
+
+    this.timeout(10 * 60 * 1000);
 
     beforeEach(function () {
         fail = helper.fail(this);
@@ -40,7 +43,7 @@ describe('OCRClient', function () {
         client.allText(data)
             .then(function (response) {
                 debug('%j', response);
-                expect(response.body).toEqual({
+                expect(response.body).to.eql({
                     results: [
                         {rectangle: {left: 39, top: 11, width: 38, height: 13}, word: '  王保清'},
                         {rectangle: {left: 60, top: 39, width: 158, height: 15}, word: '  成'},
@@ -58,7 +61,7 @@ describe('OCRClient', function () {
         client.oneLine(data)
             .then(function (response) {
                 debug('%j', response);
-                expect(response.body).toEqual({
+                expect(response.body).to.eql({
                     results: [
                         {
                             rectangle: {left: 0, top: 0, width: 1071, height: 29},
@@ -76,7 +79,7 @@ describe('OCRClient', function () {
         client.singleCharacter(data)
             .then(function (response) {
                 debug('%j', response);
-                expect(response.body).toEqual({
+                expect(response.body).to.eql({
                     "results": [
                         {"word":"图", "confidence":0.999907},
                         {"word":"圈", "confidence":0.000059},

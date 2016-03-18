@@ -17,6 +17,7 @@ var fs = require('fs');
 
 var Q = require('q');
 var u = require('underscore');
+var expect = require('expect.js');
 var debug = require('debug')('bos_client.spec');
 
 var config = require('../config');
@@ -31,8 +32,10 @@ describe('BosClient', function() {
     var key;
     var filename;
 
+    this.timeout(10 * 60 * 1000);
+
     beforeEach(function() {
-        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
+        // jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
 
         fail = helper.fail(this);
 
@@ -89,8 +92,8 @@ describe('BosClient', function() {
                 var buckets = u.filter(response.body.buckets, function (bucket) {
                     return /^test\-bucket/.test(bucket);
                 });
-                expect(buckets.length).toEqual(0);
-                // expect(response.body.owner).toEqual(config.bos.account);
+                expect(buckets.length).to.eql(0);
+                // expect(response.body.owner).to.eql(config.bos.account);
             })
             .catch(fail)
             .fin(done);
@@ -99,7 +102,7 @@ describe('BosClient', function() {
     it('doesBucketExist', function(done) {
         client.doesBucketExist(bucket)
             .then(function(response) {
-                expect(response).toBe(false);
+                expect(response).to.be(false);
             })
             .catch(fail)
             .fin(done);
@@ -111,7 +114,7 @@ describe('BosClient', function() {
                 return client.doesBucketExist(bucket)
             })
             .then(function(response) {
-                expect(response).toBe(true);
+                expect(response).to.be(true);
             })
             .then(function() {
                 return client.deleteBucket(bucket);
@@ -120,7 +123,7 @@ describe('BosClient', function() {
                 return client.doesBucketExist(bucket)
             })
             .then(function(response) {
-                expect(response).toBe(false);
+                expect(response).to.be(false);
             })
             .catch(fail)
             .fin(done);
@@ -172,8 +175,8 @@ describe('BosClient', function() {
                 return client.getBucketAcl(bucket)
             })
             .then(function(response) {
-                expect(response.body.accessControlList[0]).toEqual(grant_list[0]);
-                expect(response.body.accessControlList[1]).toEqual(grant_list[1]);
+                expect(response.body.accessControlList[0]).to.eql(grant_list[0]);
+                expect(response.body.accessControlList[1]).to.eql(grant_list[1]);
             })
             .catch(fail)
             .fin(done);
@@ -190,8 +193,8 @@ describe('BosClient', function() {
                 fail('should not reach here');
             })
             .catch(function (error) {
-                expect(error.status_code).toEqual(400);
-                expect(error.code).toEqual('BadDigest');
+                expect(error.status_code).to.eql(400);
+                expect(error.code).to.eql('BadDigest');
             })
             .fin(done);
     });
@@ -206,8 +209,8 @@ describe('BosClient', function() {
                 return client.getObjectMetadata(bucket, key);
             })
             .then(function(response) {
-                expect(response.http_headers['content-length']).toEqual('11');
-                expect(response.http_headers['content-md5']).toEqual(
+                expect(response.http_headers['content-length']).to.eql('11');
+                expect(response.http_headers['content-md5']).to.eql(
                     require('../../src/crypto').md5sum('hello world')
                 );
             })
@@ -225,8 +228,8 @@ describe('BosClient', function() {
                 return client.getObjectMetadata(bucket, objectName);
             })
             .then(function(response) {
-                expect(response.http_headers['content-length']).toEqual('11');
-                expect(response.http_headers['content-md5']).toEqual(
+                expect(response.http_headers['content-length']).to.eql('11');
+                expect(response.http_headers['content-md5']).to.eql(
                     require('../../src/crypto').md5sum('hello world')
                 );
 
@@ -237,14 +240,14 @@ describe('BosClient', function() {
                 return helper.get(url);
             })
             .then(function (body) {
-                expect(body.toString()).toEqual('hello ');
+                expect(body.toString()).to.eql('hello ');
                 return client.generatePresignedUrl(bucket, objectName);
             })
             .then(function (url) {
                 return helper.get(url);
             })
             .then(function (body) {
-               expect(body.toString()).toEqual('hello world');
+               expect(body.toString()).to.eql('hello world');
             })
             .catch(fail)
             .fin(done);
@@ -259,8 +262,8 @@ describe('BosClient', function() {
                 return client.getObjectMetadata(bucket, key);
             })
             .then(function(response) {
-                expect(response.http_headers['content-length']).toEqual('11');
-                expect(response.http_headers['content-md5']).toEqual(
+                expect(response.http_headers['content-length']).to.eql('11');
+                expect(response.http_headers['content-md5']).to.eql(
                     require('../../src/crypto').md5sum('hello world')
                 );
 
@@ -271,14 +274,14 @@ describe('BosClient', function() {
                 return helper.get(url);
             })
             .then(function (body) {
-                expect(body.toString()).toEqual('hello ');
+                expect(body.toString()).to.eql('hello ');
                 return client.generatePresignedUrl(bucket, key);
             })
             .then(function (url) {
                 return helper.get(url);
             })
             .then(function (body) {
-               expect(body.toString()).toEqual('hello world');
+               expect(body.toString()).to.eql('hello world');
             })
             .catch(fail)
             .fin(done);
@@ -293,11 +296,11 @@ describe('BosClient', function() {
                 return client.getObjectMetadata(bucket, path.basename(__filename));
             })
             .then(function(response) {
-                expect(response.http_headers['content-length']).toEqual('' + fs.lstatSync(__filename).size);
-                expect(response.http_headers['content-type']).toEqual('application/javascript');
+                expect(response.http_headers['content-length']).to.eql('' + fs.lstatSync(__filename).size);
+                expect(response.http_headers['content-type']).to.eql('application/javascript');
                 return require('../../src/crypto').md5file(__filename)
                     .then(function(md5sum) {
-                        expect(response.http_headers['content-md5']).toEqual(md5sum);
+                        expect(response.http_headers['content-md5']).to.eql(md5sum);
                     });
             })
             .catch(fail)
@@ -316,11 +319,11 @@ describe('BosClient', function() {
                 return client.getObjectMetadata(bucket, path.basename(__filename))
             })
             .then(function(response) {
-                expect(response.http_headers['content-length']).toEqual('100');
-                expect(response.http_headers['content-type']).toEqual('application/javascript');
+                expect(response.http_headers['content-length']).to.eql('100');
+                expect(response.http_headers['content-type']).to.eql('application/javascript');
                 return require('../../src/crypto').md5stream(fs.createReadStream(__filename, {start: 0, end: 99}))
                     .then(function(md5sum) {
-                        expect(response.http_headers['content-md5']).toEqual(md5sum);
+                        expect(response.http_headers['content-md5']).to.eql(md5sum);
                     });
             })
             .catch(fail)
@@ -331,14 +334,14 @@ describe('BosClient', function() {
         var invalidBucketName = 'invalid-bucket-你好\\&1231@#@#@';
         client.createBucket(invalidBucketName)
             .catch(function (error) {
-                expect(error.status_code).toEqual(400);
-                expect(error.code).toEqual('InvalidBucketName');
+                expect(error.status_code).to.eql(400);
+                expect(error.code).to.eql('InvalidBucketName');
                 invalidBucketName = 'xinglubucket\'xinglubucket1213213123';
                 return client.createBucket(invalidBucketName)
             })
             .catch(function (error) {
-                expect(error.status_code).toEqual(400);
-                expect(error.code).toEqual('InvalidBucketName');
+                expect(error.status_code).to.eql(400);
+                expect(error.code).to.eql('InvalidBucketName');
             })
             .fin(done);
     });
@@ -352,10 +355,10 @@ describe('BosClient', function() {
                 return client.getObject(bucket, path.basename(__filename));
             })
             .then(function(response) {
-                expect(response.http_headers['content-length']).toEqual('' + fs.lstatSync(__filename).size);
-                expect(response.http_headers['content-type']).toEqual('application/javascript');
-                expect(Buffer.isBuffer(response.body)).toEqual(true);
-                expect(response.body.length).toEqual(fs.lstatSync(__filename).size);
+                expect(response.http_headers['content-length']).to.eql('' + fs.lstatSync(__filename).size);
+                expect(response.http_headers['content-type']).to.eql('application/javascript');
+                expect(Buffer.isBuffer(response.body)).to.eql(true);
+                expect(response.body.length).to.eql(fs.lstatSync(__filename).size);
             })
             .catch(fail)
             .fin(done);
@@ -370,8 +373,8 @@ describe('BosClient', function() {
                 return client.getObject(bucket, path.basename(__filename) + '.failed');
             })
             .catch(function (response) {
-                expect(response.status_code).toEqual(404);
-                expect(response.code).toEqual('NoSuchKey');
+                expect(response.status_code).to.eql(404);
+                expect(response.code).to.eql('NoSuchKey');
             })
             .fin(done);
     });
@@ -386,11 +389,11 @@ describe('BosClient', function() {
             })
             .then(function(response) {
                 var filesize = fs.lstatSync(__filename).size;
-                expect(response.http_headers['content-length']).toEqual('11');
-                expect(response.http_headers['content-type']).toEqual('application/javascript');
-                expect(response.http_headers['content-range']).toEqual('bytes 9-19/' + filesize);
-                expect(Buffer.isBuffer(response.body)).toEqual(true);
-                expect(response.body.length).toEqual(11);
+                expect(response.http_headers['content-length']).to.eql('11');
+                expect(response.http_headers['content-type']).to.eql('application/javascript');
+                expect(response.http_headers['content-range']).to.eql('bytes 9-19/' + filesize);
+                expect(Buffer.isBuffer(response.body)).to.eql(true);
+                expect(response.body.length).to.eql(11);
             })
             .catch(fail)
             .fin(done);
@@ -406,11 +409,11 @@ describe('BosClient', function() {
             })
             .then(function(response) {
                 debug('response = %j', response);
-                expect(fs.existsSync(filename)).toEqual(true);
+                expect(fs.existsSync(filename)).to.eql(true);
                 var filesize = fs.lstatSync(filename).size;
-                expect(response.http_headers['content-length']).toEqual('' + filesize);
-                expect(response.http_headers['content-type']).toEqual('application/javascript');
-                expect(response.body).toEqual({});
+                expect(response.http_headers['content-length']).to.eql('' + filesize);
+                expect(response.http_headers['content-type']).to.eql('application/javascript');
+                expect(response.body).to.eql({});
                 fs.unlinkSync(filename);
             })
             .catch(fail)
@@ -426,12 +429,12 @@ describe('BosClient', function() {
                 return client.getObjectToFile(bucket, path.basename(__filename), filename, '9-19');
             })
             .then(function(response) {
-                expect(fs.existsSync(filename)).toEqual(true);
+                expect(fs.existsSync(filename)).to.eql(true);
                 var filesize = fs.lstatSync(filename).size;
-                expect(filesize).toEqual(11);
-                expect(response.http_headers['content-length']).toEqual('11');
-                expect(response.http_headers['content-type']).toEqual('application/javascript');
-                expect(response.body).toEqual({});
+                expect(filesize).to.eql(11);
+                expect(response.http_headers['content-length']).to.eql('11');
+                expect(response.http_headers['content-type']).to.eql('application/javascript');
+                expect(response.body).to.eql({});
                 fs.unlinkSync(filename);
             })
             .catch(fail)
@@ -461,10 +464,10 @@ describe('BosClient', function() {
                 return client.getObjectMetadata(target_bucket_name, key);
             })
             .then(function(response) {
-                expect(response.http_headers['x-bce-meta-foo1']).toEqual('bar1');
-                expect(response.http_headers['x-bce-meta-foo2']).toEqual('bar2');
-                expect(response.http_headers['x-bce-meta-foo3']).toEqual('bar3');
-                expect(response.http_headers['x-bce-meta-foo4']).toEqual('bar4');
+                expect(response.http_headers['x-bce-meta-foo1']).to.eql('bar1');
+                expect(response.http_headers['x-bce-meta-foo2']).to.eql('bar2');
+                expect(response.http_headers['x-bce-meta-foo3']).to.eql('bar3');
+                expect(response.http_headers['x-bce-meta-foo4']).to.eql('bar4');
             })
             .catch(fail)
             .fin(done);
@@ -496,9 +499,9 @@ describe('BosClient', function() {
                 return client.getObjectMetadata(target_bucket_name, key);
             })
             .then(function(response) {
-                expect(response.http_headers['x-bce-meta-bar1']).toEqual('foo1');
-                expect(response.http_headers['x-bce-meta-bar2']).toEqual('foo2');
-                expect(response.http_headers['x-bce-meta-bar3']).toEqual('foo3');
+                expect(response.http_headers['x-bce-meta-bar1']).to.eql('foo1');
+                expect(response.http_headers['x-bce-meta-bar2']).to.eql('foo2');
+                expect(response.http_headers['x-bce-meta-bar3']).to.eql('foo3');
             })
             .catch(fail)
             .fin(done);
@@ -568,7 +571,7 @@ describe('BosClient', function() {
             })
             .then(function(response) {
                 fs.unlinkSync(filename);
-                expect(response.body.eTag).toEqual(
+                expect(response.body.eTag).to.eql(
                     '-' + require('../../src/crypto').md5sum(etags, null, 'hex')
                 );
             })
@@ -627,7 +630,7 @@ describe('BosClient', function() {
             })
             .then(function(response) {
                 fs.unlinkSync(filename);
-                expect(response.body.eTag).toEqual('e57598cd670284cf7d09e16ed9d4b2ac');
+                expect(response.body.eTag).to.eql('e57598cd670284cf7d09e16ed9d4b2ac');
             })
             .catch(fail)
             .fin(done);

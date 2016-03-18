@@ -11,14 +11,16 @@
 * specific language governing permissions and limitations under the License.
 */
 
+var expect = require('expect.js');
+
 var MimeType = require('../../src/mime.types');
 
 describe('MimeType', function() {
     it('guess', function() {
-        expect(MimeType.guess('.txt')).toEqual('text/plain');
-        expect(MimeType.guess('.tXT')).toEqual('text/plain');
-        expect(MimeType.guess('txt')).toEqual('text/plain');
-        expect(MimeType.guess('')).toEqual('application/octet-stream');
+        expect(MimeType.guess('.txt')).to.eql('text/plain');
+        expect(MimeType.guess('.tXT')).to.eql('text/plain');
+        expect(MimeType.guess('txt')).to.eql('text/plain');
+        expect(MimeType.guess('')).to.eql('application/octet-stream');
     });
 });
 

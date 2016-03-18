@@ -17,6 +17,7 @@ var fs = require('fs');
 
 var Q = require('q');
 var u = require('underscore');
+var expect = require('expect.js');
 
 var config = require('../config');
 var crypto = require('../../src/crypto');
@@ -27,8 +28,10 @@ describe('BcsClient', function () {
     var client;
     var fail;
 
+    this.timeout(10 * 60 * 1000);
+
     beforeEach(function () {
-        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
+        // jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
 
         fail = helper.fail(this);
         client = new BcsClient(config.bcs);
@@ -43,11 +46,11 @@ describe('BcsClient', function () {
         var object = 'this/is/the/path/a.txt';
         client.putObjectFromString(bucket, object, 'Hello world')
             .then(function (response) {
-                expect(response.http_headers['etag']).toEqual('3e25960a79dbc69b674cd4ec67a72c62');
+                expect(response.http_headers['etag']).to.eql('3e25960a79dbc69b674cd4ec67a72c62');
                 return client.deleteObject(bucket, object);
             })
             .then(function (response) {
-                expect(response.body).toEqual({});
+                expect(response.body).to.eql({});
             })
             .catch(fail)
             .fin(done);
@@ -58,19 +61,19 @@ describe('BcsClient', function () {
         var object = 'a.txt';
         client.createBucket(bucket)
             .then(function (response) {
-                expect(response.body).toEqual({});
+                expect(response.body).to.eql({});
                 return client.putObjectFromString(bucket, object, 'Hello world');
             })
             .then(function (response) {
-                expect(response.http_headers['etag']).toEqual('3e25960a79dbc69b674cd4ec67a72c62');
+                expect(response.http_headers['etag']).to.eql('3e25960a79dbc69b674cd4ec67a72c62');
                 return client.deleteObject(bucket, object);
             })
             .then(function (response) {
-                expect(response.body).toEqual({});
+                expect(response.body).to.eql({});
                 return client.deleteBucket(bucket);
             })
             .then(function (response) {
-                expect(response.body).toEqual({});
+                expect(response.body).to.eql({});
             })
             .catch(fail)
             .fin(done);
@@ -83,7 +86,7 @@ describe('BcsClient', function () {
                 return client.getBucketAcl(bucket);
             })
             .then(function (response) {
-                expect(response.body).toEqual({
+                expect(response.body).to.eql({
                     "statements": [
                         {
                             "action": [
@@ -131,7 +134,7 @@ describe('BcsClient', function () {
                 return client.listObjects(bucket);
             })
             .then(function (response) {
-                expect(response.body).toEqual({
+                expect(response.body).to.eql({
                     object_total: 0,
                     bucket: 'bcs-client-testcase',
                     start: 0,
@@ -142,7 +145,7 @@ describe('BcsClient', function () {
                 return client.listObjects(bucket, {start: 1, limit: 7});
             })
             .then(function (response) {
-                expect(response.body).toEqual({
+                expect(response.body).to.eql({
                     object_total: 0,
                     bucket: 'bcs-client-testcase',
                     start: 1,
@@ -158,7 +161,7 @@ describe('BcsClient', function () {
         var bucket = 'bcs-client-testcase';
         client.createBucket(bucket)
             .then(function (response) {
-                expect(response.body).toEqual({});
+                expect(response.body).to.eql({});
                 return client.putObjectFromString(bucket, 'a.txt', 'Hello world');
             })
             .then(function (response) {
@@ -169,7 +172,7 @@ describe('BcsClient', function () {
                 return client.getObjectMetadata(bucket, 'a.txt');
             })
             .catch(function (response) {
-                expect(response).toEqual({
+                expect(response).to.eql({
                     'status_code': 403,
                     'message': {}
                 });
@@ -180,7 +183,7 @@ describe('BcsClient', function () {
     it('listBuckets', function (done) {
         client.listBuckets()
             .then(function (response) {
-                expect(Array.isArray(response.body)).toBe(true);
+                expect(Array.isArray(response.body)).to.be(true);
             })
             .catch(fail)
             .fin(done);
@@ -190,12 +193,12 @@ describe('BcsClient', function () {
         var bucket = 'adtest';
         client.putObjectFromFile(bucket, path.basename(__filename), __filename)
             .then(function(response) {
-                expect(response.http_headers['x-bs-bucket']).toEqual(bucket);
-                expect(response.http_headers['x-bs-file-size']).toEqual('' + fs.lstatSync(__filename).size);
+                expect(response.http_headers['x-bs-bucket']).to.eql(bucket);
+                expect(response.http_headers['x-bs-file-size']).to.eql('' + fs.lstatSync(__filename).size);
                 return crypto.md5file(__filename, 'hex')
                     .then(function(md5sum) {
-                        expect(response.http_headers['content-md5']).toEqual(md5sum);
-                        expect(response.http_headers['etag']).toEqual(md5sum);
+                        expect(response.http_headers['content-md5']).to.eql(md5sum);
+                        expect(response.http_headers['etag']).to.eql(md5sum);
                     });
             })
             .then(function() {
@@ -203,7 +206,7 @@ describe('BcsClient', function () {
             })
             .then(function (response) {
                 // console.log(response);
-                expect(response.http_headers['content-length']).toEqual('' + fs.lstatSync(__filename).size);
+                expect(response.http_headers['content-length']).to.eql('' + fs.lstatSync(__filename).size);
             })
             .catch(fail)
             .fin(done);
@@ -215,11 +218,11 @@ describe('BcsClient', function () {
         client.listObjects(bucket, {start: 1, limit: 3})
             .then(function (response) {
                 // object_total 居然是 object_list.length，有卵用?
-                expect(response.body.object_total).toEqual(3);
-                expect(response.body.bucket).toEqual('adtest');
-                expect(response.body.start).toEqual(1);
-                expect(response.body.limit).toEqual(3);
-                expect(response.body.object_list.length).toEqual(3);
+                expect(response.body.object_total).to.eql(3);
+                expect(response.body.bucket).to.eql('adtest');
+                expect(response.body.start).to.eql(1);
+                expect(response.body.limit).to.eql(3);
+                expect(response.body.object_list.length).to.eql(3);
             })
             .catch(fail)
             .fin(done);

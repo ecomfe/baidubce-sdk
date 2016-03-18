@@ -20,6 +20,7 @@ var fs = require('fs');
 var Q = require('q');
 var u = require('underscore');
 var debug = require('debug')('vod_client.spec');
+var expect = require('expect.js');
 
 var config = require('../config');
 var VodClient = require('../../').VodClient;
@@ -44,8 +45,10 @@ describe('VodClient', function () {
     var title = 'testTitle' + (+new Date());
     var description = 'testDescription' + (+new Date());
 
+    this.timeout(10 * 60 * 1000);
+
     beforeEach(function () {
-        jasmine.getEnv().defaultTimeoutInterval = 5 * 60 * 1000;
+        // jasmine.getEnv().defaultTimeoutInterval = 5 * 60 * 1000;
 
         fail = helper.fail(this);
     });
@@ -61,7 +64,7 @@ describe('VodClient', function () {
             .then(function (response) {
                 debug(response);
                 mediaId = response.body.mediaId;
-                expect(mediaId).not.toBeUndefined();
+                expect(mediaId).not.to.be(undefined);
                 return helper.loop(240, 30, function () {
                     return vod.getMediaResource(mediaId)
                         .then(function (response) {
@@ -77,21 +80,21 @@ describe('VodClient', function () {
     });
 
     it('Get Media Source', function (done) {
-        expect(mediaId).not.toBeUndefined();
+        expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
         vod.getMediaResource(mediaId)
             .then(function (response) {
                 debug(response);
-                expect(response.body.mediaId).toEqual(mediaId);
-                expect(response.body.attributes.title).toEqual(title);
-                expect(response.body.attributes.description).toEqual(description);
+                expect(response.body.mediaId).to.eql(mediaId);
+                expect(response.body.attributes.title).to.eql(title);
+                expect(response.body.attributes.description).to.eql(description);
             })
             .catch(fail)
             .fin(done);
     });
 
     it('Get All Media Sources', function (done) {
-        expect(mediaId).not.toBeUndefined();
+        expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
         vod.listMediaResource()
             .then(function (response) {
@@ -99,16 +102,16 @@ describe('VodClient', function () {
                 var uploadMedia = u.filter(response.body.media, function (media) {
                     return media.mediaId === mediaId;
                 });
-                expect(uploadMedia.length).toEqual(1);
-                expect(uploadMedia[0].attributes.title).toEqual(title);
-                expect(uploadMedia[0].attributes.description).toEqual(description);
+                expect(uploadMedia.length).to.eql(1);
+                expect(uploadMedia[0].attributes.title).to.eql(title);
+                expect(uploadMedia[0].attributes.description).to.eql(description);
             })
             .catch(fail)
             .fin(done);
     });
 
     it('Disable Media Source', function (done) {
-        expect(mediaId).not.toBeUndefined();
+        expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
         vod.stopMediaResource(mediaId)
             .then(function () {
@@ -116,15 +119,15 @@ describe('VodClient', function () {
             })
             .then(function (response) {
                 debug(response);
-                expect(response.body.mediaId).toEqual(mediaId);
-                expect(response.body.status).toEqual(MediaStatus.DISABLED);
+                expect(response.body.mediaId).to.eql(mediaId);
+                expect(response.body.status).to.eql(MediaStatus.DISABLED);
             })
             .catch(fail)
             .fin(done);
     });
 
     it('Publish Media Source', function (done) {
-        expect(mediaId).not.toBeUndefined();
+        expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
         vod.publishMediaResource(mediaId)
             .then(function () {
@@ -132,15 +135,15 @@ describe('VodClient', function () {
             })
             .then(function (response) {
                 debug(response);
-                expect(response.body.mediaId).toEqual(mediaId);
-                expect(response.body.status).toEqual(MediaStatus.PUBLISHED);
+                expect(response.body.mediaId).to.eql(mediaId);
+                expect(response.body.status).to.eql(MediaStatus.PUBLISHED);
             })
             .catch(fail)
             .fin(done);
     });
 
     it('Update Media Source', function (done) {
-        expect(mediaId).not.toBeUndefined();
+        expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
         title = 'updateTitle' + (+new Date());
         description = 'updateDescription' + (+new Date());
@@ -150,16 +153,16 @@ describe('VodClient', function () {
             })
             .then(function (response) {
                 debug(response);
-                expect(response.body.mediaId).toEqual(mediaId);
-                expect(response.body.attributes.title).toEqual(title);
-                expect(response.body.attributes.description).toEqual(description);
+                expect(response.body.mediaId).to.eql(mediaId);
+                expect(response.body.attributes.title).to.eql(title);
+                expect(response.body.attributes.description).to.eql(description);
             })
             .catch(fail)
             .fin(done);
     });
 
     it('Get Player Code', function (done) {
-        expect(mediaId).not.toBeUndefined();
+        expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
         vod.getPlayerCode(mediaId, 800, 600, true)
             .then(function (response) {
@@ -167,13 +170,13 @@ describe('VodClient', function () {
                 var codes = u.filter(response.body.codes, function (code) {
                     return u.contains(CodeType, code.codeType);
                 });
-                expect(codes.length).toEqual(3);
+                expect(codes.length).to.eql(3);
                 u.each(codes, function (code) {
                     if (code.codeType === 'url') {
-                        expect(code.sourceCode).toMatch(/^http:\/\//);
+                        expect(code.sourceCode).to.match(/^http:\/\//);
                     }
                     else {
-                        expect(code.sourceCode).toMatch(/[a-zA-Z0-9+/]+/);
+                        expect(code.sourceCode).to.match(/[a-zA-Z0-9+/]+/);
                     }
                 });
             })
@@ -182,20 +185,20 @@ describe('VodClient', function () {
     });
 
     it('Get Playable Url', function (done) {
-        expect(mediaId).not.toBeUndefined();
+        expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
         vod.getPlayableUrl(mediaId)
             .then(function (response) {
                 debug(response);
-                expect(response.body.result.file).toMatch(/^http:\/\//);
-                expect(response.body.result.media_id).toEqual(mediaId);
+                expect(response.body.result.file).to.match(/^http:\/\//);
+                expect(response.body.result.media_id).to.eql(mediaId);
             })
             .catch(fail)
             .fin(done);
     });
 
     it('Delete Media Source', function (done) {
-        expect(mediaId).not.toBeUndefined();
+        expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
         vod.deleteMediaResource(mediaId)
             .then(function () {
@@ -206,7 +209,7 @@ describe('VodClient', function () {
                 var uploadMedia = u.filter(response.body.media, function (media) {
                     return media.mediaId === mediaId;
                 });
-                expect(uploadMedia.length).toEqual(0);
+                expect(uploadMedia.length).to.eql(0);
             })
             .catch(fail)
             .fin(done);

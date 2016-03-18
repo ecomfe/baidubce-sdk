@@ -20,6 +20,7 @@ var fs = require('fs');
 
 var Q = require('q');
 var u = require('underscore');
+var expect = require('expect.js');
 var debug = require('debug')('sts.spec');
 
 var config = require('../config');
@@ -37,6 +38,8 @@ describe('STS', function () {
     var bosClient = new BosClient(config.bos);
     var defaultText = 'hello world';
 
+    this.timeout(10 * 60 * 1000);
+
     function clearBucket(bucketName) {
         return bosClient.listObjects(bucketName)
             .then(function (response) {
@@ -49,7 +52,7 @@ describe('STS', function () {
     }
 
     beforeEach(function (done) {
-        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
+        // jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
 
         fail = helper.fail(this);
 
@@ -95,8 +98,8 @@ describe('STS', function () {
                 return client.getObjectMetadata(bucket, key);
             })
             .then(function (response) {
-                expect(+response.http_headers['content-length']).toEqual(defaultText.length);
-                expect(response.http_headers['content-md5']).toEqual(
+                expect(+response.http_headers['content-length']).to.eql(defaultText.length);
+                expect(response.http_headers['content-md5']).to.eql(
                     require('../../src/crypto').md5sum(defaultText)
                 );
             })
@@ -134,8 +137,8 @@ describe('STS', function () {
                 return client.getObjectMetadata(bucket, key);
             })
             .then(function (response) {
-                expect(+response.http_headers['content-length']).toEqual(newText.length);
-                expect(response.http_headers['content-md5']).toEqual(
+                expect(+response.http_headers['content-length']).to.eql(newText.length);
+                expect(response.http_headers['content-md5']).to.eql(
                     require('../../src/crypto').md5sum(newText)
                 );
             })

@@ -16,19 +16,20 @@ var https = require('https');
 
 var async = require('async');
 var Q = require('q');
+var expect = require('expect.js');
 var debug = require('debug')('helper.spec');
 
 exports.fail = function (spec) {
-    var failImpl = spec.fail.bind(spec);
+    // var failImpl = spec.fail.bind(spec);
     return function (error) {
         if (error instanceof Error) {
-            failImpl(error);
+            expect().fail(error);
         }
         else if (Buffer.isBuffer(error)) {
-            failImpl(new Error(error.toString()));
+            expect().fail(new Error(error.toString()));
         }
         else {
-            failImpl(new Error(JSON.stringify(error)));
+            expect().fail(new Error(JSON.stringify(error)));
         }
     }
 };

@@ -1,3 +1,5 @@
 node_modules
 .idea
 512M.bin
+coverage
+.env
