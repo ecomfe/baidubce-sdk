@@ -6,7 +6,7 @@ var Layout = require("DocsLayout");
 var content = `
 在bce-sdk-js中，所有的服务交互接口均是异步接口，返回一个Promise对象。
 
-以nodejs为例，让我们先初始化一个BosClient：
+以Node.js为例，让我们先初始化一个BosClient：
 
 \`\`\`js
 import {BosClient} from 'bce-sdk-js';
@@ -17,7 +17,7 @@ var config = {
         sk: '您的sk'
     }
 };
-var client = BosClient(config);
+var client = new BosClient(config);
 \`\`\`
 
 然后设想以下流程：
@@ -52,11 +52,11 @@ client.createBucket('bucket-for-test')
 
 在上面的示例中，实际运行时会按照注释中编号的次序执行。通过\`catch\`方法统一处理异常。
 
-这种编程风格过程比较清晰，nodejs端和浏览器端都可以直接使用，bce-sdk-js默认支持这种编程风格。想了解更多关于Promise的api，请参考[此文档](http://documentup.com/kriskowal/q/)。
+这种编程风格过程比较清晰，Node.js端和浏览器端都可以直接使用，bce-sdk-js默认支持这种编程风格。想了解更多关于Promise的api，请参考[此文档](http://documentup.com/kriskowal/q/)。
 
 ## Generator Function实现
 
-可能有些开发者会更习惯同步风格的api调用方式。但由于nodejs语言本身的限制，这种做法并不多见。但在es6中，我们可以使用[Generator Function](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Statements/function*)来进行更灵活的流程控制，这可以帮助我们很方便地实现同步调用的编程风格。
+可能有些开发者会更习惯同步风格的api调用方式。但由于Node.js语言本身的限制，这种做法并不多见。但在es6中，我们可以使用[Generator Function](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Statements/function*)来进行更灵活的流程控制，这可以帮助我们很方便地实现同步调用的编程风格。
 
 为了简化开发，我们需要[co](https://github.com/tj/co)库的配合：
 
@@ -90,7 +90,7 @@ co库的作用是帮助开发者把处理generator中流程的复杂操作省略
 
 ### 兼容情况
 
-* 在nodejs的较新的版本中（建议使用最新的稳定版本），已经提供了es-harmony的支持，而Generator Function的支持亦包含在其中。你可以这样开启：
+* 在Node.js的较新的版本中（建议使用最新的稳定版本），已经提供了es-harmony的支持，而Generator Function的支持亦包含在其中。你可以这样开启：
 
     \`\`\`sh
     node --harmony yourScript.js
@@ -132,7 +132,7 @@ run();
 
 ## javascript预编译器
 
-为了能在浏览器端和nodejs端使用Generator Function和async-await特性，开发者可以使用javascript预编译器对代码进行处理，转成浏览器和nodejs中能够正常执行的版本。下面以[babel](http://babeljs.io/)为例：
+为了能在浏览器端和Node.js端使用Generator Function和async-await特性，开发者可以使用javascript预编译器对代码进行处理，转成浏览器和Node.js中能够正常执行的版本。下面以[babel](http://babeljs.io/)为例：
 
 ### 安装
 
@@ -146,7 +146,7 @@ echo '{ "presets": ["stage-3", "es2015"] }' > .babelrc
 
 ### 编译
 
-假设在original.js中使用了Generator Function和async-await特性，通过以下命令，可以生成compiled.js，这个js文件可以在浏览器端和nodejs端正常运行。
+假设在original.js中使用了Generator Function和async-await特性，通过以下命令，可以生成compiled.js，这个js文件可以在浏览器端和Node.js端正常运行。
 
 \`\`\`sh
 babel original.js -o compiled.js
