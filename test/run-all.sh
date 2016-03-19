@@ -51,7 +51,7 @@ SPECS=(
   test/sdk/sts.spec.js
   test/sdk/crypto.spec.js
   test/sdk/auth.spec.js
-  # test/sdk/doc_client.spec.js
+  test/sdk/doc_client.spec.js
   test/sdk/http_client.spec.js
   test/sdk/mime.types.spec.js
   test/sdk/bos_client.spec.js

@@ -67,6 +67,17 @@ describe('DocClient', function () {
             .fin(done);
     });
 
+    it('createDocument from local file with invalid md5', function (done) {
+        var file = path.join(__dirname, 'doc_client.spec.txt');
+        client.createDocument(file, {meta: {md5: 'haha'}})
+            .catch(function (error) {
+                expect(error.status_code).to.eql(400);
+                expect(error.code).to.eql('BceValidationException');
+                expect(error.message).to.eql('meta.md5:meta.md5=invalid md5 value\n');
+            })
+            .fin(done);
+    });
+
     it('createDocument from buffer without format and title', function (done) {
         var buffer = fs.readFileSync(path.join(__dirname, 'doc_client.spec.txt'));
         client.createDocument(buffer)

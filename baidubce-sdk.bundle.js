@@ -21905,17 +21905,10 @@ exports.formatArgs = formatArgs;
 exports.save = save;
 exports.load = load;
 exports.useColors = useColors;
-
-/**
- * Use chrome.storage.local if we are in an app
- */
-
-var storage;
-
-if (typeof chrome !== 'undefined' && typeof chrome.storage !== 'undefined')
-  storage = chrome.storage.local;
-else
-  storage = localstorage();
+exports.storage = 'undefined' != typeof chrome
+               && 'undefined' != typeof chrome.storage
+                  ? chrome.storage.local
+                  : localstorage();
 
 /**
  * Colors.
@@ -22023,9 +22016,9 @@ function log() {
 function save(namespaces) {
   try {
     if (null == namespaces) {
-      storage.removeItem('debug');
+      exports.storage.removeItem('debug');
     } else {
-      storage.debug = namespaces;
+      exports.storage.debug = namespaces;
     }
   } catch(e) {}
 }
@@ -22040,7 +22033,7 @@ function save(namespaces) {
 function load() {
   var r;
   try {
-    r = storage.debug;
+    r = exports.storage.debug;
   } catch(e) {}
   return r;
 }
@@ -22308,6 +22301,8 @@ module.exports = function(val, options){
  */
 
 function parse(str) {
+  str = '' + str;
+  if (str.length > 10000) return;
   var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
   if (!match) return;
   var n = parseFloat(match[1]);
@@ -25771,7 +25766,7 @@ module.exports={
   "license": "MIT",
   "dependencies": {
     "async": "^1.5.2",
-    "debug": "^2.1.3",
+    "debug": "^2.2.0",
     "q": "^1.1.2",
     "underscore": "^1.7.0"
   },
@@ -25806,7 +25801,7 @@ module.exports={
 
 var util = require('util');
 
-var debug = require('debug')('bce-sdk.auth');
+var debug = require('debug')('bce-sdk:auth');
 
 var H = require('./headers');
 var strings = require('./strings');
@@ -25979,7 +25974,7 @@ module.exports = Auth;
 var util = require('util');
 
 var u = require('underscore');
-var debug = require('debug')('bce-sdk.BccClient');
+var debug = require('debug')('bce-sdk:BccClient');
 
 var BceBaseClient = require('./bce_base_client');
 
@@ -27466,12 +27461,33 @@ exports.md5stream = function (stream, digest) {
     stream.on('end', function () {
         deferred.resolve(md5.digest(digest || 'base64'));
     });
+    stream.on('error', function (error) {
+        deferred.reject(error);
+    });
 
     return deferred.promise;
 };
 
 exports.md5file = function (filename, digest) {
     return exports.md5stream(fs.createReadStream(filename), digest);
+};
+
+exports.md5blob = function (blob, digest) {
+    var deferred = Q.defer();
+
+    var reader = new FileReader();
+    reader.readAsArrayBuffer(blob);
+    reader.onerror = function (e) {
+        deferred.reject(reader.error);
+    };
+    reader.onloadend = function (e) {
+        if (e.target.readyState === FileReader.DONE) {
+            var content = e.target.result;
+            var md5 = exports.md5sum(content, null, digest);
+            deferred.resolve(md5);
+        }
+    };
+    return deferred.promise;
 };
 
 
@@ -27487,6 +27503,7 @@ exports.md5file = function (filename, digest) {
 
 }).call(this,require("buffer").Buffer)
 },{"buffer":179,"crypto":5,"fs":3,"q":186}],196:[function(require,module,exports){
+(function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -27507,15 +27524,22 @@ exports.md5file = function (filename, digest) {
 /* eslint max-params:[0,10] */
 /* eslint fecs-camelcase:[2,{"ignore":["/opt_/"]}] */
 
+var fs = require('fs');
+var path = require('path');
 var util = require('util');
 
 var Q = require('q');
 var u = require('underscore');
-var H = require('./headers');
+var debug = require('debug')('bce-sdk:DocClient');
 
 var BosClient = require('./bos_client');
-var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
+var UploadHelper = require('./helper');
+var crypto = require('./crypto');
+
+var DATA_TYPE_FILE     = 1;
+var DATA_TYPE_BUFFER   = 2;
+var DATA_TYPE_BLOB     = 4;
 
 /**
  * 文档转码任务接口（Job/Transcoding API）
@@ -27527,8 +27551,6 @@ var BceBaseClient = require('./bce_base_client');
  */
 function DocClient(config) {
     BceBaseClient.call(this, config, 'doc', false);
-    this._config = config;
-    this._documentId = null;
 }
 util.inherits(DocClient, BceBaseClient);
 
@@ -27538,112 +27560,130 @@ DocClient.prototype._buildUrl = function () {
     return '/v1/document';
 };
 
-DocClient.prototype.createDocumentFromBlob = function (file, options) {
+/**
+ * Create a document transfer job from local file, buffer, readable stream or blob.
+ *
+ * @param {Blob|Buffer|string} data The document data. If the data type
+ *   is string, which means the file path.
+ * @param {Object=} opt_options The extra options.
+ * @return {Promise}
+ */
+DocClient.prototype.createDocument = function (data, opt_options) {
+    var options = u.extend({meta: {}}, opt_options);
+    var dataType = -1;
+
+    if (u.isString(data)) {
+        dataType = DATA_TYPE_FILE;
+        options.meta.sizeInBytes = fs.lstatSync(data).size;
+        options.format = options.format || path.extname(data).substr(1);
+        options.title = options.title || path.basename(data, path.extname(data));
+    }
+    else if (Buffer.isBuffer(data)) {
+        if (options.format == null || options.title == null) {
+            return Q.reject(new Error('buffer type required options.format and options.title'));
+        }
+        dataType = DATA_TYPE_BUFFER;
+        options.meta.sizeInBytes = data.length;
+        // 同步计算 MD5
+        options.meta.md5 = options.meta.md5 || crypto.md5sum(data, null, 'hex');
+    }
+    else if (typeof Blob !== 'undefined' && data instanceof Blob) {
+        dataType = DATA_TYPE_BLOB;
+        options.meta.sizeInBytes = data.size;
+        options.format = options.format || path.extname(data).substr(1);
+        options.title = options.title || path.basename(data, path.extname(data));
+    }
+    else {
+        return Q.reject(new Error('Unsupported dataType.'));
+    }
+
+    if (!options.title || !options.format) {
+        return Q.reject(new Error('`title` and `format` are required.'));
+    }
+
+    if (options.meta.md5) {
+        return this._doCreateDocument(data, options);
+    }
+
     var self = this;
-    options = options || {};
-    // calc md5 and sizeInBytes
-    var filename = file.name;
-    var tokens = filename.split('.');
-    var format = tokens.pop();
-    var title = tokens.join('.');
-
-    if (!options.format) {
-        options.format = format;
+    if (dataType === DATA_TYPE_FILE) {
+        return crypto.md5stream(fs.createReadStream(data), 'hex')
+            .then(function (md5) {
+                options.meta.md5 = md5;
+                return self._doCreateDocument(data, options);
+            });
     }
-    if (!options.title) {
-        options.title = title;
+    else if (dataType === DATA_TYPE_BLOB) {
+        return crypto.md5blob(data, 'hex')
+            .then(function (md5) {
+                options.meta.md5 = md5;
+                return self._doCreateDocument(data, options);
+            });
     }
-    options.meta = {};
-    options.meta.sizeInBytes = file.size;
+    return this._doCreateDocument(data, options);
+};
 
-    var deffered = function (file) {
-        var deferred = Q.defer();
+DocClient.prototype._doCreateDocument = function (data, options) {
+    var documentId = null;
+    var bucket = null;
+    var object = null;
+    var bosEndpoint = null;
 
-        var reader = new FileReader();
-        reader.readAsArrayBuffer(file);
-        reader.onloadend = function (e) {
-            if (e.target.readyState === FileReader.DONE) {
-                var content = e.target.result;
-                deferred.resolve(content);
-            }
-        };
-        return deferred.promise;
-    };
+    var self = this;
 
-    return deffered(file).then(function (content) {
-        options.meta.md5 = require('./crypto').md5sum(content, 0, 'hex');
-        return doPromise();
-    });
+    return self.registerDocument(options)
+        .then(function (response) {
+            debug('registerDocument[response = %j]', response);
 
-    function doPromise() {
-        // register
-        return self.registerDocument(options).then(function (response) {
-            var regResult = response.body;
-            // upload
-            var bosConfig = JSON.parse(JSON.stringify(self._config));
-            bosConfig.endpoint = regResult.bosEndpoint;
+            documentId = response.body.documentId;
+            bucket = response.body.bucket;
+            object = response.body.object;
+            bosEndpoint = response.body.bosEndpoint;
+
+            var bosConfig = u.extend({}, self.config, {endpoint: bosEndpoint});
             var bosClient = new BosClient(bosConfig);
 
-            return bosClient.putObjectFromBlob(regResult.bucket, regResult.object, file).then(function () {
-                return self.publishDocument(regResult.documentId);
-            });
+            return UploadHelper.upload(bosClient, bucket, object, data);
+        })
+        .then(function (response) {
+            debug('upload[response = %j]', response);
+            return self.publishDocument(documentId);
+        })
+        .then(function (response) {
+            debug('publishDocument[response = %j]', response);
+            return {
+                documentId: documentId,
+                bucket: bucket,
+                object: object,
+                bosEndpoint: bosEndpoint
+            };
         });
-    }
 };
 
 DocClient.prototype.registerDocument = function (options) {
-    var self = this;
-    var url = self._buildUrl();
-    return self.sendRequest('POST', url, {
+    debug('registerDocument[options = %j]', options);
+
+    var url = this._buildUrl();
+    return this.sendRequest('POST', url, {
         params: {register: ''},
         body: JSON.stringify(options)
     });
 };
 
 DocClient.prototype.publishDocument = function (documentId) {
-    var self = this;
-    var url = self._buildUrl();
+    var url = this._buildUrl();
     url = url + '/' + documentId;
-    return self.sendRequest('PUT', url, {
+    return this.sendRequest('PUT', url, {
         params: {publish: ''}
     });
 };
 
 // --- E   N   D ---
 
-DocClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
-    var defaultArgs = {
-        body: null,
-        headers: {},
-        params: {},
-        config: {}
-    };
-    var args = u.extend(defaultArgs, varArgs);
-
-    var config = u.extend({}, this.config, args.config);
-
-    var client = this;
-    var agent = this._httpAgent = new HttpClient(config);
-    u.each(['progress', 'error', 'abort'], function (eventName) {
-        agent.on(eventName, function (evt) {
-            client.emit(eventName, evt);
-        });
-    });
-    if (config.sessionToken) {
-        args.headers[H.SESSION_TOKEN] = config.sessionToken;
-    }
-    return this._httpAgent.sendRequest(httpMethod, resource, args.body,
-        args.headers, args.params, u.bind(this.createSignature, this),
-        args.outputStream
-    );
-};
-
-// exports.DocClient = DocClient;
 module.exports = DocClient;
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
-
-},{"./bce_base_client":191,"./bos_client":193,"./crypto":195,"./headers":198,"./http_client":200,"q":186,"underscore":187,"util":176}],197:[function(require,module,exports){
+}).call(this,{"isBuffer":require("/Volumes/HDD/Users/leeight/local/case/inf/bos/bce-sdk-js/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js")})
+},{"./bce_base_client":191,"./bos_client":193,"./crypto":195,"./helper":199,"/Volumes/HDD/Users/leeight/local/case/inf/bos/bce-sdk-js/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js":153,"debug":183,"fs":3,"path":155,"q":186,"underscore":187,"util":176}],197:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -27667,7 +27707,7 @@ module.exports = DocClient;
 var util = require('util');
 
 var u = require('underscore');
-var debug = require('debug')('bce-sdk.FaceClient');
+var debug = require('debug')('bce-sdk:FaceClient');
 
 var BceBaseClient = require('./bce_base_client');
 
@@ -27974,7 +28014,7 @@ var DATA_TYPE_BLOB     = 4;
  * @param {BosClient} client The bos client instance.
  * @param {string} bucket The bucket name.
  * @param {string} object The object name.
- * @param {Blob|Buffer|Stream|string} data The data.
+ * @param {Blob|Buffer|stream.Readable|string} data The data.
  * @param {Object} options The request options.
  * @return {Promise}
  */
@@ -28177,7 +28217,7 @@ var EventEmitter = require('events').EventEmitter;
 
 var u = require('underscore');
 var Q = require('q');
-var debug = require('debug')('bce-sdk.HttpClient');
+var debug = require('debug')('bce-sdk:HttpClient');
 
 var H = require('./headers');
 
@@ -30584,7 +30624,7 @@ exports.guess = function (ext) {
 
 var util = require('util');
 
-var debug = require('debug')('bce-sdk.OCRClient');
+var debug = require('debug')('bce-sdk:OCRClient');
 
 var BceBaseClient = require('./bce_base_client');
 
