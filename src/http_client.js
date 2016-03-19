@@ -25,7 +25,7 @@ var EventEmitter = require('events').EventEmitter;
 
 var u = require('underscore');
 var Q = require('q');
-var debug = require('debug')('bce-sdk.HttpClient');
+var debug = require('debug')('bce-sdk:HttpClient');
 
 var H = require('./headers');
 

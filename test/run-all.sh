@@ -44,11 +44,14 @@ export STS_SK=${ONLINE_SK}
 
 export VOD_ENDPOINT=http://vod.baidubce.com
 
+export DOC_ENDPOINT=http://doc.baidubce.com
+
 SPECS=(
   test/sdk/upload_helper.spec.js
   test/sdk/sts.spec.js
   test/sdk/crypto.spec.js
   test/sdk/auth.spec.js
+  # test/sdk/doc_client.spec.js
   test/sdk/http_client.spec.js
   test/sdk/mime.types.spec.js
   test/sdk/bos_client.spec.js
@@ -61,6 +64,4 @@ SPECS=(
 )
 
 # node_modules/.bin/mocha ${SPECS[@]}
-# node_modules/.bin/mocha sdk/http_client.spec.js
 node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha --report lcovonly ${SPECS[@]} && cat ./coverage/lcov.info | node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
-# node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha ${SPECS[@]}

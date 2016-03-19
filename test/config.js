@@ -91,6 +91,13 @@ module.exports = {
             'sk': process.env.VOD_SK
         }
     },
+    'doc': {
+        'endpoint': process.env.DOC_ENDPOINT,
+        'credentials': {
+            'ak': process.env.DOC_AK,
+            'sk': process.env.DOC_SK
+        }
+    },
     'sts': {
         // 'endpoint': 'http://multimedia.bce-testinternal.baidu.com',
         'endpoint': process.env.STS_ENDPOINT,

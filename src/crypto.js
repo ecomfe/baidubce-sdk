@@ -42,12 +42,33 @@ exports.md5stream = function (stream, digest) {
     stream.on('end', function () {
         deferred.resolve(md5.digest(digest || 'base64'));
     });
+    stream.on('error', function (error) {
+        deferred.reject(error);
+    });
 
     return deferred.promise;
 };
 
 exports.md5file = function (filename, digest) {
     return exports.md5stream(fs.createReadStream(filename), digest);
+};
+
+exports.md5blob = function (blob, digest) {
+    var deferred = Q.defer();
+
+    var reader = new FileReader();
+    reader.readAsArrayBuffer(blob);
+    reader.onerror = function (e) {
+        deferred.reject(reader.error);
+    };
+    reader.onloadend = function (e) {
+        if (e.target.readyState === FileReader.DONE) {
+            var content = e.target.result;
+            var md5 = exports.md5sum(content, null, digest);
+            deferred.resolve(md5);
+        }
+    };
+    return deferred.promise;
 };
 
 

@@ -19,7 +19,7 @@
 
 var util = require('util');
 
-var debug = require('debug')('bce-sdk.OCRClient');
+var debug = require('debug')('bce-sdk:OCRClient');
 
 var BceBaseClient = require('./bce_base_client');
 

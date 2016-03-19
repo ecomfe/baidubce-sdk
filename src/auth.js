@@ -19,7 +19,7 @@
 
 var util = require('util');
 
-var debug = require('debug')('bce-sdk.auth');
+var debug = require('debug')('bce-sdk:auth');
 
 var H = require('./headers');
 var strings = require('./strings');

@@ -20,7 +20,7 @@
 var util = require('util');
 
 var u = require('underscore');
-var debug = require('debug')('bce-sdk.FaceClient');
+var debug = require('debug')('bce-sdk:FaceClient');
 
 var BceBaseClient = require('./bce_base_client');
 

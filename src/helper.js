@@ -38,7 +38,7 @@ var DATA_TYPE_BLOB     = 4;
  * @param {BosClient} client The bos client instance.
  * @param {string} bucket The bucket name.
  * @param {string} object The object name.
- * @param {Blob|Buffer|Stream|string} data The data.
+ * @param {Blob|Buffer|stream.Readable|string} data The data.
  * @param {Object} options The request options.
  * @return {Promise}
  */

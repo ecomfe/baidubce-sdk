@@ -21,7 +21,7 @@
 var util = require('util');
 
 var u = require('underscore');
-var debug = require('debug')('bce-sdk.BccClient');
+var debug = require('debug')('bce-sdk:BccClient');
 
 var BceBaseClient = require('./bce_base_client');
 
