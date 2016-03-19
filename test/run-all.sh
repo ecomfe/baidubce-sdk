@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+TEST_DIR=$(dirname "$0");
+if [ -f "${TEST_DIR}/.env" ]; then
+    source "${TEST_DIR}/.env"
+fi
+
 export ONLINE_USER_ID=de4b0bd8c0c940939dccada871591da5
 export ONLINE_USER_NAME=PASSPORT:16897023
 
@@ -9,7 +14,7 @@ export BOS_ENDPOINT=https://bj.bcebos.com
 export BOS_AK=${ONLINE_AK}
 export BOS_SK=${ONLINE_SK}
 
-export MEDIA_ENDPOINT=http://media.bj.baidubce.com
+export MEDIA_ENDPOINT=http://media.gz.baidubce.com
 export MEDIA_AK=${ONLINE_AK}
 export MEDIA_SK=${ONLINE_SK}
 
@@ -47,7 +52,7 @@ SPECS=(
   test/sdk/http_client.spec.js
   test/sdk/mime.types.spec.js
   test/sdk/bos_client.spec.js
-  # test/sdk/mct_client.spec.js
+  test/sdk/mct_client.spec.js
   test/sdk/bcs_client.spec.js
   test/sdk/ses_client.spec.js
   test/sdk/ocr_client.spec.js
@@ -58,5 +63,4 @@ SPECS=(
 # node_modules/.bin/mocha ${SPECS[@]}
 # node_modules/.bin/mocha sdk/http_client.spec.js
 node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha --report lcovonly ${SPECS[@]} && cat ./coverage/lcov.info | node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
-# node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha ${SPECS[@]}
 # node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha ${SPECS[@]}

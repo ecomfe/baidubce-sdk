@@ -22,6 +22,8 @@ var debug = require('debug')('helper.spec');
 exports.fail = function (spec) {
     // var failImpl = spec.fail.bind(spec);
     return function (error) {
+        debug(error);
+
         if (error instanceof Error) {
             expect().fail(error);
         }

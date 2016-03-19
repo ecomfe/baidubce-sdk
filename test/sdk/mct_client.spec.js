@@ -47,8 +47,6 @@ describe('MctClient', function () {
         done();
     });
 
-    it('ok', function () {});
-
     it('Watermark.create', function (done) {
         var watermark = new MctClient.Watermark(config.media);
         var options = {
@@ -65,16 +63,19 @@ describe('MctClient', function () {
         };
         watermark.create(options)
             .then(function (response) {
-                expect(response.body.watermarkId).not.to.beUndefined();
+                debug(response);
+                expect(response.body.watermarkId).not.to.be(undefined);
                 return watermark.get();
             })
             .then(function (response) {
+                debug(response);
                 expect(u.pick(response.body, 'bucket', 'key',
                     'verticalAlignment', 'horizontalAlignment',
                     'verticalOffsetInPixel', 'horizontalOffsetInPixel')).to.eql(options);
                 return watermark.list();
             })
             .then(function (response) {
+                debug(response);
                 expect(response.body.watermarks.length).to.eql(1);
                 return watermark.remove();
             })
@@ -178,7 +179,7 @@ describe('MctClient', function () {
                 expect(p.config.notification).to.eql(null);
                 expect(p.state).to.eql('ACTIVE');
                 expect(p.description).to.eql(options.description);
-                expect(p.createTime).not.to.beUndefined();
+                expect(p.createTime).not.to.be(undefined);
 
                 return pipeline.getTranscodingJobs();
             })
