@@ -2,12 +2,6 @@
 
 export ONLINE_USER_ID=de4b0bd8c0c940939dccada871591da5
 export ONLINE_USER_NAME=PASSPORT:16897023
-export ONLINE_AK=C2f04bd88ebb0a66a1bffd24170d3465
-export ONLINE_SK=5bceac8219b09fb3eeffb8ec506b1f8c
-export BCS_AK=moCmOelrxul7HoqThXnTG
-export BCS_SK=MpnICbWIy0x2lCVNuI8VFAvYiJC2P8D6lL9C
-export VOD_AK=f5569b0a5aa5412481e755d8b912c504
-export VOD_SK=931c7641fa324821a75b50de4c343ced
 
 export DEBUG=*.spec
 
@@ -46,24 +40,23 @@ export STS_SK=${ONLINE_SK}
 export VOD_ENDPOINT=http://vod.baidubce.com
 
 SPECS=(
-  sdk/upload_helper.spec.js
-  sdk/sts.spec.js
-  sdk/crypto.spec.js
-  sdk/auth.spec.js
-  sdk/http_client.spec.js
-  sdk/mime.types.spec.js
-  sdk/bos_client.spec.js
-  # sdk/mct_client.spec.js
-  sdk/bcs_client.spec.js
-  sdk/ses_client.spec.js
-  sdk/ocr_client.spec.js
-  sdk/face_client.spec.js
-  sdk/vod_client.spec.js
+  test/sdk/upload_helper.spec.js
+  test/sdk/sts.spec.js
+  test/sdk/crypto.spec.js
+  test/sdk/auth.spec.js
+  test/sdk/http_client.spec.js
+  test/sdk/mime.types.spec.js
+  test/sdk/bos_client.spec.js
+  # test/sdk/mct_client.spec.js
+  test/sdk/bcs_client.spec.js
+  test/sdk/ses_client.spec.js
+  test/sdk/ocr_client.spec.js
+  test/sdk/face_client.spec.js
+  test/sdk/vod_client.spec.js
 )
 
-cd $(dirname "$0")
-# ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions ${SPECS[@]}
-# ../node_modules/.bin/mocha --require blanket --reporter mocha-lcov-reporter ${SPECS[@]} | ../node_modules/coveralls/bin/coveralls.js
-# ../node_modules/.bin/mocha ${SPECS[@]}
-# ../node_modules/.bin/mocha sdk/http_client.spec.js
-../node_modules/.bin/istanbul cover ../node_modules/mocha/bin/_mocha --report lcovonly ${SPECS[@]} && cat ./coverage/lcov.info | ../node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+# node_modules/.bin/mocha ${SPECS[@]}
+# node_modules/.bin/mocha sdk/http_client.spec.js
+node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha --report lcovonly ${SPECS[@]} && cat ./coverage/lcov.info | node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+# node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha ${SPECS[@]}
+# node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha ${SPECS[@]}
