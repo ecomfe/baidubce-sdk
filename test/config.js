@@ -39,8 +39,6 @@ module.exports = {
         }
     },
     'face': {
-        // 'endpoint': 'http://face.bj.baidubce.com',
-        // 'endpoint': 'http://nmg02-bce-test15.nmg02.baidu.com:8750',
         'endpoint': process.env.FACE_ENDPOINT,
         'credentials': {
             'ak': process.env.FACE_AK,
@@ -62,23 +60,22 @@ module.exports = {
         }
     },
     'ocr': {
-        'endpoint': 'http://ocr.bj.baidubce.com',
+        'endpoint': process.env.OCR_ENDPOINT,
         'credentials': {
             'ak': process.env.OCR_AK,
             'sk': process.env.OCR_SK
         }
     },
+    'lss': {
+        'endpoint': process.env.LSS_ENDPOINT,
+        'credentials': {
+            'ak': process.env.LSS_AK,
+            'sk': process.env.LSS_SK
+        }
+    },
     'media': {
         // 'endpoint': 'http://multimedia.bce-testinternal.baidu.com',
         'endpoint': process.env.MEDIA_ENDPOINT,
-        'credentials': {
-            'ak': process.env.MEDIA_AK,
-            'sk': process.env.MEDIA_SK
-        }
-    },
-    'media_bos': {
-        // 'endpoint': 'http://multimedia.bce-testinternal.baidu.com',
-        'endpoint': process.env.BOS_ENDPOINT,
         'credentials': {
             'ak': process.env.MEDIA_AK,
             'sk': process.env.MEDIA_SK
@@ -99,14 +96,12 @@ module.exports = {
         }
     },
     'sts': {
-        // 'endpoint': 'http://multimedia.bce-testinternal.baidu.com',
         'endpoint': process.env.STS_ENDPOINT,
         'credentials': {
             'ak': process.env.STS_AK,
             'sk': process.env.STS_SK
         }
     }
-    // 'endpoint': 'http://localhost:8828',
 };
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */

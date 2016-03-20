@@ -19,6 +19,7 @@ var fs = require('fs');
 
 var Q = require('q');
 var u = require('underscore');
+var expect = require('expect.js');
 var debug = require('debug')('lss_client.spec');
 
 var config = require('../config');
@@ -28,15 +29,15 @@ var helper = require('./helper');
 describe('LssClient', function () {
     var fail;
 
-    beforeEach(function (done) {
-        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
+    this.timeout(10 * 60 * 1000);
 
+    beforeEach(function (done) {
         fail = helper.fail(this);
 
         Q.all([
-            new LssClient.Preset(config.media).removeAll(),
-            new LssClient.Session(config.media).removeAll(),
-            new LssClient.Notification(config.media).removeAll()
+            new LssClient.Preset(config.lss).removeAll(),
+            new LssClient.Session(config.lss).removeAll(),
+            new LssClient.Notification(config.lss).removeAll()
         ]).catch(fail).fin(done);
     });
 
@@ -44,23 +45,19 @@ describe('LssClient', function () {
         done();
     });
 
-    it('ok', function () {});
-
     it('Preset.list', function (done) {
-        var preset = new LssClient.Preset(config.media);
+        var preset = new LssClient.Preset(config.lss);
         preset.list()
             .then(function (response) {
-                var presets = response.body.presets;
-                u.each(presets, function (item) {
-                    debug('%j', item.presetName);
-                });
+                var presets = response.body.presets || [];
+                expect(presets.length).to.be.above(0);
             })
             .catch(fail)
             .fin(done);
     });
 
     it('Preset.create', function (done) {
-        var preset = new LssClient.Preset(config.media);
+        var preset = new LssClient.Preset(config.lss);
         var options = {
             // preset name must match pattern:[a-z][0-9a-z_]{0,39}
             presetName: 'my_test_preset_name',
@@ -126,19 +123,19 @@ describe('LssClient', function () {
 
         preset.create(options)
             .then(function (response) {
-                expect(response.body).toEqual({});
+                expect(response.body).to.eql({});
                 return preset.get();
             })
             .then(function (response) {
                 debug('%j', response);
-                expect(u.omit(response.body, 'userId', 'createTime')).toEqual(options);
+                expect(u.omit(response.body, 'userId', 'createTime')).to.eql(options);
             })
             .catch(fail)
             .fin(done);
     });
 
     it('Session.list', function (done) {
-        var session = new LssClient.Session(config.media);
+        var session = new LssClient.Session(config.lss);
         session.list()
             .then(function (response) {
                 debug('%j', response.body);
@@ -152,10 +149,10 @@ describe('LssClient', function () {
     });
 
     it('Session.create', function (done) {
-        var session = new LssClient.Session(config.media);
+        var session = new LssClient.Session(config.lss);
         var options = {
             target: {
-                bosBucket: 'bcesdk',
+                bosBucket: 'baidubce',
                 userDomain: 'www.baidu.com'
             },
             presetName: 'lss.rtmp_forward_only',
@@ -168,90 +165,107 @@ describe('LssClient', function () {
         };
         session.create(options)
             .then(function (response) {
+                debug(response);
+
                 var s = response.body;
 
-                expect(s.target).toEqual(options.target);
-                expect(s.presetName).toEqual(options.presetName);
-                expect(s.description).toEqual(options.description);
-                expect(s.status).toEqual('READY');
+                expect(s.target).to.eql(options.target);
+                expect(s.presetName).to.eql(options.presetName);
+                expect(s.description).to.eql(options.description);
+                expect(s.status).to.eql('READY');
 
-                expect(s.publish.pushAuth).toEqual(false);
-                expect(s.publish.pushUrl).not.toBeUndefined();
+                expect(s.publish.pushAuth).to.eql(false);
+                expect(s.publish.pushUrl).not.to.be(undefined);
 
-                expect(s.play).not.toBeUndefined();
-                expect(s.play.rtmpUrl).not.toBeUndefined();
+                expect(s.play).not.to.be(undefined);
+                expect(s.play.rtmpUrl).not.to.be(undefined);
 
-                expect(s.record).not.toBeUndefined();
-                expect(s.record.keyPrefix).not.toBeUndefined();
+                expect(s.record).not.to.be(undefined);
+                expect(s.record.keyPrefix).not.to.be(undefined);
 
-                expect(s.createTime).not.toBeUndefined();
-                expect(s.lastUpdateTime).not.toBeUndefined();
-                expect(s.sessionId).not.toBeUndefined();
-                expect(s.userId).not.toBeUndefined();
+                expect(s.createTime).not.to.be(undefined);
+                expect(s.lastUpdateTime).not.to.be(undefined);
+                expect(s.sessionId).not.to.be(undefined);
+                expect(s.userId).not.to.be(undefined);
 
                 return session.pause();
             })
             .then(function (response) {
-                expect(response.body).toEqual({});
+                expect(response.body).to.eql({});
                 return session.get();
             })
             .then(function (response) {
-                expect(response.body.status).toEqual('PAUSED');
+                expect(response.body.status).to.eql('PAUSED');
                 return session.resume();
             })
             .then(function (response) {
-                expect(response.body).toEqual({});
+                expect(response.body).to.eql({});
                 return session.get();
             })
             .then(function (response) {
-                expect(response.body.status).toEqual('READY');
+                expect(response.body.status).to.eql('READY');
                 return session.refresh();
             })
             .then(function (response) {
                 var s = response.body;
 
-                expect(s.target).toEqual(options.target);
-                expect(s.presetName).toEqual(options.presetName);
-                expect(s.description).toEqual(options.description);
-                expect(s.status).toEqual('READY');
+                expect(s.target).to.eql(options.target);
+                expect(s.presetName).to.eql(options.presetName);
+                expect(s.description).to.eql(options.description);
+                expect(s.status).to.eql('READY');
 
-                expect(s.publish.pushAuth).toEqual(false);
-                expect(s.publish.pushUrl).not.toBeUndefined();
+                expect(s.publish.pushAuth).to.eql(false);
+                expect(s.publish.pushUrl).not.to.be(undefined);
 
-                expect(s.play).not.toBeUndefined();
-                expect(s.play.rtmpUrl).not.toBeUndefined();
+                expect(s.play).not.to.be(undefined);
+                expect(s.play.rtmpUrl).not.to.be(undefined);
 
-                expect(s.record).not.toBeUndefined();
-                expect(s.record.keyPrefix).not.toBeUndefined();
+                expect(s.record).not.to.be(undefined);
+                expect(s.record.keyPrefix).not.to.be(undefined);
 
-                expect(s.createTime).not.toBeUndefined();
-                expect(s.lastUpdateTime).not.toBeUndefined();
-                expect(s.sessionId).not.toBeUndefined();
-                expect(s.userId).not.toBeUndefined();
+                expect(s.createTime).not.to.be(undefined);
+                expect(s.lastUpdateTime).not.to.be(undefined);
+                expect(s.sessionId).not.to.be(undefined);
+                expect(s.userId).not.to.be(undefined);
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
+    it('Notification.list', function (done) {
+        var notification = new LssClient.Notification(config.lss);
+        notification.list()
+            .then(function (response) {
+                debug(response);
+
+                var notifications = response.body.notifications;
+                expect(notifications.length).to.eql(0);
             })
             .catch(fail)
             .fin(done);
     });
 
     it('Notification.create', function (done) {
-        var notification = new LssClient.Notification(config.media,
+        var notification = new LssClient.Notification(config.lss,
             'live_notification', 'http://www.baidu.com');
         notification.create()
             .then(function (response) {
-                expect(response.body).toEqual({});
+                debug(response);
+
+                expect(response.body).to.eql({});
                 return notification.get();
             })
             .then(function (response) {
-                expect(response.body.name).toEqual('live_notification');
-                expect(response.body.endpoint).toEqual('http://www.baidu.com');
+                expect(response.body.name).to.eql('live_notification');
+                expect(response.body.endpoint).to.eql('http://www.baidu.com');
                 return notification.remove();
             })
             .then(function (response) {
-                expect(response.body).toEqual({});
+                expect(response.body).to.eql({});
                 return notification.list();
             })
             .then(function (response) {
-                expect(response.body.notifications.length).toEqual(0);
+                expect(response.body.notifications.length).to.eql(0);
             })
             .catch(fail)
             .fin(done);

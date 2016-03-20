@@ -18,7 +18,9 @@ export MEDIA_ENDPOINT=http://media.gz.baidubce.com
 export MEDIA_AK=${ONLINE_AK}
 export MEDIA_SK=${ONLINE_SK}
 
-# 没有LSS的权限
+export LSS_ENDPOINT=http://lss.bj.baidubce.com
+export LSS_AK=${ONLINE_AK}
+export LSS_SK=${ONLINE_SK}
 # env MEDIA_ENDPOINT=http://media.gz.baidubce.com MEDIA_AK=${ONLINE_AK} MEDIA_SK=${ONLINE_SK} make lss
 
 export BCS_ENDPOINT=https://bs.baidu.com
@@ -63,5 +65,9 @@ SPECS=(
   test/sdk/vod_client.spec.js
 )
 
-# node_modules/.bin/mocha ${SPECS[@]}
-node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha --report lcovonly ${SPECS[@]} && cat ./coverage/lcov.info | node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+SPECS=(
+  test/sdk/lss_client.spec.js
+)
+
+node_modules/.bin/mocha -C ${SPECS[@]}
+# node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha --report lcovonly ${SPECS[@]} && cat ./coverage/lcov.info | node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
