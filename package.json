@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "./test/run-all.sh",
+    "fecs": "fecs src",
     "pack": "node_modules/.bin/browserify -s baidubce.sdk index.js -o baidubce-sdk.bundle.js && uglifyjs baidubce-sdk.bundle.js --compress --mangle -o baidubce-sdk.bundle.min.js"
   },
   "repository": {

@@ -21,6 +21,7 @@
 var fs = require('fs');
 var path = require('path');
 var util = require('util');
+var builtinUrl = require('url');
 
 var Q = require('q');
 var u = require('underscore');
@@ -65,8 +66,28 @@ DocClient.prototype._buildUrl = function () {
 DocClient.prototype.createDocument = function (data, opt_options) {
     var options = u.extend({meta: {}}, opt_options);
     var dataType = -1;
+    var pattern = /^bos:\/\//;
 
     if (u.isString(data)) {
+        if (pattern.test(data)) {
+            // createDocumentFromBosObject
+            try {
+                var parsed = builtinUrl.parse(data);
+                var bucket = parsed.host;
+                var object = parsed.pathname.substr(1);
+
+                options = u.extend(options, parsed.query);
+                var title = options.title || path.basename(object);
+                var format = options.format || path.extname(object).substr(1);
+                var notification = options.notification;
+                return this.createDocumentFromBosObject(bucket, object,
+                    title, format, notification);
+            }
+            catch (error) {
+                return Q.reject(error);
+            }
+        }
+
         dataType = DATA_TYPE_FILE;
         options.meta.sizeInBytes = fs.lstatSync(data).size;
         options.format = options.format || path.extname(data).substr(1);
@@ -145,12 +166,13 @@ DocClient.prototype._doCreateDocument = function (data, options) {
         })
         .then(function (response) {
             debug('publishDocument[response = %j]', response);
-            return {
+            response.body = {
                 documentId: documentId,
                 bucket: bucket,
                 object: object,
                 bosEndpoint: bosEndpoint
             };
+            return response;
         });
 };
 
@@ -169,6 +191,114 @@ DocClient.prototype.publishDocument = function (documentId) {
     url = url + '/' + documentId;
     return this.sendRequest('PUT', url, {
         params: {publish: ''}
+    });
+};
+
+DocClient.prototype.getDocument = function (documentId) {
+    var url = this._buildUrl() + '/' + documentId;
+    return this.sendRequest('GET', url);
+};
+
+/**
+ * Get docId and token to render the document in the browser.
+ *
+ * ```html
+ * <div id="reader"></div>
+ * <script src="http://bce.bdstatic.com/doc/doc_reader.js"></script>
+ * <script>
+ * var host = location.host;
+ * var option = {
+ *     docId: <docId>,
+ *     token: <token>,
+ *     host: <host>
+ * };
+ * new Document('reader', option);
+ * </script>
+ * ```
+ *
+ * @param {string} documentId The document Id.
+ * @return {Promise}
+ */
+DocClient.prototype.readDocument = function (documentId) {
+    var url = this._buildUrl() + '/' + documentId;
+    return this.sendRequest('GET', url, {
+        params: {read: ''}
+    });
+};
+
+/**
+ * Create document from bos object.
+ *
+ * 1. The BOS bucket must in bj-region.
+ * 2. The BOS bucket permission must be public-read.
+ *
+ * 用户需要将源文档所在BOS bucket权限设置为公共读，或者在自定义权限设置中为开放云文档转码服务账号
+ *（沙盒：798c20fa770840438a29efd66cdccf7f，线上：183db8cd3d5a4bf9a94459f89a7a3a91）添加READ权限。
+ *
+ * 文档转码服务依赖文档的md5，为提高转码性能，文档转码服务需要用户为源文档指定md5；
+ * 因此用户需要在上传文档至BOS时设置自定义meta header x-bce-meta-md5来记录源文档md5。
+ * 补充说明：实际上当用户没有为源文档设置x-bce-meta-md5 header时，文档转码服务还会
+ * 尝试根据BOS object ETag解析源文档md5，如果解析失败（ETag以'-'开头），才会真正报错。
+ *
+ * @param {string} bucket The bucket name in bj region.
+ * @param {string} object The object name.
+ * @param {string} title The document title.
+ * @param {string=} opt_format The document extension is possible.
+ * @param {string=} opt_notification The notification name.
+ * @return {Promise}
+ */
+DocClient.prototype.createDocumentFromBosObject = function (
+    bucket, object, title, opt_format, opt_notification) {
+    var url = this._buildUrl();
+
+    var body = {
+        bucket: bucket,
+        object: object,
+        title: title
+    };
+
+    var format = opt_format || path.extname(object).substr(1);
+    if (!format) {
+        throw new Error('Document format parameter required');
+    }
+
+    body.format = format;
+    if (opt_notification) {
+        body.notification = opt_notification;
+    }
+
+    debug('createDocumentFromBosObject:arguments = [%j], body = [%j]', arguments, body);
+    return this.sendRequest('POST', url, {
+        params: {bos: ''},
+        body: JSON.stringify(body),
+        headers: {
+            'x-bce-doc-format': format,
+            'x-bce-doc-title': title
+        }
+    });
+};
+
+DocClient.prototype.removeAll = function () {
+    var self = this;
+    return self.listDocuments().then(function (response) {
+        var asyncTasks = (response.body.documents || []).map(function (item) {
+            return self.removeDocument(item.documentId);
+        });
+        return Q.all(asyncTasks);
+    });
+};
+
+DocClient.prototype.removeDocument = function (documentId) {
+    var url = this._buildUrl() + '/' + documentId;
+    return this.sendRequest('DELETE', url);
+};
+
+DocClient.prototype.listDocuments = function (opt_status) {
+    var status = opt_status || '';
+
+    var url = this._buildUrl();
+    return this.sendRequest('GET', url, {
+        params: {status: status}
     });
 };
 
