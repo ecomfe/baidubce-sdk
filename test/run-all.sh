@@ -55,10 +55,11 @@ SPECS=(
   test/sdk/sts.spec.js
   test/sdk/crypto.spec.js
   test/sdk/auth.spec.js
-  test/sdk/doc_client.spec.js
   test/sdk/http_client.spec.js
   test/sdk/mime.types.spec.js
   test/sdk/bos_client.spec.js
+  test/sdk/doc_client.spec.js
+  test/sdk/lss_client.spec.js
   test/sdk/mct_client.spec.js
   test/sdk/bcs_client.spec.js
   test/sdk/ses_client.spec.js

@@ -26,7 +26,7 @@ var config = require('../config');
 var LssClient = require('../../').LssClient;
 var helper = require('./helper');
 
-describe('LssClient', function () {
+describe('LssClient.Preset', function () {
     var fail;
 
     this.timeout(10 * 60 * 1000);
@@ -34,18 +34,10 @@ describe('LssClient', function () {
     beforeEach(function (done) {
         fail = helper.fail(this);
 
-        Q.all([
-            new LssClient.Preset(config.lss).removeAll(),
-            new LssClient.Session(config.lss).removeAll(),
-            new LssClient.Notification(config.lss).removeAll()
-        ]).catch(fail).fin(done);
+        new LssClient.Preset(config.lss).removeAll().catch(fail).fin(done);
     });
 
-    afterEach(function (done) {
-        done();
-    });
-
-    it('Preset.list', function (done) {
+    it('list', function (done) {
         var preset = new LssClient.Preset(config.lss);
         preset.list()
             .then(function (response) {
@@ -56,7 +48,7 @@ describe('LssClient', function () {
             .fin(done);
     });
 
-    it('Preset.create', function (done) {
+    it('create', function (done) {
         var preset = new LssClient.Preset(config.lss);
         var options = {
             // preset name must match pattern:[a-z][0-9a-z_]{0,39}
@@ -133,8 +125,20 @@ describe('LssClient', function () {
             .catch(fail)
             .fin(done);
     });
+});
 
-    it('Session.list', function (done) {
+describe('LssClient.Session', function () {
+    var fail;
+
+    this.timeout(10 * 60 * 1000);
+
+    beforeEach(function (done) {
+        fail = helper.fail(this);
+
+        new LssClient.Session(config.lss).removeAll().catch(fail).fin(done);
+    });
+
+    it('list', function (done) {
         var session = new LssClient.Session(config.lss);
         session.list()
             .then(function (response) {
@@ -142,13 +146,14 @@ describe('LssClient', function () {
                 var sessions = response.body.liveInfos;
                 u.each(sessions, function (item) {
                     debug('%j', item.sessionId);
+                    expect(item.sessionId).to.be.an('string');
                 });
             })
             .catch(fail)
             .fin(done);
     });
 
-    it('Session.create', function (done) {
+    it('create', function (done) {
         var session = new LssClient.Session(config.lss);
         var options = {
             target: {
@@ -231,41 +236,66 @@ describe('LssClient', function () {
             .catch(fail)
             .fin(done);
     });
+});
 
-    it('Notification.list', function (done) {
+describe('LssClient.Notification', function () {
+    var fail;
+
+    this.timeout(10 * 60 * 1000);
+
+    beforeEach(function (done) {
+        fail = helper.fail(this);
+
+        new LssClient.Notification(config.lss).removeAll().catch(fail).fin(done);
+    });
+
+    it('list', function (done) {
         var notification = new LssClient.Notification(config.lss);
         notification.list()
             .then(function (response) {
-                debug(response);
-
                 var notifications = response.body.notifications;
-                expect(notifications.length).to.eql(0);
+                expect(notifications).to.eql([]);
             })
             .catch(fail)
             .fin(done);
     });
 
-    it('Notification.create', function (done) {
-        var notification = new LssClient.Notification(config.lss,
-            'live_notification', 'http://www.baidu.com');
-        notification.create()
+    it('create', function (done) {
+        var notification = new LssClient.Notification(config.lss);
+        var name = 'live_notification';
+        var endpoint = 'http://www.baidu.com';
+        notification.removeAll()
+            .then(function () {
+                // 好像有数据同步的问题，删除之后还是可以读取
+                return helper.delayMs(5 * 1000);
+            })
+            .then(function () {
+                return notification.create(name, endpoint)
+            })
             .then(function (response) {
                 debug(response);
-
                 expect(response.body).to.eql({});
                 return notification.get();
             })
             .then(function (response) {
+                debug(response);
                 expect(response.body.name).to.eql('live_notification');
                 expect(response.body.endpoint).to.eql('http://www.baidu.com');
-                return notification.remove();
+                return notification.create(name, endpoint);
+            })
+            .catch(function (error) {
+                debug(error);
+                expect(error.status_code).to.eql(400);
+                expect(error.code).to.eql('LiveExceptions.DuplicateNotification');
+                return notification.remove(name);
             })
             .then(function (response) {
+                debug(response);
                 expect(response.body).to.eql({});
                 return notification.list();
             })
             .then(function (response) {
-                expect(response.body.notifications.length).to.eql(0);
+                expect(response.body.notifications).to.eql([]);
             })
             .catch(fail)
             .fin(done);

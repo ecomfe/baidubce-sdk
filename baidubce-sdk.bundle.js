@@ -25756,6 +25756,7 @@ module.exports={
   },
   "scripts": {
     "test": "./test/run-all.sh",
+    "fecs": "fecs src",
     "pack": "node_modules/.bin/browserify -s baidubce.sdk index.js -o baidubce-sdk.bundle.js && uglifyjs baidubce-sdk.bundle.js --compress --mangle -o baidubce-sdk.bundle.min.js"
   },
   "repository": {
@@ -27527,10 +27528,11 @@ exports.md5blob = function (blob, digest) {
 var fs = require('fs');
 var path = require('path');
 var util = require('util');
+var builtinUrl = require('url');
 
 var Q = require('q');
 var u = require('underscore');
-var debug = require('debug')('bce-sdk:DocClient');
+var debug = require('debug')('bce-sdk:Document');
 
 var BosClient = require('./bos_client');
 var BceBaseClient = require('./bce_base_client');
@@ -27549,15 +27551,24 @@ var DATA_TYPE_BLOB     = 4;
  * @param {Object} config The doc client configuration.
  * @extends {BceBaseClient}
  */
-function DocClient(config) {
+function Document(config) {
     BceBaseClient.call(this, config, 'doc', false);
+
+    this._documentId = null;
 }
-util.inherits(DocClient, BceBaseClient);
+util.inherits(Document, BceBaseClient);
 
 // --- B E G I N ---
 
-DocClient.prototype._buildUrl = function () {
-    return '/v1/document';
+Document.prototype._buildUrl = function () {
+    var baseUrl = '/v1/document';
+    var extraPaths = u.toArray(arguments);
+
+    if (extraPaths.length) {
+        baseUrl += '/' + extraPaths.join('/');
+    }
+
+    return baseUrl;
 };
 
 /**
@@ -27568,11 +27579,31 @@ DocClient.prototype._buildUrl = function () {
  * @param {Object=} opt_options The extra options.
  * @return {Promise}
  */
-DocClient.prototype.createDocument = function (data, opt_options) {
+Document.prototype.create = function (data, opt_options) {
     var options = u.extend({meta: {}}, opt_options);
     var dataType = -1;
+    var pattern = /^bos:\/\//;
 
     if (u.isString(data)) {
+        if (pattern.test(data)) {
+            // createFromBos
+            try {
+                var parsed = builtinUrl.parse(data);
+                var bucket = parsed.host;
+                var object = parsed.pathname.substr(1);
+
+                options = u.extend(options, parsed.query);
+                var title = options.title || path.basename(object);
+                var format = options.format || path.extname(object).substr(1);
+                var notification = options.notification;
+                return this.createFromBos(bucket, object,
+                    title, format, notification);
+            }
+            catch (error) {
+                return Q.reject(error);
+            }
+        }
+
         dataType = DATA_TYPE_FILE;
         options.meta.sizeInBytes = fs.lstatSync(data).size;
         options.format = options.format || path.extname(data).substr(1);
@@ -27602,7 +27633,7 @@ DocClient.prototype.createDocument = function (data, opt_options) {
     }
 
     if (options.meta.md5) {
-        return this._doCreateDocument(data, options);
+        return this._doCreate(data, options);
     }
 
     var self = this;
@@ -27610,20 +27641,20 @@ DocClient.prototype.createDocument = function (data, opt_options) {
         return crypto.md5stream(fs.createReadStream(data), 'hex')
             .then(function (md5) {
                 options.meta.md5 = md5;
-                return self._doCreateDocument(data, options);
+                return self._doCreate(data, options);
             });
     }
     else if (dataType === DATA_TYPE_BLOB) {
         return crypto.md5blob(data, 'hex')
             .then(function (md5) {
                 options.meta.md5 = md5;
-                return self._doCreateDocument(data, options);
+                return self._doCreate(data, options);
             });
     }
-    return this._doCreateDocument(data, options);
+    return this._doCreate(data, options);
 };
 
-DocClient.prototype._doCreateDocument = function (data, options) {
+Document.prototype._doCreate = function (data, options) {
     var documentId = null;
     var bucket = null;
     var object = null;
@@ -27631,9 +27662,9 @@ DocClient.prototype._doCreateDocument = function (data, options) {
 
     var self = this;
 
-    return self.registerDocument(options)
+    return self.register(options)
         .then(function (response) {
-            debug('registerDocument[response = %j]', response);
+            debug('register[response = %j]', response);
 
             documentId = response.body.documentId;
             bucket = response.body.bucket;
@@ -27647,43 +27678,222 @@ DocClient.prototype._doCreateDocument = function (data, options) {
         })
         .then(function (response) {
             debug('upload[response = %j]', response);
-            return self.publishDocument(documentId);
+            return self.publish();
         })
         .then(function (response) {
-            debug('publishDocument[response = %j]', response);
-            return {
+            debug('publish[response = %j]', response);
+            response.body = {
                 documentId: documentId,
                 bucket: bucket,
                 object: object,
                 bosEndpoint: bosEndpoint
             };
+            return response;
         });
 };
 
-DocClient.prototype.registerDocument = function (options) {
-    debug('registerDocument[options = %j]', options);
+Document.prototype.register = function (options) {
+    debug('register[options = %j]', options);
 
+    var self = this;
     var url = this._buildUrl();
     return this.sendRequest('POST', url, {
         params: {register: ''},
         body: JSON.stringify(options)
+    }).then(function (response) {
+        self._documentId = response.body.documentId;
+        return response;
     });
 };
 
-DocClient.prototype.publishDocument = function (documentId) {
-    var url = this._buildUrl();
-    url = url + '/' + documentId;
+Document.prototype.publish = function (documentId) {
+    var url = this._buildUrl(documentId || this._documentId);
     return this.sendRequest('PUT', url, {
         params: {publish: ''}
     });
 };
 
+Document.prototype.get = function (documentId) {
+    var url = this._buildUrl(documentId || this._documentId);
+    return this.sendRequest('GET', url);
+};
+
+/**
+ * Get docId and token to render the document in the browser.
+ *
+ * ```html
+ * <div id="reader"></div>
+ * <script src="http://bce.bdstatic.com/doc/doc_reader.js"></script>
+ * <script>
+ * var host = location.host;
+ * var option = {
+ *     docId: <docId>,
+ *     token: <token>,
+ *     host: <host>
+ * };
+ * new Document('reader', option);
+ * </script>
+ * ```
+ *
+ * @param {string} documentId The document Id.
+ * @return {Promise}
+ */
+Document.prototype.read = function (documentId) {
+    var url = this._buildUrl(documentId || this._documentId);
+    return this.sendRequest('GET', url, {
+        params: {read: ''}
+    });
+};
+
+/**
+ * Create document from bos object.
+ *
+ * 1. The BOS bucket must in bj-region.
+ * 2. The BOS bucket permission must be public-read.
+ *
+ * 用户需要将源文档所在BOS bucket权限设置为公共读，或者在自定义权限设置中为开放云文档转码服务账号
+ *（沙盒：798c20fa770840438a29efd66cdccf7f，线上：183db8cd3d5a4bf9a94459f89a7a3a91）添加READ权限。
+ *
+ * 文档转码服务依赖文档的md5，为提高转码性能，文档转码服务需要用户为源文档指定md5；
+ * 因此用户需要在上传文档至BOS时设置自定义meta header x-bce-meta-md5来记录源文档md5。
+ * 补充说明：实际上当用户没有为源文档设置x-bce-meta-md5 header时，文档转码服务还会
+ * 尝试根据BOS object ETag解析源文档md5，如果解析失败（ETag以'-'开头），才会真正报错。
+ *
+ * @param {string} bucket The bucket name in bj region.
+ * @param {string} object The object name.
+ * @param {string} title The document title.
+ * @param {string=} opt_format The document extension is possible.
+ * @param {string=} opt_notification The notification name.
+ * @return {Promise}
+ */
+Document.prototype.createFromBos = function (
+    bucket, object, title, opt_format, opt_notification) {
+    var url = this._buildUrl();
+
+    var body = {
+        bucket: bucket,
+        object: object,
+        title: title
+    };
+
+    var format = opt_format || path.extname(object).substr(1);
+    if (!format) {
+        throw new Error('Document format parameter required');
+    }
+
+    body.format = format;
+    if (opt_notification) {
+        body.notification = opt_notification;
+    }
+
+    debug('createFromBos:arguments = [%j], body = [%j]', arguments, body);
+    var self = this;
+    return this.sendRequest('POST', url, {
+        params: {source: 'bos'},
+        body: JSON.stringify(body)
+    }).then(function (response) {
+        self._documentId = response.body.documentId;
+        return response;
+    });
+};
+
+Document.prototype.removeAll = function () {
+    var self = this;
+    return self.list().then(function (response) {
+        var asyncTasks = (response.body.documents || []).map(function (item) {
+            return self.remove(item.documentId);
+        });
+        return Q.all(asyncTasks);
+    });
+};
+
+Document.prototype.remove = function (documentId) {
+    var url = this._buildUrl(documentId || this._documentId);
+    return this.sendRequest('DELETE', url);
+};
+
+Document.prototype.list = function (opt_status) {
+    var status = opt_status || '';
+
+    var url = this._buildUrl();
+    return this.sendRequest('GET', url, {
+        params: {status: status}
+    });
+};
+
+/**
+ * 文档转码通知接口（Notification API）
+ * http://gollum.baidu.com/MEDIA-DOC-API#通知接口(Notification-API)
+ *
+ * @constructor
+ * @param {Object} config The doc client configuration.
+ * @extends {BceBaseClient}
+ */
+function Notification(config) {
+    BceBaseClient.call(this, config, 'doc', false);
+
+    this._name = null;
+    this._endpoint = null;
+}
+util.inherits(Notification, BceBaseClient);
+
+Notification.prototype._buildUrl = function () {
+    var baseUrl = '/v1/notification';
+    var extraPaths = u.toArray(arguments);
+
+    if (extraPaths.length) {
+        baseUrl += '/' + extraPaths.join('/');
+    }
+
+    return baseUrl;
+};
+
+Notification.prototype.create = function (name, endpoint) {
+    var self = this;
+    var url = this._buildUrl();
+    return self.sendRequest('POST', url, {
+        body: JSON.stringify({
+            name: name,
+            endpoint: endpoint
+        })
+    }).then(function (response) {
+        self._name = name;
+        self._endpoint = endpoint;
+        return response;
+    });
+};
+
+Notification.prototype.get = function (name) {
+    var url = this._buildUrl(name || this._name);
+    return this.sendRequest('GET', url);
+};
+
+Notification.prototype.list = function () {
+    return this.sendRequest('GET', this._buildUrl());
+};
+
+Notification.prototype.remove = function (name) {
+    var url = this._buildUrl(name || this._name);
+    return this.sendRequest('DELETE', url);
+};
+
+Notification.prototype.removeAll = function () {
+    var self = this;
+    return self.list().then(function (response) {
+        var asyncTasks = (response.body.notifications || []).map(function (item) {
+            return self.remove(item.name);
+        });
+        return Q.all(asyncTasks);
+    });
+};
+
 // --- E   N   D ---
 
-module.exports = DocClient;
+exports.Document = Document;
+exports.Notification = Notification;
 
 }).call(this,{"isBuffer":require("/Volumes/HDD/Users/leeight/local/case/inf/bos/bce-sdk-js/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js")})
-},{"./bce_base_client":191,"./bos_client":193,"./crypto":195,"./helper":199,"/Volumes/HDD/Users/leeight/local/case/inf/bos/bce-sdk-js/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js":153,"debug":183,"fs":3,"path":155,"q":186,"underscore":187,"util":176}],197:[function(require,module,exports){
+},{"./bce_base_client":191,"./bos_client":193,"./crypto":195,"./helper":199,"/Volumes/HDD/Users/leeight/local/case/inf/bos/bce-sdk-js/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js":153,"debug":183,"fs":3,"path":155,"q":186,"underscore":187,"url":174,"util":176}],197:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -27995,7 +28205,7 @@ var stream = require('stream');
 var async = require('async');
 var u = require('underscore');
 var Q = require('q');
-var debug = require('debug')('upload_helper.spec');
+var debug = require('debug')('bce-sdk:helper');
 
 // 超过这个限制就开始分片上传
 var MIN_MULTIPART_SIZE = 5 * 1024 * 1024;   // 5M
@@ -28070,6 +28280,7 @@ exports.upload = function (client, bucket, object, data, options) {
     }
 };
 
+/*eslint-disable*/
 /**
  * 自适应的按需上传文件
  *
@@ -28114,6 +28325,7 @@ function uploadViaMultipart(client, data, dataType, bucket, object, size, partSi
             return client.completeMultipartUpload(bucket, object, uploadId, parts);
         });
 }
+/*eslint-enable*/
 
 function uploadPart(client, dataType) {
     return function (task, callback) {
@@ -28155,7 +28367,9 @@ function getTasks(data, uploadId, bucket, object, size, partSize) {
 
     var tasks = [];
     while (leftSize > 0) {
+        /*eslint-disable*/
         var _partSize = Math.min(leftSize, partSize);
+        /*eslint-enable*/
         tasks.push({
             data: data,   // Buffer or Blob
             uploadId: uploadId,
@@ -28622,6 +28836,7 @@ module.exports = HttpClient;
 var util = require('util');
 
 var Q = require('q');
+// var debug = require('debug')('bce-sdk:LssClient');
 
 var BceBaseClient = require('./bce_base_client');
 
@@ -28634,7 +28849,7 @@ var BceBaseClient = require('./bce_base_client');
  * @extends {BceBaseClient}
  */
 function Preset(config) {
-    BceBaseClient.call(this, config, 'media', true);
+    BceBaseClient.call(this, config, 'lss', true);
 
     this._name = null;
 }
@@ -28642,13 +28857,8 @@ util.inherits(Preset, BceBaseClient);
 
 // --- B E G I N ---
 
-Preset.prototype._buildUrl = function (opt_name) {
+Preset.prototype._buildUrl = function (name) {
     var url = '/v3/live/preset';
-    if (opt_name === false) {
-        return url;
-    }
-
-    var name = opt_name || this._name;
     return url + (name ? '/' + name : '');
 };
 
@@ -28670,7 +28880,7 @@ Preset.prototype.create = function (options) {
 };
 
 Preset.prototype.remove = function (name) {
-    var url = this._buildUrl(name);
+    var url = this._buildUrl(name || this._name);
     return this.sendRequest('DELETE', url);
 };
 
@@ -28690,12 +28900,12 @@ Preset.prototype.removeAll = function () {
 };
 
 Preset.prototype.get = function (name) {
-    var url = this._buildUrl(name);
+    var url = this._buildUrl(name || this._name);
     return this.sendRequest('GET', url);
 };
 
 Preset.prototype.list = function () {
-    var url = this._buildUrl(false);
+    var url = this._buildUrl();
     return this.sendRequest('GET', url);
 };
 
@@ -28710,7 +28920,7 @@ Preset.prototype.list = function () {
  * @extends {BceBaseClient}
  */
 function Session(config) {
-    BceBaseClient.call(this, config, 'media', true);
+    BceBaseClient.call(this, config, 'lss', true);
 
     /**
      * The session id.
@@ -28724,13 +28934,8 @@ util.inherits(Session, BceBaseClient);
 
 // --- B E G I N ---
 
-Session.prototype._buildUrl = function (opt_sessionId) {
+Session.prototype._buildUrl = function (sessionId) {
     var url = '/v3/live/session';
-    if (opt_sessionId === false) {
-        return url;
-    }
-
-    var sessionId = opt_sessionId || this._sessionId;
     return url + (sessionId ? '/' + sessionId : '');
 };
 
@@ -28759,7 +28964,7 @@ Session.prototype.create = function (options) {
 };
 
 Session.prototype.remove = function (sessionId) {
-    var url = this._buildUrl(sessionId);
+    var url = this._buildUrl(sessionId || this._sessionId);
     return this.sendRequest('DELETE', url);
 };
 
@@ -28774,30 +28979,31 @@ Session.prototype.removeAll = function () {
 };
 
 Session.prototype.get = function (sessionId) {
-    var url = this._buildUrl(sessionId);
+    var url = this._buildUrl(sessionId || this._sessionId);
     return this.sendRequest('GET', url);
 };
 
 Session.prototype.list = function () {
-    return this.sendRequest('GET', this._buildUrl(false));
+    var url = this._buildUrl();
+    return this.sendRequest('GET', url);
 };
 
 Session.prototype.pause = function (sessionId) {
-    var url = this._buildUrl(sessionId);
+    var url = this._buildUrl(sessionId || this._sessionId);
     return this.sendRequest('PUT', url, {
         params: {stop: ''}
     });
 };
 
 Session.prototype.resume = function (sessionId) {
-    var url = this._buildUrl(sessionId);
+    var url = this._buildUrl(sessionId || this._sessionId);
     return this.sendRequest('PUT', url, {
         params: {resume: ''}
     });
 };
 
 Session.prototype.refresh = function (sessionId) {
-    var url = this._buildUrl(sessionId);
+    var url = this._buildUrl(sessionId || this._sessionId);
     return this.sendRequest('PUT', url, {
         params: {refresh: ''}
     });
@@ -28811,47 +29017,57 @@ Session.prototype.refresh = function (sessionId) {
  *
  * @constructor
  * @param {Object} config The lss client configuration.
- * @param {string} name The notification name.
- * @param {string} endpoint The notification endpoint.
  * @extends {BceBaseClient}
  */
-function Notification(config, name, endpoint) {
-    BceBaseClient.call(this, config, 'media', true);
+function Notification(config) {
+    BceBaseClient.call(this, config, 'lss', true);
 
-    this._name = name;
-    this._endpoint = endpoint;
+    this._name = null;
+    this._endpoint = null;
 }
 util.inherits(Notification, BceBaseClient);
 
 // --- B E G I N ---
 
-Notification.prototype._buildUrl = function (opt_name) {
+Notification.prototype._buildUrl = function (name) {
     var url = '/v3/live/notification';
-    if (opt_name === false) {
-        return url;
-    }
-
-    var name = opt_name || this._name;
     return url + (name ? '/' + name : '');
 };
 
-Notification.prototype.create = function () {
-    var url = this._buildUrl(false);
+Notification.prototype.create = function (name, endpoint) {
+    var url = this._buildUrl();
+
     var data = {
-        name: this._name,
-        endpoint: this._endpoint
+        name: name,
+        endpoint: endpoint
     };
+
+    var self = this;
     return this.sendRequest('POST', url, {
         body: JSON.stringify(data)
+    }).then(function (response) {
+        self._name = name;
+        self._endpoint = endpoint;
+        return response;
     });
 };
 
-Notification.prototype.get = function (name) {
+Notification.prototype.get = function (opt_name) {
+    var name = opt_name || this._name;
+    if (!name) {
+        throw new TypeError('name is required');
+    }
+
     var url = this._buildUrl(name);
     return this.sendRequest('GET', url);
 };
 
-Notification.prototype.remove = function (name) {
+Notification.prototype.remove = function (opt_name) {
+    var name = opt_name || this._name;
+    if (!name) {
+        throw new TypeError('name is required');
+    }
+
     var url = this._buildUrl(name);
     return this.sendRequest('DELETE', url);
 };
@@ -28867,7 +29083,7 @@ Notification.prototype.removeAll = function () {
 };
 
 Notification.prototype.list = function () {
-    var url = this._buildUrl(false);
+    var url = this._buildUrl();
     return this.sendRequest('GET', url);
 };
 

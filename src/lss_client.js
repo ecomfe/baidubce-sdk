@@ -21,6 +21,7 @@
 var util = require('util');
 
 var Q = require('q');
+// var debug = require('debug')('bce-sdk:LssClient');
 
 var BceBaseClient = require('./bce_base_client');
 
@@ -33,7 +34,7 @@ var BceBaseClient = require('./bce_base_client');
  * @extends {BceBaseClient}
  */
 function Preset(config) {
-    BceBaseClient.call(this, config, 'media', true);
+    BceBaseClient.call(this, config, 'lss', true);
 
     this._name = null;
 }
@@ -41,13 +42,8 @@ util.inherits(Preset, BceBaseClient);
 
 // --- B E G I N ---
 
-Preset.prototype._buildUrl = function (opt_name) {
+Preset.prototype._buildUrl = function (name) {
     var url = '/v3/live/preset';
-    if (opt_name === false) {
-        return url;
-    }
-
-    var name = opt_name || this._name;
     return url + (name ? '/' + name : '');
 };
 
@@ -69,7 +65,7 @@ Preset.prototype.create = function (options) {
 };
 
 Preset.prototype.remove = function (name) {
-    var url = this._buildUrl(name);
+    var url = this._buildUrl(name || this._name);
     return this.sendRequest('DELETE', url);
 };
 
@@ -89,12 +85,12 @@ Preset.prototype.removeAll = function () {
 };
 
 Preset.prototype.get = function (name) {
-    var url = this._buildUrl(name);
+    var url = this._buildUrl(name || this._name);
     return this.sendRequest('GET', url);
 };
 
 Preset.prototype.list = function () {
-    var url = this._buildUrl(false);
+    var url = this._buildUrl();
     return this.sendRequest('GET', url);
 };
 
@@ -109,7 +105,7 @@ Preset.prototype.list = function () {
  * @extends {BceBaseClient}
  */
 function Session(config) {
-    BceBaseClient.call(this, config, 'media', true);
+    BceBaseClient.call(this, config, 'lss', true);
 
     /**
      * The session id.
@@ -123,13 +119,8 @@ util.inherits(Session, BceBaseClient);
 
 // --- B E G I N ---
 
-Session.prototype._buildUrl = function (opt_sessionId) {
+Session.prototype._buildUrl = function (sessionId) {
     var url = '/v3/live/session';
-    if (opt_sessionId === false) {
-        return url;
-    }
-
-    var sessionId = opt_sessionId || this._sessionId;
     return url + (sessionId ? '/' + sessionId : '');
 };
 
@@ -158,7 +149,7 @@ Session.prototype.create = function (options) {
 };
 
 Session.prototype.remove = function (sessionId) {
-    var url = this._buildUrl(sessionId);
+    var url = this._buildUrl(sessionId || this._sessionId);
     return this.sendRequest('DELETE', url);
 };
 
@@ -173,30 +164,31 @@ Session.prototype.removeAll = function () {
 };
 
 Session.prototype.get = function (sessionId) {
-    var url = this._buildUrl(sessionId);
+    var url = this._buildUrl(sessionId || this._sessionId);
     return this.sendRequest('GET', url);
 };
 
 Session.prototype.list = function () {
-    return this.sendRequest('GET', this._buildUrl(false));
+    var url = this._buildUrl();
+    return this.sendRequest('GET', url);
 };
 
 Session.prototype.pause = function (sessionId) {
-    var url = this._buildUrl(sessionId);
+    var url = this._buildUrl(sessionId || this._sessionId);
     return this.sendRequest('PUT', url, {
         params: {stop: ''}
     });
 };
 
 Session.prototype.resume = function (sessionId) {
-    var url = this._buildUrl(sessionId);
+    var url = this._buildUrl(sessionId || this._sessionId);
     return this.sendRequest('PUT', url, {
         params: {resume: ''}
     });
 };
 
 Session.prototype.refresh = function (sessionId) {
-    var url = this._buildUrl(sessionId);
+    var url = this._buildUrl(sessionId || this._sessionId);
     return this.sendRequest('PUT', url, {
         params: {refresh: ''}
     });
@@ -210,47 +202,57 @@ Session.prototype.refresh = function (sessionId) {
  *
  * @constructor
  * @param {Object} config The lss client configuration.
- * @param {string} name The notification name.
- * @param {string} endpoint The notification endpoint.
  * @extends {BceBaseClient}
  */
-function Notification(config, name, endpoint) {
-    BceBaseClient.call(this, config, 'media', true);
+function Notification(config) {
+    BceBaseClient.call(this, config, 'lss', true);
 
-    this._name = name;
-    this._endpoint = endpoint;
+    this._name = null;
+    this._endpoint = null;
 }
 util.inherits(Notification, BceBaseClient);
 
 // --- B E G I N ---
 
-Notification.prototype._buildUrl = function (opt_name) {
+Notification.prototype._buildUrl = function (name) {
     var url = '/v3/live/notification';
-    if (opt_name === false) {
-        return url;
-    }
-
-    var name = opt_name || this._name;
     return url + (name ? '/' + name : '');
 };
 
-Notification.prototype.create = function () {
-    var url = this._buildUrl(false);
+Notification.prototype.create = function (name, endpoint) {
+    var url = this._buildUrl();
+
     var data = {
-        name: this._name,
-        endpoint: this._endpoint
+        name: name,
+        endpoint: endpoint
     };
+
+    var self = this;
     return this.sendRequest('POST', url, {
         body: JSON.stringify(data)
+    }).then(function (response) {
+        self._name = name;
+        self._endpoint = endpoint;
+        return response;
     });
 };
 
-Notification.prototype.get = function (name) {
+Notification.prototype.get = function (opt_name) {
+    var name = opt_name || this._name;
+    if (!name) {
+        throw new TypeError('name is required');
+    }
+
     var url = this._buildUrl(name);
     return this.sendRequest('GET', url);
 };
 
-Notification.prototype.remove = function (name) {
+Notification.prototype.remove = function (opt_name) {
+    var name = opt_name || this._name;
+    if (!name) {
+        throw new TypeError('name is required');
+    }
+
     var url = this._buildUrl(name);
     return this.sendRequest('DELETE', url);
 };
@@ -266,7 +268,7 @@ Notification.prototype.removeAll = function () {
 };
 
 Notification.prototype.list = function () {
-    var url = this._buildUrl(false);
+    var url = this._buildUrl();
     return this.sendRequest('GET', url);
 };
 
