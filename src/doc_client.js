@@ -269,12 +269,8 @@ DocClient.prototype.createDocumentFromBosObject = function (
 
     debug('createDocumentFromBosObject:arguments = [%j], body = [%j]', arguments, body);
     return this.sendRequest('POST', url, {
-        params: {bos: ''},
-        body: JSON.stringify(body),
-        headers: {
-            'x-bce-doc-format': format,
-            'x-bce-doc-title': title
-        }
+        params: {source: 'bos'},
+        body: JSON.stringify(body)
     });
 };
 

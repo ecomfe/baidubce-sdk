@@ -75,6 +75,7 @@ describe('DocClient', function () {
                 expect(error.status_code).to.eql(403);
                 return helper.loop(5 * 60, 20, function () {
                     return client.getDocument(documentId).then(function (response) {
+                        debug(response.body);
                         // UPLOADING/PROCESSING/PUBLISHED/FAILED
                         var status = response.body.status;
                         if (status === 'FAILED') {
@@ -160,11 +161,13 @@ describe('DocClient', function () {
         var bosClient = new BosClient(config.bos);
         var bucket = 'bce-bos-uploader';
         var object = 'doc_client.spec.txt';
-        var title = 'hello_world.txt';
+        var title = '你好，世界.txt';
         var fsize = fs.lstatSync(__filename).size;
+        var bceMetaMd5;
 
         crypto.md5file(__filename, 'hex')
             .then(function (md5) {
+                bceMetaMd5 = md5;
                 return bosClient.putObjectFromFile(bucket, object, __filename, {
                     'x-bce-meta-md5': md5
                 })
@@ -191,9 +194,8 @@ describe('DocClient', function () {
                 var body = response.body;
                 expect(body.title).to.eql(title);
                 expect(body.format).to.eql('txt');
-                // TODO??
-                // expect(body.meta.md5).to.eql('3920cb9966793d2405e64c6458f3abbf');
-                // expect(body.meta.sizeInBytes).to.eql(fsize);
+                expect(body.meta.md5).to.eql(bceMetaMd5);
+                expect(body.meta.sizeInBytes).to.eql(fsize);
                 expect(body.status).to.eql('PROCESSING');
             })
             .catch(fail)

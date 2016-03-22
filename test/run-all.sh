@@ -67,5 +67,9 @@ SPECS=(
   test/sdk/vod_client.spec.js
 )
 
+# SPECS=(
+#  test/sdk/doc_client.spec.js
+# )
+
 # node_modules/.bin/mocha -C ${SPECS[@]}
 node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha --report lcovonly ${SPECS[@]} && cat ./coverage/lcov.info | node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
