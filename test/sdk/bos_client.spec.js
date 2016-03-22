@@ -23,6 +23,7 @@ var debug = require('debug')('bos_client.spec');
 var config = require('../config');
 var helper = require('./helper');
 var BosClient = require('../..').BosClient;
+var crypto = require('../../src/crypto');
 
 describe('BosClient', function() {
     var client;
@@ -210,9 +211,7 @@ describe('BosClient', function() {
             })
             .then(function(response) {
                 expect(response.http_headers['content-length']).to.eql('11');
-                expect(response.http_headers['content-md5']).to.eql(
-                    require('../../src/crypto').md5sum('hello world')
-                );
+                expect(response.http_headers['content-md5']).to.eql(crypto.md5sum('hello world'));
             })
             .catch(fail)
             .fin(done);
@@ -229,9 +228,7 @@ describe('BosClient', function() {
             })
             .then(function(response) {
                 expect(response.http_headers['content-length']).to.eql('11');
-                expect(response.http_headers['content-md5']).to.eql(
-                    require('../../src/crypto').md5sum('hello world')
-                );
+                expect(response.http_headers['content-md5']).to.eql(crypto.md5sum('hello world'));
 
                 return client.generatePresignedUrl(bucket, objectName, 0, 1800, null, {'x-bce-range': '0-5'});
             })
@@ -263,9 +260,7 @@ describe('BosClient', function() {
             })
             .then(function(response) {
                 expect(response.http_headers['content-length']).to.eql('11');
-                expect(response.http_headers['content-md5']).to.eql(
-                    require('../../src/crypto').md5sum('hello world')
-                );
+                expect(response.http_headers['content-md5']).to.eql(crypto.md5sum('hello world'));
 
                 return client.generatePresignedUrl(bucket, key, 0, 1800, null, {'x-bce-range': '0-5'});
             })
@@ -298,7 +293,7 @@ describe('BosClient', function() {
             .then(function(response) {
                 expect(response.http_headers['content-length']).to.eql('' + fs.lstatSync(__filename).size);
                 expect(response.http_headers['content-type']).to.eql('application/javascript');
-                return require('../../src/crypto').md5file(__filename)
+                return crypto.md5file(__filename)
                     .then(function(md5sum) {
                         expect(response.http_headers['content-md5']).to.eql(md5sum);
                     });
@@ -321,7 +316,7 @@ describe('BosClient', function() {
             .then(function(response) {
                 expect(response.http_headers['content-length']).to.eql('100');
                 expect(response.http_headers['content-type']).to.eql('application/javascript');
-                return require('../../src/crypto').md5stream(fs.createReadStream(__filename, {start: 0, end: 99}))
+                return crypto.md5stream(fs.createReadStream(__filename, {start: 0, end: 99}))
                     .then(function(md5sum) {
                         expect(response.http_headers['content-md5']).to.eql(md5sum);
                     });
@@ -457,7 +452,7 @@ describe('BosClient', function() {
             })
             .then(function() {
                 return client.copyObject(bucket, key, target_bucket_name, key, {
-                    'ETag': require('../../src/crypto').md5sum('Hello World', null, 'hex')
+                    'ETag': crypto.md5sum('Hello World', null, 'hex')
                 });
             })
             .then(function() {
@@ -489,7 +484,7 @@ describe('BosClient', function() {
             })
             .then(function() {
                 return client.copyObject(bucket, key, target_bucket_name, key, {
-                    'ETag': require('../../src/crypto').md5sum('Hello World', null, 'hex'),
+                    'ETag': crypto.md5sum('Hello World', null, 'hex'),
                     'x-bce-meta-bar1': 'foo1',
                     'x-bce-meta-bar2': 'foo2',
                     'x-bce-meta-bar3': 'foo3',
@@ -507,14 +502,230 @@ describe('BosClient', function() {
             .fin(done);
     });
 
+    it('putObject without key', function (done) {
+        client.createBucket(bucket)
+            .then(function () {
+                return client.putObject(object, null, 'hello world');
+            })
+            .then(function () {
+                expect().fail('SHOULD NOT REACH HERE.');
+            })
+            .catch(function (error) {
+                expect(error).to.b.a(Error);
+                expect(error.toString()).to.eql('object is not defined');
+            })
+            .fin(done);
+    });
+
+    it('putObjectFromFile with customized md5 header', function (done) {
+        client.createBucket(bucket)
+            .then(function () {
+                return crypto.md5stream(fs.createReadStream(__filename))
+            })
+            .then(function (md5sum) {
+                return client.putObjectFromFile(bucket, key, __filename, {
+                    'Content-MD5': md5sum
+                });
+            })
+            .then(function () {
+                return client.getObjectMetadata(bucket, key);
+            })
+            .then(function (response) {
+                expect(response.http_headers['content-length']).to.eql('' +
+                    fs.lstatSync(__filename).size);
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
+    it('uploadPartFromDataUrl with invalid size', function (done) {
+        client.createBucket(bucket)
+            .then(function () {
+                var dataUrl = new Buffer([1,2,3,4,5,6,7,8,9,10,11]).toString('base64');
+                return client.uploadPartFromDataUrl(bucket, key, 'uploadId',
+                    1, 10, dataUrl);
+            })
+            .then(function () {
+                expect().fail('SHOULD NOT REACH HERE.');
+            })
+            .catch(function (error) {
+                expect(error).to.be.a(TypeError);
+            })
+            .fin(done);
+    });
+
+    it('uploadPart with invalid parameters', function (done) {
+        client.createBucket(bucket)
+            .then(function () {
+                return client.uploadPart();
+            })
+            .catch(function (error) {
+                expect(error).to.be.a(TypeError);
+                return client.uploadPart(bucket);
+            })
+            .catch(function (error) {
+                expect(error).to.be.a(TypeError);
+                return client.uploadPart(bucket, key, 'uploadId', 0);
+            })
+            .catch(function (error) {
+                expect(error).to.be.a(TypeError);
+                return client.uploadPart(bucket, key, 'uploadId', 1, 10000 + 1);
+            })
+            .catch(function (error) {
+                expect(error).to.be.a(TypeError);
+            })
+            .fin(done);
+    });
+
+    it('putObject with invalid content-length', function (done) {
+        client.createBucket(bucket)
+            .then(function () {
+                return client.putObject(bucket, key, new Buffer('hello world'), {
+                    'Content-Length': -1
+                });
+            })
+            .then(function () {
+                expect().fail('SHOULD NOT REACH HERE.');
+            })
+            .catch(function (error) {
+                expect(error).to.be.a(TypeError);
+                return client.putObject(bucket, key, new Buffer('hello world'), {
+                    'Content-Length': 5368709120 + 1  // 5G + 1
+                });
+            })
+            .catch(function (error) {
+                expect(error).to.be.a(TypeError);
+            })
+            .fin(done);
+    });
+
+    it('putObjectFromFile with invalid content-length', function (done) {
+        client.createBucket(bucket)
+            .then(function () {
+                return client.putObjectFromFile(bucket, key, __filename, {
+                    'Content-Length': fs.lstatSync(__filename).size + 1
+                })
+            })
+            .then(function () {
+                expect().fail('SHOULD NOT REACH HERE.');
+            })
+            .catch(function (error) {
+                expect(error).to.b.a(Error);
+            })
+            .fin(done);
+    });
+
+    it('copyObject with invalid parameters', function (done) {
+        client.createBucket(bucket)
+            .then(function () {
+                return client.copyObject();
+            })
+            .catch(function (error) {
+                expect(error).to.be.a(TypeError);
+                return client.copyObject('sourceBucketName');
+            })
+            .catch(function (error) {
+                expect(error).to.be.a(TypeError);
+                return client.copyObject('sourceBucketName', 'sourceKey');
+            })
+            .catch(function (error) {
+                expect(error).to.be.a(TypeError);
+                return client.copyObject('sourceBucketName', 'sourceKey',
+                    'targetBucketName');
+            })
+            .catch(function (error) {
+                expect(error).to.be.a(TypeError);
+            })
+            .fin(done);
+    });
+
     it('initiateMultipartUpload', function(done) {
+        var uploadIds = [];
         client.createBucket(bucket)
             .then(function() {
-                return client.initiateMultipartUpload(bucket, key);
+                return Q.all([
+                    client.initiateMultipartUpload(bucket, key),
+                    client.initiateMultipartUpload(bucket, key),
+                    client.initiateMultipartUpload(bucket, key)
+                ]);
+            })
+            .then(function(responses) {
+                debug(responses);
+                responses.forEach(function (response) {
+                    uploadIds.push(response.body.uploadId);
+                });
+                return client.listMultipartUploads(bucket, {maxUploads: 10});
             })
             .then(function(response) {
-                var upload_id = response.body.uploadId;
-                return client.abortMultipartUpload(bucket, key, upload_id);
+                debug(response.body);
+                expect(response.body.bucket).to.eql(bucket);
+                expect(response.body.prefix).to.eql('');
+                expect(response.body.keyMarker).to.eql('');
+                expect(response.body.maxUploads).to.eql(10);
+                expect(response.body.isTruncated).to.eql(false);
+                expect(response.body.uploads).not.to.be(undefined);
+                expect(response.body.uploads.length).to.eql(3);
+            })
+            .then(function(response) {
+                var asyncTasks = uploadIds.map(function (uploadId) {
+                    return client.abortMultipartUpload(bucket, key, uploadId);
+                });
+                return Q.all(asyncTasks);
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
+    it('listParts with invalid parameters', function (done) {
+        client.createBucket(bucket)
+            .then(function () {
+                return client.listParts(bucket, key);
+            })
+            .then(function () {
+                expect().fail('SHOULD NOT REACH HERE.');
+            })
+            .catch(function (error) {
+                expect(error).to.be.a(TypeError);
+            })
+            .fin(done);
+    });
+
+    it('listParts', function (done) {
+        var uploadId;
+        client.createBucket(bucket)
+            .then(function () {
+                return client.initiateMultipartUpload(bucket, key);
+            })
+            .then(function (response) {
+                uploadId = response.body.uploadId;
+                var partSize = fs.lstatSync(__filename).size;
+                return client.uploadPartFromFile(bucket, key, uploadId,
+                    1, partSize, __filename, 0);
+            })
+            .then(function (response) {
+                debug(response);
+                return client.listParts(bucket, key, uploadId);
+            })
+            .then(function (response) {
+                debug(response);
+                var body = response.body;
+                expect(body.bucket).to.eql(bucket);
+                expect(body.key).to.eql(key);
+                expect(body.initiated).not.to.be(undefined);
+                expect(body.owner).not.to.be(undefined);
+                expect(body.partNumberMarker).to.eql(0);
+                expect(body.nextPartNumberMarker).to.eql(1);
+                expect(body.maxParts).to.eql(1000);
+                expect(body.isTruncated).to.eql(false);
+
+                var part = body.parts[0];
+                expect(part).not.to.be(undefined);
+                expect(part.partNumber).to.eql(1);
+                expect(part.lastModified).not.to.be(undefined);
+                expect(part.eTag).not.to.be(undefined);
+                expect(part.size).to.eql(fs.lstatSync(__filename).size);
+
+                return client.abortMultipartUpload(bucket, key, uploadId);
             })
             .catch(fail)
             .fin(done);
@@ -572,7 +783,7 @@ describe('BosClient', function() {
             .then(function(response) {
                 fs.unlinkSync(filename);
                 expect(response.body.eTag).to.eql(
-                    '-' + require('../../src/crypto').md5sum(etags, null, 'hex')
+                    '-' + crypto.md5sum(etags, null, 'hex')
                 );
             })
             .catch(fail)
