@@ -25,7 +25,7 @@ var builtinUrl = require('url');
 
 var Q = require('q');
 var u = require('underscore');
-var debug = require('debug')('bce-sdk:DocClient');
+var debug = require('debug')('bce-sdk:Document');
 
 var BosClient = require('./bos_client');
 var BceBaseClient = require('./bce_base_client');
@@ -44,15 +44,24 @@ var DATA_TYPE_BLOB     = 4;
  * @param {Object} config The doc client configuration.
  * @extends {BceBaseClient}
  */
-function DocClient(config) {
+function Document(config) {
     BceBaseClient.call(this, config, 'doc', false);
+
+    this._documentId = null;
 }
-util.inherits(DocClient, BceBaseClient);
+util.inherits(Document, BceBaseClient);
 
 // --- B E G I N ---
 
-DocClient.prototype._buildUrl = function () {
-    return '/v1/document';
+Document.prototype._buildUrl = function () {
+    var baseUrl = '/v1/document';
+    var extraPaths = u.toArray(arguments);
+
+    if (extraPaths.length) {
+        baseUrl += '/' + extraPaths.join('/');
+    }
+
+    return baseUrl;
 };
 
 /**
@@ -63,14 +72,14 @@ DocClient.prototype._buildUrl = function () {
  * @param {Object=} opt_options The extra options.
  * @return {Promise}
  */
-DocClient.prototype.createDocument = function (data, opt_options) {
+Document.prototype.create = function (data, opt_options) {
     var options = u.extend({meta: {}}, opt_options);
     var dataType = -1;
     var pattern = /^bos:\/\//;
 
     if (u.isString(data)) {
         if (pattern.test(data)) {
-            // createDocumentFromBosObject
+            // createFromBos
             try {
                 var parsed = builtinUrl.parse(data);
                 var bucket = parsed.host;
@@ -80,7 +89,7 @@ DocClient.prototype.createDocument = function (data, opt_options) {
                 var title = options.title || path.basename(object);
                 var format = options.format || path.extname(object).substr(1);
                 var notification = options.notification;
-                return this.createDocumentFromBosObject(bucket, object,
+                return this.createFromBos(bucket, object,
                     title, format, notification);
             }
             catch (error) {
@@ -117,7 +126,7 @@ DocClient.prototype.createDocument = function (data, opt_options) {
     }
 
     if (options.meta.md5) {
-        return this._doCreateDocument(data, options);
+        return this._doCreate(data, options);
     }
 
     var self = this;
@@ -125,20 +134,20 @@ DocClient.prototype.createDocument = function (data, opt_options) {
         return crypto.md5stream(fs.createReadStream(data), 'hex')
             .then(function (md5) {
                 options.meta.md5 = md5;
-                return self._doCreateDocument(data, options);
+                return self._doCreate(data, options);
             });
     }
     else if (dataType === DATA_TYPE_BLOB) {
         return crypto.md5blob(data, 'hex')
             .then(function (md5) {
                 options.meta.md5 = md5;
-                return self._doCreateDocument(data, options);
+                return self._doCreate(data, options);
             });
     }
-    return this._doCreateDocument(data, options);
+    return this._doCreate(data, options);
 };
 
-DocClient.prototype._doCreateDocument = function (data, options) {
+Document.prototype._doCreate = function (data, options) {
     var documentId = null;
     var bucket = null;
     var object = null;
@@ -146,9 +155,9 @@ DocClient.prototype._doCreateDocument = function (data, options) {
 
     var self = this;
 
-    return self.registerDocument(options)
+    return self.register(options)
         .then(function (response) {
-            debug('registerDocument[response = %j]', response);
+            debug('register[response = %j]', response);
 
             documentId = response.body.documentId;
             bucket = response.body.bucket;
@@ -162,10 +171,10 @@ DocClient.prototype._doCreateDocument = function (data, options) {
         })
         .then(function (response) {
             debug('upload[response = %j]', response);
-            return self.publishDocument(documentId);
+            return self.publish();
         })
         .then(function (response) {
-            debug('publishDocument[response = %j]', response);
+            debug('publish[response = %j]', response);
             response.body = {
                 documentId: documentId,
                 bucket: bucket,
@@ -176,26 +185,29 @@ DocClient.prototype._doCreateDocument = function (data, options) {
         });
 };
 
-DocClient.prototype.registerDocument = function (options) {
-    debug('registerDocument[options = %j]', options);
+Document.prototype.register = function (options) {
+    debug('register[options = %j]', options);
 
+    var self = this;
     var url = this._buildUrl();
     return this.sendRequest('POST', url, {
         params: {register: ''},
         body: JSON.stringify(options)
+    }).then(function (response) {
+        self._documentId = response.body.documentId;
+        return response;
     });
 };
 
-DocClient.prototype.publishDocument = function (documentId) {
-    var url = this._buildUrl();
-    url = url + '/' + documentId;
+Document.prototype.publish = function (documentId) {
+    var url = this._buildUrl(documentId || this._documentId);
     return this.sendRequest('PUT', url, {
         params: {publish: ''}
     });
 };
 
-DocClient.prototype.getDocument = function (documentId) {
-    var url = this._buildUrl() + '/' + documentId;
+Document.prototype.get = function (documentId) {
+    var url = this._buildUrl(documentId || this._documentId);
     return this.sendRequest('GET', url);
 };
 
@@ -219,8 +231,8 @@ DocClient.prototype.getDocument = function (documentId) {
  * @param {string} documentId The document Id.
  * @return {Promise}
  */
-DocClient.prototype.readDocument = function (documentId) {
-    var url = this._buildUrl() + '/' + documentId;
+Document.prototype.read = function (documentId) {
+    var url = this._buildUrl(documentId || this._documentId);
     return this.sendRequest('GET', url, {
         params: {read: ''}
     });
@@ -247,7 +259,7 @@ DocClient.prototype.readDocument = function (documentId) {
  * @param {string=} opt_notification The notification name.
  * @return {Promise}
  */
-DocClient.prototype.createDocumentFromBosObject = function (
+Document.prototype.createFromBos = function (
     bucket, object, title, opt_format, opt_notification) {
     var url = this._buildUrl();
 
@@ -267,29 +279,33 @@ DocClient.prototype.createDocumentFromBosObject = function (
         body.notification = opt_notification;
     }
 
-    debug('createDocumentFromBosObject:arguments = [%j], body = [%j]', arguments, body);
+    debug('createFromBos:arguments = [%j], body = [%j]', arguments, body);
+    var self = this;
     return this.sendRequest('POST', url, {
         params: {source: 'bos'},
         body: JSON.stringify(body)
+    }).then(function (response) {
+        self._documentId = response.body.documentId;
+        return response;
     });
 };
 
-DocClient.prototype.removeAll = function () {
+Document.prototype.removeAll = function () {
     var self = this;
-    return self.listDocuments().then(function (response) {
+    return self.list().then(function (response) {
         var asyncTasks = (response.body.documents || []).map(function (item) {
-            return self.removeDocument(item.documentId);
+            return self.remove(item.documentId);
         });
         return Q.all(asyncTasks);
     });
 };
 
-DocClient.prototype.removeDocument = function (documentId) {
-    var url = this._buildUrl() + '/' + documentId;
+Document.prototype.remove = function (documentId) {
+    var url = this._buildUrl(documentId || this._documentId);
     return this.sendRequest('DELETE', url);
 };
 
-DocClient.prototype.listDocuments = function (opt_status) {
+Document.prototype.list = function (opt_status) {
     var status = opt_status || '';
 
     var url = this._buildUrl();
@@ -298,6 +314,73 @@ DocClient.prototype.listDocuments = function (opt_status) {
     });
 };
 
+/**
+ * 文档转码通知接口（Notification API）
+ * http://gollum.baidu.com/MEDIA-DOC-API#通知接口(Notification-API)
+ *
+ * @constructor
+ * @param {Object} config The doc client configuration.
+ * @extends {BceBaseClient}
+ */
+function Notification(config) {
+    BceBaseClient.call(this, config, 'doc', false);
+
+    this._name = null;
+    this._endpoint = null;
+}
+util.inherits(Notification, BceBaseClient);
+
+Notification.prototype._buildUrl = function () {
+    var baseUrl = '/v1/notification';
+    var extraPaths = u.toArray(arguments);
+
+    if (extraPaths.length) {
+        baseUrl += '/' + extraPaths.join('/');
+    }
+
+    return baseUrl;
+};
+
+Notification.prototype.create = function (name, endpoint) {
+    var self = this;
+    var url = this._buildUrl();
+    return self.sendRequest('POST', url, {
+        body: JSON.stringify({
+            name: name,
+            endpoint: endpoint
+        })
+    }).then(function (response) {
+        self._name = name;
+        self._endpoint = endpoint;
+        return response;
+    });
+};
+
+Notification.prototype.get = function (name) {
+    var url = this._buildUrl(name || this._name);
+    return this.sendRequest('GET', url);
+};
+
+Notification.prototype.list = function () {
+    return this.sendRequest('GET', this._buildUrl());
+};
+
+Notification.prototype.remove = function (name) {
+    var url = this._buildUrl(name || this._name);
+    return this.sendRequest('DELETE', url);
+};
+
+Notification.prototype.removeAll = function () {
+    var self = this;
+    return self.list().then(function (response) {
+        var asyncTasks = (response.body.notifications || []).map(function (item) {
+            return self.remove(item.name);
+        });
+        return Q.all(asyncTasks);
+    });
+};
+
 // --- E   N   D ---
 
-module.exports = DocClient;
+exports.Document = Document;
+exports.Notification = Notification;

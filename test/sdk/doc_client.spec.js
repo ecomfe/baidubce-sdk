@@ -28,28 +28,115 @@ var BosClient = require('../../').BosClient;
 var crypto = require('../../src/crypto');
 var helper = require('./helper');
 
-describe('DocClient', function () {
+describe('DocClient.Notification', function () {
     var fail;
-    var client;
+    var notification;
 
     this.timeout(10 * 60 * 1000);
 
     beforeEach(function (done) {
         fail = helper.fail(this);
 
-        client = new DocClient(config.doc);
+        notification = new DocClient.Notification(config.doc);
 
-        client.removeAll().catch(fail).fin(done);
+        notification.removeAll().catch(fail).fin(done);
+    });
+
+    it('list', function (done) {
+        notification.list()
+            .then(function (response) {
+                expect(response.body.notifications).not.to.be(undefined);
+                expect(response.body.notifications).to.eql([]);
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
+    it('create', function (done) {
+        var name = 'haha';
+        var endpoint = 'http://www.baidu.com';
+        notification.create(name, endpoint)
+            .then(function () {
+                return notification.get()
+            })
+            .then(function (response) {
+                var body = response.body;
+                expect(body.name).to.eql(name);
+                expect(body.endpoint).to.eql(endpoint);
+                expect(body.createTime).not.to.eql(undefined);
+                expect(body.createTime).to.be.a('string');
+
+                // 重复创建
+                return notification.create(name, endpoint);
+            })
+            .catch(function (error) {
+                expect(error.status_code).to.eql(400);
+                expect(error.code).to.eql('DocExceptions.DuplicateNotification');
+
+                return notification.remove();
+            })
+            .then(function (response) {
+                return notification.get();
+            })
+            .catch(function (error) {
+                expect(error.status_code).to.eql(404);
+                expect(error.code).to.eql('DocExceptions.NoSuchNotification');
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
+    it('create with invalid name', function (done) {
+        var name = '你好';
+        var endpoint = 'http://www.baidu.com';
+        notification.create(name, endpoint)
+            .then(function () {
+                expect().fail('SHOULD NOT REACH HERE.');
+            })
+            .catch(function (error) {
+                expect(error.status_code).to.eql(400);
+                expect(error.code).to.eql('BceValidationException');
+            })
+            .fin(done);
+    });
+
+    it('create with invalid endpoint', function (done) {
+        var name = 'haha';
+        var endpoint = new Array(300).join('a');
+        notification.create(name, endpoint)
+            .then(function () {
+                expect().fail('SHOULD NOT REACH HERE.');
+            })
+            .catch(function (error) {
+                expect(error.status_code).to.eql(400);
+                expect(error.code).to.eql('BceValidationException');
+            })
+            .fin(done);
+    });
+});
+
+describe('DocClient.Document', function () {
+    var fail;
+    var document;
+
+    this.timeout(10 * 60 * 1000);
+
+    beforeEach(function (done) {
+        fail = helper.fail(this);
+
+        document = new DocClient.Document(config.doc);
+
+        document.removeAll().catch(fail).fin(done);
     });
 
     afterEach(function (done) {
         done();
     });
 
-    it('createDocument from local file', function (done) {
+    it('create from local file', function (done) {
         var file = path.join(__dirname, 'doc_client.spec.txt');
         var documentId;
-        client.createDocument(file)
+        document.create(file)
             .then(function (response) {
                 debug(response);
 
@@ -74,7 +161,7 @@ describe('DocClient', function () {
                 // Bucket不属于创建文档的用户，只是有 write 的权限而已
                 expect(error.status_code).to.eql(403);
                 return helper.loop(5 * 60, 20, function () {
-                    return client.getDocument(documentId).then(function (response) {
+                    return document.get(documentId).then(function (response) {
                         debug(response.body);
                         // UPLOADING/PROCESSING/PUBLISHED/FAILED
                         var status = response.body.status;
@@ -88,7 +175,7 @@ describe('DocClient', function () {
                 });
             })
             .then(function (response) {
-                return client.getDocument(documentId);
+                return document.get();
             })
             .then(function (response) {
                 debug(response);
@@ -98,7 +185,7 @@ describe('DocClient', function () {
                 expect(body.publishInfo).not.to.be(undefined);
                 expect(body.publishInfo.pageCount).not.to.be(undefined);
                 expect(body.publishInfo.coverUrl).not.to.be(undefined);
-                return client.readDocument(documentId);
+                return document.read();
             })
             .then(function (response) {
                 debug(response);
@@ -114,9 +201,9 @@ describe('DocClient', function () {
             .fin(done);
     });
 
-    it('createDocument from local file with invalid md5', function (done) {
+    it('create from local file with invalid md5', function (done) {
         var file = path.join(__dirname, 'doc_client.spec.txt');
-        client.createDocument(file, {meta: {md5: 'haha'}})
+        document.create(file, {meta: {md5: 'haha'}})
             .catch(function (error) {
                 expect(error.status_code).to.eql(400);
                 expect(error.code).to.eql('BceValidationException');
@@ -125,18 +212,18 @@ describe('DocClient', function () {
             .fin(done);
     });
 
-    it('createDocument from buffer without format and title', function (done) {
+    it('create from buffer without format and title', function (done) {
         var buffer = fs.readFileSync(path.join(__dirname, 'doc_client.spec.txt'));
-        client.createDocument(buffer)
+        document.create(buffer)
             .catch(function (error) {
                 expect(error.toString()).to.eql('buffer type required options.format and options.title');
             })
             .fin(done);
     });
 
-    it('createDocument from buffer with format and title', function (done) {
+    it('create from buffer with format and title', function (done) {
         var buffer = fs.readFileSync(path.join(__dirname, 'doc_client.spec.txt'));
-        client.createDocument(buffer, {format: 'txt', title: 'hello world'})
+        document.create(buffer, {format: 'txt', title: 'hello world'})
             .then(function (response) {
                 expect(response.body.documentId).not.to.be(undefined);
                 expect(response.body.bosEndpoint).not.to.be(undefined);
@@ -147,8 +234,8 @@ describe('DocClient', function () {
             .fin(done);
     });
 
-    it('listDocuments', function (done) {
-        client.listDocuments()
+    it('list', function (done) {
+        document.list()
             .then(function (response) {
                 var documents = response.body.documents || [];
                 expect(documents.length).to.eql(0);
@@ -157,7 +244,7 @@ describe('DocClient', function () {
             .fin(done);
     });
 
-    it('createDocument from bos', function (done) {
+    it('create from bos', function (done) {
         var bosClient = new BosClient(config.bos);
         var bucket = 'bce-bos-uploader';
         var object = 'doc_client.spec.txt';
@@ -179,7 +266,7 @@ describe('DocClient', function () {
                 debug(response.http_headers);
                 expect(response.http_headers['x-bce-meta-md5']).not.to.be(undefined);
                 expect(response.http_headers['content-length']).to.eql('' + fsize);
-                return client.createDocument('bos://' + bucket + '/' + object, {
+                return document.create('bos://' + bucket + '/' + object, {
                     format: 'txt',
                     title: title
                 });
@@ -187,7 +274,7 @@ describe('DocClient', function () {
             .then(function (response) {
                 expect(response.body).not.to.be(undefined);
                 expect(response.body.documentId).not.to.be(undefined);
-                return client.getDocument(response.body.documentId);
+                return document.get();
             })
             .then(function (response) {
                 debug(response);
@@ -203,7 +290,7 @@ describe('DocClient', function () {
     });
 
 
-    xit('createDocument from blob', function () {});
+    xit('create from blob', function () {});
 });
 
 

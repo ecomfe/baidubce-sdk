@@ -94,6 +94,7 @@ exports.upload = function (client, bucket, object, data, options) {
     }
 };
 
+/*eslint-disable*/
 /**
  * 自适应的按需上传文件
  *
@@ -138,6 +139,7 @@ function uploadViaMultipart(client, data, dataType, bucket, object, size, partSi
             return client.completeMultipartUpload(bucket, object, uploadId, parts);
         });
 }
+/*eslint-enable*/
 
 function uploadPart(client, dataType) {
     return function (task, callback) {
@@ -179,7 +181,9 @@ function getTasks(data, uploadId, bucket, object, size, partSize) {
 
     var tasks = [];
     while (leftSize > 0) {
+        /*eslint-disable*/
         var _partSize = Math.min(leftSize, partSize);
+        /*eslint-enable*/
         tasks.push({
             data: data,   // Buffer or Blob
             uploadId: uploadId,
