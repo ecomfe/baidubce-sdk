@@ -19,7 +19,7 @@ var stream = require('stream');
 var async = require('async');
 var u = require('underscore');
 var Q = require('q');
-var debug = require('debug')('upload_helper.spec');
+var debug = require('debug')('bce-sdk:helper');
 
 // 超过这个限制就开始分片上传
 var MIN_MULTIPART_SIZE = 5 * 1024 * 1024;   // 5M
