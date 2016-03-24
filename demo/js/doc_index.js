@@ -15,7 +15,7 @@ $(document).ready(function () {
     $('#upload').on('change', function (evt) {
         return (function (evt) {
             var file = evt.target.files[0];
-            var client = new sdk.DocClient(docConfig);
+            var client = new sdk.DocClient.Document(docConfig);
             var key = file.name;
             var blob = file;
             var id = +new Date();
@@ -36,7 +36,7 @@ $(document).ready(function () {
             };
 
             var promise;
-            promise = client.createDocumentFromBlob(file);
+            promise = client.create(file);
             client.on('progress', function (evt) {
                 client.emit('overallProgress', evt);
             });
