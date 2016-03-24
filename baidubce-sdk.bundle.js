@@ -28233,7 +28233,6 @@ var DATA_TYPE_BLOB     = 4;
 exports.upload = function (client, bucket, object, data, options) {
     var contentLength = 0;
     var dataType = -1;
-
     if (typeof data === 'string') {
         // 文件路径
         // TODO 如果不存在的话，会抛异常，导致程序退出？
@@ -28306,7 +28305,12 @@ function uploadViaMultipart(client, data, dataType, bucket, object, size, partSi
 
             var deferred = Q.defer();
             var tasks = getTasks(data, uploadId, bucket, object, size, partSize);
-            async.mapLimit(tasks, 2, uploadPart(client, dataType), function (error, results) {
+            var state = {
+                lengthComputable: true,
+                loaded: 0,
+                total: tasks.length
+            };
+            async.mapLimit(tasks, 2, uploadPart(client, dataType, state), function (error, results) {
                 if (error) {
                     deferred.reject(error);
                 }
@@ -28329,9 +28333,11 @@ function uploadViaMultipart(client, data, dataType, bucket, object, size, partSi
 }
 /*eslint-enable*/
 
-function uploadPart(client, dataType) {
+function uploadPart(client, dataType, state) {
     return function (task, callback) {
         var resolve = function (response) {
+            ++state.loaded;
+            client.emit('progress', state);
             callback(null, response);
         };
         var reject = function (error) {
