@@ -59,7 +59,7 @@ Preset.prototype.create = function (options) {
     return self.sendRequest('POST', url, {
         body: JSON.stringify(options)
     }).then(function (response) {
-        self._name = options.presetName;
+        self.setName(options.presetName);
         return response;
     });
 };
