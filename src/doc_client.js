@@ -64,6 +64,15 @@ Document.prototype._buildUrl = function () {
     return baseUrl;
 };
 
+Document.prototype.getId = function () {
+    return this._documentId;
+};
+
+Document.prototype.setId = function (documentId) {
+    this._documentId = documentId;
+    return this;
+};
+
 /**
  * Create a document transfer job from local file, buffer, readable stream or blob.
  *
@@ -194,7 +203,7 @@ Document.prototype.register = function (options) {
         params: {register: ''},
         body: JSON.stringify(options)
     }).then(function (response) {
-        self._documentId = response.body.documentId;
+        self.setId(response.body.documentId);
         return response;
     });
 };
@@ -203,8 +212,6 @@ Document.prototype.publish = function (documentId) {
     var url = this._buildUrl(documentId || this._documentId);
     return this.sendRequest('PUT', url, {
         params: {publish: ''}
-    }).then(function () {
-        return documentId;
     });
 };
 
@@ -287,7 +294,7 @@ Document.prototype.createFromBos = function (
         params: {source: 'bos'},
         body: JSON.stringify(body)
     }).then(function (response) {
-        self._documentId = response.body.documentId;
+        self.setId(response.body.documentId);
         return response;
     });
 };

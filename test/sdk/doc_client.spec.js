@@ -140,7 +140,7 @@ describe('DocClient.Document', function () {
             .then(function (response) {
                 debug(response);
 
-                documentId = response.body.documentId;
+                documentId = document.getId();
 
                 expect(response.body.documentId).not.to.be(undefined);
                 expect(response.body.bosEndpoint).not.to.be(undefined);
