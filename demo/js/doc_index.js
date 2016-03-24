@@ -1,7 +1,7 @@
 $(document).ready(function () {
     hljs.initHighlightingOnLoad();
 
-    var sdk = window.baidubceSdk;
+    var sdk = window.baidubce.sdk;
     // var tokenUrl = 'http://180.76.166.159:1337/ack';
     var docConfig = {
         credentials: {

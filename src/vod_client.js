@@ -42,16 +42,16 @@ function VodClient(config) {
     if (!bosConfig.credentials) {
         bosConfig.credentials = this.config.credentials;
     }
+    if (!bosConfig.sessionToken) {
+        bosConfig.sessionToken = this.config.sessionToken;
+    }
 
     this._bosClient = new BosClient(bosConfig);
-    /*
+
     var client = this;
-    u.each(['progress', 'error', 'abort'], function (eventName) {
-        client.bosClient.on(eventName, function (evt) {
-            client.emit(eventName, evt);
-        });
+    this._bosClient.on('progress', function (evt) {
+        client.emit('progress', evt);
     });
-    */
 }
 util.inherits(VodClient, BceBaseClient);
 
