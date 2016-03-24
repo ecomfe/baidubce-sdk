@@ -114,8 +114,8 @@ Document.prototype.create = function (data, opt_options) {
     else if (typeof Blob !== 'undefined' && data instanceof Blob) {
         dataType = DATA_TYPE_BLOB;
         options.meta.sizeInBytes = data.size;
-        options.format = options.format || path.extname(data).substr(1);
-        options.title = options.title || path.basename(data, path.extname(data));
+        options.format = options.format || path.extname(data.name).substr(1);
+        options.title = options.title || path.basename(data.name, path.extname(data.name));
     }
     else {
         return Q.reject(new Error('Unsupported dataType.'));
