@@ -17,7 +17,7 @@ module.exports = {
       "title": "大文件分块上传",
       "layout": "docs",
       "category": "Advanced Topics",
-      "next": "advanced-topics-uploader",
+      "next": "advanced-topics-resume",
       "permalink": "docs/advanced-topics-multiupload.html"
     },
     {
@@ -35,6 +35,14 @@ module.exports = {
       "category": "Advanced Topics",
       "next": "advanced-topics-postobject",
       "permalink": "docs/advanced-topics-programming-style.html"
+    },
+    {
+      "id": "advanced-topics-resume",
+      "title": "分块上传进阶 - “断点续传”",
+      "layout": "docs",
+      "category": "Advanced Topics",
+      "next": "advanced-topics-uploader",
+      "permalink": "docs/advanced-topics-resume.html"
     },
     {
       "id": "advanced-topics-security-issue",

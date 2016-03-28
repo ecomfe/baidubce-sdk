@@ -3,7 +3,7 @@ id: advanced-topics-multiupload
 title: 大文件分块上传
 layout: docs
 category: Advanced Topics
-next: advanced-topics-uploader
+next: advanced-topics-resume
 permalink: docs/advanced-topics-multiupload.html
 ---
 

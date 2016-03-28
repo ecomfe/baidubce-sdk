@@ -161,7 +161,7 @@ var Post = React.createClass({
     content: content
   },
   render: function() {
-    return <Layout metadata={{"id":"advanced-topics-multiupload","title":"大文件分块上传","layout":"docs","category":"Advanced Topics","next":"advanced-topics-uploader","permalink":"docs/advanced-topics-multiupload.html"}}>{content}</Layout>;
+    return <Layout metadata={{"id":"advanced-topics-multiupload","title":"大文件分块上传","layout":"docs","category":"Advanced Topics","next":"advanced-topics-resume","permalink":"docs/advanced-topics-multiupload.html"}}>{content}</Layout>;
   }
 });
 module.exports = Post;
