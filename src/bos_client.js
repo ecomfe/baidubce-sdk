@@ -33,6 +33,7 @@ var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
 var MimeType = require('./mime.types');
 var WMStream = require('./wm_stream');
+var Multipart = require('./multipart');
 
 // var MIN_PART_SIZE = 1048576;                // 1M
 // var THREAD = 2;
@@ -624,6 +625,84 @@ BosClient.prototype.listMultipartUploads = function (bucketName, options) {
         bucketName: bucketName,
         params: options.params,
         config: options.config
+    });
+};
+
+/**
+ * Generate PostObject policy signature.
+ *
+ * @param {Object} policy The policy object.
+ * @return {string}
+ */
+BosClient.prototype.signPostObjectPolicy = function (policy) {
+    var credentials = this.config.credentials;
+    var auth = new Auth(credentials.ak, credentials.sk);
+
+    policy = new Buffer(JSON.stringify(policy)).toString('base64');
+    var signature = auth.hash(policy, credentials.sk);
+
+    return {
+        policy: policy,
+        signature: signature
+    };
+};
+
+/**
+ * Post an object.
+ *
+ * @see {http://wiki.baidu.com/pages/viewpage.action?pageId=161461681}
+ *
+ * @param {string} bucketName The bucket name.
+ * @param {string} key The object name.
+ * @param {string|Buffer} data The file raw data or file path.
+ * @param {Object} options The form fields.
+ * @return {Promise}
+ */
+BosClient.prototype.postObject = function (bucketName, key, data, options) {
+    var boundary = 'MM8964' + (Math.random() * Math.pow(2, 63)).toString(36);
+    var contentType = 'multipart/form-data; boundary=' + boundary;
+
+    if (u.isString(data)) {
+        data = fs.readFileSync(data);
+    }
+    else if (!Buffer.isBuffer(data)) {
+        throw new Error('Invalid data type.');
+    }
+
+    var credentials = this.config.credentials;
+    var ak = credentials.ak;
+
+    var blacklist = ['signature', 'accessKey', 'key', 'file'];
+    options = u.omit(options || {}, blacklist);
+
+    var multipart = new Multipart(boundary);
+    for (var k in options) {
+        if (options.hasOwnProperty(k)) {
+            if (k !== 'policy') {
+                multipart.addPart(k, options[k]);
+            }
+        }
+    }
+
+    if (options.policy) {
+        var rv = this.signPostObjectPolicy(options.policy);
+        multipart.addPart('policy', rv.policy);
+        multipart.addPart('signature', rv.signature);
+    }
+
+    multipart.addPart('accessKey', ak);
+    multipart.addPart('key', key);
+    multipart.addPart('file', data);
+
+    var body = multipart.encode();
+
+    var headers = {};
+    headers[H.CONTENT_TYPE] = contentType;
+
+    return this.sendRequest('POST', {
+        bucketName: bucketName,
+        body: body,
+        headers: headers
     });
 };
 
