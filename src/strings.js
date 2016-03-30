@@ -15,11 +15,11 @@
  */
 
 var kEscapedMap = {
-    '!' : '%21',
+    '!': '%21',
     '\'': '%27',
-    '(' : '%28',
-    ')' : '%29',
-    '*' : '%2A'
+    '(': '%28',
+    ')': '%29',
+    '*': '%2A'
 };
 
 exports.normalize = function (string, encodingSlash) {
@@ -35,13 +35,8 @@ exports.normalize = function (string, encodingSlash) {
     return result;
 };
 
-
-
-
-
-
-
-
-
+exports.trim = function (string) {
+    return (string || '').replace(/^\s+|\s+$/g, '');
+};
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
