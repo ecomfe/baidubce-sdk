@@ -18,6 +18,7 @@
 /* eslint max-params:[0,10] */
 
 var util = require('util');
+var u = require('underscore');
 
 var debug = require('debug')('bce-sdk:auth');
 
@@ -128,7 +129,7 @@ Auth.prototype.headersCanonicalization = function (headers, headersToSign) {
     var canonicalHeaders = [];
     Object.keys(headers).forEach(function (key) {
         var value = headers[key];
-        value = strings.trim(value);
+        value = u.isString(value) ? strings.trim(value) : value;
         if (value == null || value === '') {
             return;
         }
