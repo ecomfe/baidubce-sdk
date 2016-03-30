@@ -144,6 +144,25 @@ describe('BosClient', function() {
             .then(function(response) {
                 return client.setBucketCannedAcl(bucket, 'invalid-acl');
             })
+            .then(function(response) {
+                return client.setBucketCannedAcl(bucket, 'private private ');
+            })
+            .catch(function(error) {
+                if (error.code !== 'InvalidArgument') {
+                    fail(error);
+                }
+            })
+            .fin(done);
+    });
+
+    it('setBucketCannedAcl with invalid CannedAcl(tail spaces)', function(done) {
+        client.createBucket(bucket)
+            .then(function(response) {
+                return client.setBucketCannedAcl(bucket, 'private private  ');
+            })
+            .then(function () {
+                fail('should not reach here');
+            })
             .catch(function(error) {
                 if (error.code !== 'InvalidArgument') {
                     fail(error);
@@ -445,9 +464,9 @@ describe('BosClient', function() {
             .then(function() {
                 return client.putObjectFromString(bucket, key, 'Hello World', {
                     'x-bce-meta-foo1': 'bar1',
-                    'x-bce-meta-foo2': 'bar2',
-                    'x-bce-meta-foo3': 'bar3',
-                    'x-bce-meta-foo4': 'bar4',
+                    'x-bce-meta-foo2': 'bar 2',
+                    'x-bce-meta-foo3': 'bar 3 ',
+                    'x-bce-meta-foo4': 'bar4 '
                 });
             })
             .then(function() {
@@ -460,8 +479,8 @@ describe('BosClient', function() {
             })
             .then(function(response) {
                 expect(response.http_headers['x-bce-meta-foo1']).to.eql('bar1');
-                expect(response.http_headers['x-bce-meta-foo2']).to.eql('bar2');
-                expect(response.http_headers['x-bce-meta-foo3']).to.eql('bar3');
+                expect(response.http_headers['x-bce-meta-foo2']).to.eql('bar 2');
+                expect(response.http_headers['x-bce-meta-foo3']).to.eql('bar 3');
                 expect(response.http_headers['x-bce-meta-foo4']).to.eql('bar4');
             })
             .catch(fail)
@@ -479,7 +498,7 @@ describe('BosClient', function() {
                     'x-bce-meta-foo1': 'bar1',
                     'x-bce-meta-foo2': 'bar2',
                     'x-bce-meta-foo3': 'bar3',
-                    'x-bce-meta-foo4': 'bar4',
+                    'x-bce-meta-foo4': 'bar4'
                 });
             })
             .then(function() {
@@ -487,7 +506,7 @@ describe('BosClient', function() {
                     'ETag': crypto.md5sum('Hello World', null, 'hex'),
                     'x-bce-meta-bar1': 'foo1',
                     'x-bce-meta-bar2': 'foo2',
-                    'x-bce-meta-bar3': 'foo3',
+                    'x-bce-meta-bar3': 'foo3'
                 });
             })
             .then(function() {

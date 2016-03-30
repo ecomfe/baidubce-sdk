@@ -50,7 +50,7 @@ function Auth(ak, sk) {
  * @return {string} The signature.
  */
 Auth.prototype.generateAuthorization = function (method, resource, params,
-    headers, timestamp, expirationInSeconds, headersToSign) {
+                                                 headers, timestamp, expirationInSeconds, headersToSign) {
 
     var now = timestamp ? new Date(timestamp * 1000) : new Date();
     var rawSessionKey = util.format('bce-auth-v1/%s/%s/%d',
@@ -128,10 +128,10 @@ Auth.prototype.headersCanonicalization = function (headers, headersToSign) {
     var canonicalHeaders = [];
     Object.keys(headers).forEach(function (key) {
         var value = headers[key];
+        value = strings.trim(value);
         if (value == null || value === '') {
             return;
         }
-
         key = key.toLowerCase();
         if (/^x\-bce\-/.test(key) || headersMap[key] === true) {
             canonicalHeaders.push(util.format('%s:%s',
@@ -158,12 +158,5 @@ Auth.prototype.hash = function (data, key) {
 };
 
 module.exports = Auth;
-
-
-
-
-
-
-
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
