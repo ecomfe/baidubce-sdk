@@ -1,22 +1,23 @@
 {
-  "name": "baidubce-sdk",
-  "version": "0.0.17",
-  "description": "baidu cloud engine node.js sdk",
+  "name": "bce-sdk-js",
+  "version": "0.0.24",
+  "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "make -C test",
-    "pack": "node_modules/.bin/browserify -s baidubce-sdk index.js -o baidubce-sdk.bundle.js"
+    "test": "node_modules/.bin/jasmine-node --verbose --growl --captureExceptions test/sdk/bos_client.spec.js && node_modules/.bin/jasmine-node --verbose --growl --captureExceptions test/sdk/vod_client.spec.js",
+    "pack": "node_modules/.bin/browserify -s baidubce.sdk index.js -o baidubce-sdk.bundle.js && uglifyjs baidubce-sdk.bundle.js --compress --mangle -o baidubce-sdk.bundle.min.js"
   },
   "repository": {
     "type": "git",
-    "url": "http://gitlab.baidu.com/inf/bos-js-sdk.git"
+    "url": "https://github.com/baidubce/bce-sdk-js.git"
   },
   "author": "leeight@gmail.com",
   "license": "MIT",
   "dependencies": {
+    "async": "^1.5.2",
     "debug": "^2.1.3",
     "q": "^1.1.2",
     "underscore": "^1.7.0"

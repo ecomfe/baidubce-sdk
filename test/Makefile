@@ -33,3 +33,9 @@ mct:
 
 auth:
 	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/auth.spec.js
+
+crypto:
+	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/crypto.spec.js
+
+vod:
+	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/vod_client.spec.js

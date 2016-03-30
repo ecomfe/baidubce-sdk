@@ -32,6 +32,8 @@ describe('BosClient', function() {
     var filename;
 
     beforeEach(function() {
+        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
+
         fail = helper.fail(this);
 
         var id = Math.floor(Math.random() * 100000) + 900;
@@ -63,7 +65,9 @@ describe('BosClient', function() {
             .then(function(response) {
                 var defers = [];
                 (response.body.buckets || []).forEach(function(bucket) {
-                    defers.push(deleteBucket(bucket.name));
+                    if (/^test\-bucket/.test(bucket.name)) {
+                        defers.push(deleteBucket(bucket.name));
+                    }
                 });
                 return Q.all(defers);
             })
@@ -82,8 +86,11 @@ describe('BosClient', function() {
     it('listBuckets', function(done) {
         client.listBuckets()
             .then(function(response) {
-                expect(response.body.buckets.length).toEqual(0);
-                expect(response.body.owner).toEqual(config.bos.account);
+                var buckets = u.filter(response.body.buckets, function (bucket) {
+                    return /^test\-bucket/.test(bucket);
+                });
+                expect(buckets.length).toEqual(0);
+                // expect(response.body.owner).toEqual(config.bos.account);
             })
             .catch(fail)
             .fin(done);
@@ -165,9 +172,27 @@ describe('BosClient', function() {
                 return client.getBucketAcl(bucket)
             })
             .then(function(response) {
-                expect(response.body.accessControlList).toEqual(grant_list);
+                expect(response.body.accessControlList[0]).toEqual(grant_list[0]);
+                expect(response.body.accessControlList[1]).toEqual(grant_list[1]);
             })
             .catch(fail)
+            .fin(done);
+    });
+
+    it('putObjectWithInvalidSHA256', function (done) {
+        client.createBucket(bucket)
+            .then(function () {
+                return client.putObjectFromString(bucket, key, 'hello world', {
+                    'x-bce-content-sha256': 'hahahaha'
+                });
+            })
+            .then(function () {
+                fail('should not reach here');
+            })
+            .catch(function (error) {
+                expect(error.status_code).toEqual(400);
+                expect(error.code).toEqual('BadDigest');
+            })
             .fin(done);
     });
 
@@ -190,6 +215,41 @@ describe('BosClient', function() {
             .fin(done);
     });
 
+    it('putObjectFromString2', function (done) {
+        var objectName = '/this/is/a/file.txt';
+        client.createBucket(bucket)
+            .then(function() {
+                return client.putObjectFromString(bucket, objectName, 'hello world');
+            })
+            .then(function() {
+                return client.getObjectMetadata(bucket, objectName);
+            })
+            .then(function(response) {
+                expect(response.http_headers['content-length']).toEqual('11');
+                expect(response.http_headers['content-md5']).toEqual(
+                    require('../../src/crypto').md5sum('hello world')
+                );
+
+                return client.generatePresignedUrl(bucket, objectName, 0, 1800, null, {'x-bce-range': '0-5'});
+            })
+            .then(function(url) {
+                debug('url = %s', url);
+                return helper.get(url);
+            })
+            .then(function (body) {
+                expect(body.toString()).toEqual('hello ');
+                return client.generatePresignedUrl(bucket, objectName);
+            })
+            .then(function (url) {
+                return helper.get(url);
+            })
+            .then(function (body) {
+               expect(body.toString()).toEqual('hello world');
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
     it('putObjectFromString', function(done) {
         client.createBucket(bucket)
             .then(function() {
@@ -207,6 +267,7 @@ describe('BosClient', function() {
                 return client.generatePresignedUrl(bucket, key, 0, 1800, null, {'x-bce-range': '0-5'});
             })
             .then(function(url) {
+                debug('url = %s', url);
                 return helper.get(url);
             })
             .then(function (body) {
@@ -243,6 +304,45 @@ describe('BosClient', function() {
             .fin(done);
     });
 
+    it('putObjectFromFileWithContentLength', function (done) {
+        var options = {
+            'Content-Length': 100
+        };
+        client.createBucket(bucket)
+            .then(function () {
+                return client.putObjectFromFile(bucket, path.basename(__filename), __filename, options);
+            })
+            .then(function () {
+                return client.getObjectMetadata(bucket, path.basename(__filename))
+            })
+            .then(function(response) {
+                expect(response.http_headers['content-length']).toEqual('100');
+                expect(response.http_headers['content-type']).toEqual('application/javascript');
+                return require('../../src/crypto').md5stream(fs.createReadStream(__filename, {start: 0, end: 99}))
+                    .then(function(md5sum) {
+                        expect(response.http_headers['content-md5']).toEqual(md5sum);
+                    });
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
+    it('createBucketFailed', function (done) {
+        var invalidBucketName = 'invalid-bucket-你好\\&1231@#@#@';
+        client.createBucket(invalidBucketName)
+            .catch(function (error) {
+                expect(error.status_code).toEqual(400);
+                expect(error.code).toEqual('InvalidBucketName');
+                invalidBucketName = 'xinglubucket\'xinglubucket1213213123';
+                return client.createBucket(invalidBucketName)
+            })
+            .catch(function (error) {
+                expect(error.status_code).toEqual(400);
+                expect(error.code).toEqual('InvalidBucketName');
+            })
+            .fin(done);
+    });
+
     it('getObject', function(done) {
         client.createBucket(bucket)
             .then(function() {
@@ -258,6 +358,21 @@ describe('BosClient', function() {
                 expect(response.body.length).toEqual(fs.lstatSync(__filename).size);
             })
             .catch(fail)
+            .fin(done);
+    });
+
+    it('getObjectFailed', function (done) {
+        client.createBucket(bucket)
+            .then(function() {
+                return client.putObjectFromFile(bucket, path.basename(__filename), __filename);
+            })
+            .then(function() {
+                return client.getObject(bucket, path.basename(__filename) + '.failed');
+            })
+            .catch(function (response) {
+                expect(response.status_code).toEqual(404);
+                expect(response.code).toEqual('NoSuchKey');
+            })
             .fin(done);
     });
 
@@ -290,6 +405,7 @@ describe('BosClient', function() {
                 return client.getObjectToFile(bucket, path.basename(__filename), filename);
             })
             .then(function(response) {
+                debug('response = %j', response);
                 expect(fs.existsSync(filename)).toEqual(true);
                 var filesize = fs.lstatSync(filename).size;
                 expect(response.http_headers['content-length']).toEqual('' + filesize);
@@ -323,7 +439,7 @@ describe('BosClient', function() {
     });
 
     it('copyObjectAndCopyMeta', function(done) {
-        var target_bucket_name = 'this-is-a-test-bucket';
+        var target_bucket_name = 'test-bucket-a-is-this';
         client.createBucket(bucket)
             .then(function() {
                 return client.createBucket(target_bucket_name);
@@ -355,7 +471,7 @@ describe('BosClient', function() {
     });
 
     it('copyObjectWithCustomMeta', function(done) {
-        var target_bucket_name = 'this-is-a-test-bucket';
+        var target_bucket_name = 'test-bucket-a-is-this';
         client.createBucket(bucket)
             .then(function() {
                 return client.createBucket(target_bucket_name);
@@ -458,7 +574,7 @@ describe('BosClient', function() {
             })
             .catch(fail)
             .fin(done);
-    }, 60 * 1000);
+    });
 
     it('testMultipartUploadSmallSuperfileX', function(done) {
         var MIN_PART_SIZE = 5 * 1024 * 1024;
@@ -515,7 +631,7 @@ describe('BosClient', function() {
             })
             .catch(fail)
             .fin(done);
-    }, 60 * 1000);
+    });
 });
 
 

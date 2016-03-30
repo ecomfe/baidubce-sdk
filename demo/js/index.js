@@ -1,13 +1,13 @@
-$(document).ready(function() {
+$(document).ready(function () {
     hljs.initHighlightingOnLoad();
 
     var sdk = window.baidubceSdk;
     var tokenUrl = 'http://180.76.166.159:1337/ack';
     var bosConfig = {
-        //credentials: {
-        //    ak: '9fe103ae98de4798aabb34a433a3058b',
-        //    sk: 'b084ab23d1ef44c997d10d2723dd8014'
-        //},
+        credentials: {
+            ak: '9fe103ae98de4798aabb34a433a3058b',
+            sk: 'b084ab23d1ef44c997d10d2723dd8014'
+        },
         endpoint: 'http://bos.bj.baidubce.com'
     };
     var PART_SIZE = 5 * 1024 * 1024; // 分块大小
@@ -15,8 +15,8 @@ $(document).ready(function() {
     var bucket = 'bce-javascript-sdk-demo-test';
     var $fileList = $('#fileList');
 
-    $('#upload').on('change', function(evt) {
-        return (function(evt) {
+    $('#upload').on('change', function (evt) {
+        return (function (evt) {
             var file = evt.target.files[0];
             var client = new sdk.BosClient(_.extend({
                 credentials: {
@@ -43,7 +43,7 @@ $(document).ready(function() {
                 'Content-Type': mimeType
             };
 
-            client.createSignature = function(_, httpMethod, path, params, headers) {
+            /*client.createSignature = function (_, httpMethod, path, params, headers) {
                 if (/\bed=([\w\.]+)\b/.test(location.search)) {
                     headers.Host = RegExp.$1;
                 }
@@ -59,28 +59,30 @@ $(document).ready(function() {
                         params: JSON.stringify(params || {}),
                         headers: JSON.stringify(headers || {})
                     },
-                    success: function(payload) {
+                    success: function (payload) {
                         if (payload.statusCode === 200 && payload.signature) {
                             deferred.resolve(payload.signature, payload.xbceDate);
-                        } else {
+                        }
+                        else {
                             deferred.reject(new Error('createSignature failed, statusCode = ' + payload.statusCode));
                         }
                     }
                 });
                 return deferred.promise;
-            };
+            };*/
             var promise;
             if (blob.size < PART_SIZE) {
                 // 小于5M的文件直接上传
                 promise = client.putObjectFromBlob(bucket, key, blob, options);
-                client.on('progress', function(evt) {
+                client.on('progress', function (evt) {
                     client.emit('overallProgress', evt);
                 });
-            } else {
+            }
+            else {
                 // 大于5M的文件分块上传
                 var uploadId;
                 promise = client.initiateMultipartUpload(bucket, key, options)
-                    .then(function(response) {
+                    .then(function (response) {
                         uploadId = response.body.uploadId;
 
                         var deferred = sdk.Q.defer();
@@ -90,18 +92,19 @@ $(document).ready(function() {
                             loaded: 0,
                             total: tasks.length
                         };
-                        async.mapLimit(tasks, THREADS, uploadPartFile(state, client), function(err, results) {
+                        async.mapLimit(tasks, 1, uploadPartFile(state, client), function (err, results) {
                             if (err) {
                                 deferred.reject(err);
-                            } else {
+                            }
+                            else {
                                 deferred.resolve(results);
                             }
                         });
                         return deferred.promise;
                     })
-                    .then(function(allResponse) {
+                    .then(function (allResponse) {
                         var partList = [];
-                        allResponse.forEach(function(response, index) {
+                        allResponse.forEach(function (response, index) {
                             partList.push({
                                 partNumber: index + 1,
                                 eTag: response.http_headers.etag
@@ -110,14 +113,14 @@ $(document).ready(function() {
                         return client.completeMultipartUpload(bucket, key, uploadId, partList);
                     });
             }
-            client.on('overallProgress', function(evt) {
+            client.on('overallProgress', function (evt) {
                 if (evt.lengthComputable) {
                     var width = (evt.loaded / evt.total) * 100;
                     $row.find('.progress-bar').css('width', width + '%')
                         .text(width.toFixed(2) + '%');
                 }
             });
-            promise.then(function(res) {
+            promise.then(function (res) {
                     toastr.success('上传成功');
                     $row.find('.file-detail').html('下载地址: <a href="' + url + '" target="_blank">' + url + '</a>');
                     if (/image/.test(mimeType)) {
@@ -128,12 +131,12 @@ $(document).ready(function() {
                             '</figure>');
                     }
                 })
-                .catch(function(err) {
+                .catch(function (err) {
                     toastr.error('上传失败');
                     console.error(err);
                 });
 
-            $row.on('click', '.showEdit', function(e) {
+            $row.on('click', '.showEdit', function (e) {
                 window.client = client;
                 $('#edit').modal();
                 var key = $(e.target).attr('data-key');
@@ -148,7 +151,7 @@ $(document).ready(function() {
     var $width = $('#width');
     var $height = $('#height');
     var $angle = $('#angle');
-    $('#process').click(function() {
+    $('#process').click(function () {
         var pipeline = [];
         if (+$textWatermarkPosition.val() > 0) {
             pipeline.push({
@@ -172,17 +175,20 @@ $(document).ready(function() {
                     height: $height.val(),
                     angle: $angle.val() || 0
                 });
-            } else if ($width.val()) {
+            }
+            else if ($width.val()) {
                 pipeline.push({
                     width: $width.val(),
                     angle: $angle.val() || 0
                 });
-            } else if ($height.val()) {
+            }
+            else if ($height.val()) {
                 pipeline.push({
                     height: $height.val(),
                     angle: $angle.val() || 0
                 });
-            } else {
+            }
+            else {
                 pipeline.push({
                     angle: $angle.val() || 0
                 });
@@ -196,9 +202,9 @@ $(document).ready(function() {
         var $img = $('.preview').prop('src', './loading.gif');
         var img = new Image();
         img.src = src;
-        img.onload = function() {
+        img.onload = function () {
             $img.prop('src', src);
-        }
+        };
     }
 
     function fileSize(num) {
@@ -211,7 +217,6 @@ $(document).ready(function() {
         }
         return num.toFixed(1) + unit[index];
     }
-
 
     function getTasks(file, uploadId, bucketName, key) {
         var leftSize = file.size;
@@ -241,19 +246,18 @@ $(document).ready(function() {
     }
 
     function uploadPartFile(state, client) {
-        return function(task, callback) {
+        return function (task, callback) {
             var blob = task.file.slice(task.start, task.stop + 1);
             client.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob)
-                .then(function(res) {
+                .then(function (res) {
                     ++state.loaded;
                     client.emit('overallProgress', state);
                     callback(null, res);
                 })
-                .catch(function(err) {
+                .catch(function (err) {
                     callback(err);
                 });
         };
     }
-
 
 });

@@ -12,7 +12,7 @@
  */
 
 var u = require('underscore');
-var debug = require('debug')('media_client');
+var debug = require('debug')('media_client.spec');
 
 var config = require('../config');
 var MediaClient = require('../..').MediaClient;

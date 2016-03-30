@@ -30,13 +30,13 @@ var BceBaseClient = require('./bce_base_client');
  * @extends {BceBaseClient}
  */
 function SesClient(config) {
-    BceBaseClient.call(this, config, 'bos', true);
+    BceBaseClient.call(this, config, 'ses', true);
 }
 util.inherits(SesClient, BceBaseClient);
 
 // --- B E G I N ---
 SesClient.prototype.addVerifiedEmail = function (email) {
-    var url = '/v1/verifiedEmail/' + (email);
+    var url = '/v1/verifiedEmail/' + encodeURIComponent(email);
     return this.sendRequest('PUT', url);
 };
 
@@ -46,12 +46,12 @@ SesClient.prototype.getAllVerifiedEmails = function () {
 };
 
 SesClient.prototype.getVerifiedEmail = function (email) {
-    var url = '/v1/verifiedEmail/' + (email);
+    var url = '/v1/verifiedEmail/' + encodeURIComponent(email);
     return this.sendRequest('GET', url);
 };
 
 SesClient.prototype.deleteVerifiedEmail = function (email) {
-    var url = '/v1/verifiedEmail/' + (email);
+    var url = '/v1/verifiedEmail/' + encodeURIComponent(email);
     return this.sendRequest('DELETE', url);
 };
 

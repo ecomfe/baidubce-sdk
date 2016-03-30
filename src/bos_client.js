@@ -24,15 +24,19 @@ var qs = require('querystring');
 
 var u = require('underscore');
 var Q = require('q');
+var async = require('async');
 
 var H = require('./headers');
+var strings = require('./strings');
 var Auth = require('./auth');
+var crypto = require('./crypto');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
 var MimeType = require('./mime.types');
 var WMStream = require('./wm_stream');
 
-// var MIN_PART_SIZE = 5242880;             // 5M
+var MIN_PART_SIZE = 1048576;                // 1M
+var THREAD = 2;
 var MAX_PUT_OBJECT_LENGTH = 5368709120;     // 5G
 var MAX_USER_METADATA_SIZE = 2048;          // 2 * 1024
 var MIN_PART_NUMBER = 1;
@@ -91,8 +95,8 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
 
     var resource = path.normalize(path.join(
         '/v1',
-        bucketName || '',
-        key || ''
+        strings.normalize(bucketName || ''),
+        strings.normalize(key || '', false)
     )).replace(/\\/g, '/');
 
     headers = headers || {};
@@ -112,9 +116,10 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
 BosClient.prototype.generateUrl = function (bucketName, key, pipeline, cdn) {
     var resource = path.normalize(path.join(
         '/v1',
-        bucketName || '',
-        key || ''
+        strings.normalize(bucketName || ''),
+        strings.normalize(key || '', false)
     )).replace(/\\/g, '/');
+
     // pipeline表示如何对图片进行处理.
     var command = '';
     if (pipeline) {
@@ -299,7 +304,7 @@ BosClient.prototype.putObjectFromString = function (bucketName, key, data, optio
     var headers = {};
     headers[H.CONTENT_LENGTH] = Buffer.byteLength(data);
     headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(key));
-    headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
+    headers[H.CONTENT_MD5] = crypto.md5sum(data);
     options = u.extend(headers, options);
 
     return this.putObject(bucketName, key, data, options);
@@ -309,7 +314,17 @@ BosClient.prototype.putObjectFromFile = function (bucketName, key, filename, opt
     options = options || {};
 
     var headers = {};
-    headers[H.CONTENT_LENGTH] = fs.statSync(filename).size;
+
+    // 如果没有显式的设置，就使用默认值
+    var fileSize = fs.statSync(filename).size;
+    var contentLength = u.has(options, H.CONTENT_LENGTH)
+                        ? options[H.CONTENT_LENGTH]
+                        : fileSize;
+    if (contentLength > fileSize) {
+        throw new Error('options[\'Content-Length\'] should less than ' + fileSize);
+    }
+
+    headers[H.CONTENT_LENGTH] = contentLength;
 
     // 因为Firefox会在发起请求的时候自动给 Content-Type 添加 charset 属性
     // 导致我们计算签名的时候使用的 Content-Type 值跟服务器收到的不一样，为了
@@ -317,15 +332,21 @@ BosClient.prototype.putObjectFromFile = function (bucketName, key, filename, opt
     headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(filename));
     options = u.extend(headers, options);
 
-    var fp = fs.createReadStream(filename);
+    var streamOptions = {
+        start: 0,
+        end: Math.max(0, contentLength - 1)
+    };
+    var fp = fs.createReadStream(filename, streamOptions);
     if (!u.has(options, H.CONTENT_MD5)) {
         var me = this;
-        return require('./crypto').md5file(filename)
+        var fp2 = fs.createReadStream(filename, streamOptions);
+        return crypto.md5stream(fp2)
             .then(function (md5sum) {
                 options[H.CONTENT_MD5] = md5sum;
                 return me.putObject(bucketName, key, fp, options);
             });
     }
+
     return this.putObject(bucketName, key, fp, options);
 };
 
@@ -395,8 +416,8 @@ BosClient.prototype.copyObject = function (sourceBucketName, sourceKey, targetBu
             return true;
         }
     });
-    options.headers['x-bce-copy-source'] = encodeURI(util.format('/%s/%s',
-        sourceBucketName, sourceKey));
+    options.headers['x-bce-copy-source'] = strings.normalize(util.format('/%s/%s',
+        sourceBucketName, sourceKey), false);
     if (u.has(options.headers, 'ETag')) {
         options.headers['x-bce-copy-source-if-match'] = options.headers.ETag;
     }
@@ -451,13 +472,16 @@ BosClient.prototype.completeMultipartUpload = function (bucketName, key, uploadI
 };
 
 BosClient.prototype.uploadPartFromFile = function (bucketName, key, uploadId, partNumber,
-                                                   partSize, filename, offset, partMd5, options) {
+                                                   partSize, filename, offset, options) {
 
     var start = offset;
     var end = offset + partSize - 1;
-    var partFp = fs.createReadStream(filename, {start: start, end: end});
+    var partFp = fs.createReadStream(filename, {
+        start: start,
+        end: end
+    });
     return this.uploadPart(bucketName, key, uploadId, partNumber,
-        partSize, partFp, partMd5, options);
+        partSize, partFp, options);
 };
 
 BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, partNumber,
@@ -479,7 +503,10 @@ BosClient.prototype.uploadPartFromBlob = function (bucketName, key, uploadId, pa
         key: key,
         body: blob,
         headers: options.headers,
-        params: {partNumber: partNumber, uploadId: uploadId},
+        params: {
+            partNumber: partNumber,
+            uploadId: uploadId
+        },
         config: options.config
     });
 };
@@ -505,13 +532,16 @@ BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId,
         key: key,
         body: data,
         headers: options.headers,
-        params: {partNumber: partNumber, uploadId: uploadId},
+        params: {
+            partNumber: partNumber,
+            uploadId: uploadId
+        },
         config: options.config
     });
 };
 
 BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber,
-                                           partSize, partFp, partMd5, options) {
+                                           partSize, partFp, options) {
 
     /*eslint-disable*/
     if (!bucketName) {
@@ -537,11 +567,11 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
     var headers = {};
     headers[H.CONTENT_LENGTH] = partSize;
     headers[H.CONTENT_TYPE] = 'application/octet-stream';
-    headers[H.CONTENT_MD5] = partMd5;
+    // headers[H.CONTENT_MD5] = partMd5;
     options = u.extend(headers, options);
 
     if (!options[H.CONTENT_MD5]) {
-        return require('./crypto').md5stream(partFp)
+        return crypto.md5stream(partFp)
             .then(function (md5sum) {
                 options[H.CONTENT_MD5] = md5sum;
                 return newPromise();
@@ -555,7 +585,10 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
             key: key,
             body: clonedPartFp,
             headers: options.headers,
-            params: {partNumber: partNumber, uploadId: uploadId},
+            params: {
+                partNumber: partNumber,
+                uploadId: uploadId
+            },
             config: options.config
         });
     }
@@ -612,17 +645,20 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
     var config = u.extend({}, this.config, args.config);
     var resource = path.normalize(path.join(
         '/v1',
-        args.bucketName || '',
-        args.key || ''
+        strings.normalize(args.bucketName || ''),
+        strings.normalize(args.key || '', false)
     )).replace(/\\/g, '/');
 
     var client = this;
     var agent = this._httpAgent = new HttpClient(config);
     u.each(['progress', 'error', 'abort'], function (eventName) {
         agent.on(eventName, function (evt) {
-            client.emit(eventName, evt);
+            client.emit(eventName, u.extend(evt, u.pick(args.params, 'partNumber', 'uploadId')));
         });
     });
+    if (config.sessionToken) {
+        args.headers[H.SESSION_TOKEN] = config.sessionToken;
+    }
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
         args.outputStream
@@ -644,9 +680,11 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
         H.CONTENT_LENGTH,
         H.CONTENT_ENCODING,
         H.CONTENT_MD5,
+        H.X_BCE_CONTENT_SHA256,
         H.CONTENT_TYPE,
         H.CONTENT_DISPOSITION,
-        H.ETAG
+        H.ETAG,
+        H.SESSION_TOKEN
     ];
     var metaSize = 0;
     var headers = u.pick(options, function (value, key) {
@@ -686,6 +724,97 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
     }
 
     return headers;
+};
+
+BosClient.prototype.uploadFecade = function (bucketName, key, blob, partSize, threadNum, options) {
+    partSize = partSize || MIN_PART_SIZE;
+    threadNum = threadNum || THREAD;
+    var isBlob = !u.isString(blob);
+    var size = isBlob ? blob.size : fs.statSync(blob).size;
+    if (size <= partSize) {
+        return (isBlob ? this.putObjectFromBlob : this.putObjectFromFile).call(this, bucketName, key, blob, options);
+    }
+    var uploadId;
+    var client = this;
+    return client.initiateMultipartUpload(bucketName, key, options).then(function (res) {
+        uploadId = res.body.uploadId;
+        var deferred = Q.defer();
+        var tasks = client._getTasks(blob, uploadId, bucketName, key, partSize, size);
+        var state = {
+            lengthComputable: true,
+            loaded: 0,
+            total: tasks.length
+        };
+        async.mapLimit(tasks, threadNum, client._uploadPartFile(state, isBlob), function (err, results) {
+            if (err) {
+                deferred.reject(err);
+            }
+            else {
+                deferred.resolve(results);
+            }
+        });
+        return deferred.promise;
+    }).then(function (allResponse) {
+        var partList = u.map(allResponse, function (response, index) {
+            // 生成分块清单
+            return {
+                partNumber: index + 1,
+                eTag: response.http_headers.etag
+            };
+        });
+        return client.completeMultipartUpload(bucketName, key, uploadId, partList); // 完成上传
+    });
+};
+
+BosClient.prototype._uploadPartFile = function (state, isBlob) {
+    var client = this;
+    return function (task, callback) {
+        var promise;
+        if (isBlob) {
+            var blob = task.file.slice(task.start, task.stop + 1);
+            promise = client.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber,
+                task.partSize, blob);
+        }
+        else {
+            promise = client.uploadPartFromFile(task.bucketName, task.key, task.uploadId, task.partNumber,
+                task.partSize, task.file, task.start);
+        }
+        return promise.then(function (res) {
+                ++state.loaded;
+                client.emit('progress', state);
+                callback(null, res);
+            })
+            .catch(function (err) {
+                callback(err);
+            });
+    };
+};
+
+BosClient.prototype._getTasks = function (file, uploadId, bucketName, key, PART_SIZE, size) {
+    var leftSize = size;
+    var offset = 0;
+    var partNumber = 1;
+
+    var tasks = [];
+
+    while (leftSize > 0) {
+        var partSize = Math.min(leftSize, PART_SIZE);
+        tasks.push({
+            file: file,
+            uploadId: uploadId,
+            bucketName: bucketName,
+            key: key,
+            partNumber: partNumber,
+            partSize: partSize,
+            start: offset,
+            stop: offset + partSize - 1
+        });
+
+        leftSize -= partSize;
+        offset += partSize;
+        partNumber += 1;
+    }
+    return tasks;
 };
 
 module.exports = BosClient;

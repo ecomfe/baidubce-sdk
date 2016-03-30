@@ -15,6 +15,8 @@ var Auth = require('../../src/auth');
 var HttpClient = require('../../src/http_client');
 var WMStream = require('../../src/wm_stream');
 
+var config = require('../config').bos;
+
 function sign_function(credentials, http_method, path, params, headers) {
     var auth = new Auth(credentials.ak, credentials.sk);
     return auth.generateAuthorization(http_method, path, params, headers);
@@ -50,7 +52,7 @@ describe('HttpClient', function() {
             .then(function(response) {
                 expect(response.body).toEqual({hello: 'world'});
                 expect(response.http_headers['content-type']).toEqual('text/json');
-                expect(response.http_headers.server).toEqual('BaiduBS');
+                expect(response.http_headers.server).toEqual('POMS/CloudUI 1.0');
                 expect(response.http_headers.etag).toEqual('d0b8560f261410878a68bbe070d81853');
             })
             .then(done);
@@ -74,7 +76,6 @@ describe('HttpClient', function() {
     it('sendRequest', function(done) {
         var fail = this.fail.bind(this);
 
-        var config = require('../config');
         var client = new HttpClient(config);
 
         client.sendRequest('GET', '/v1', null, null, null, sign_function)
@@ -111,7 +112,6 @@ describe('HttpClient', function() {
         // Prepare the request body
         var body = new Buffer(JSON.stringify({accessControlList: grant_list}));
 
-        var config = require('../config');
         var client = new HttpClient(config);
         var path = '/v1/' + bucket;
 
@@ -160,7 +160,6 @@ describe('HttpClient', function() {
         // Prepare the request body
         var body = JSON.stringify({accessControlList: grant_list});
 
-        var config = require('../config');
         var client = new HttpClient(config);
         var path = '/v1/' + bucket;
 
@@ -213,7 +212,6 @@ describe('HttpClient', function() {
         body.push(access_control_list);
         body.push(null);
 
-        var config = require('../config');
         var client = new HttpClient(config);
         var path = '/v1/' + bucket;
 
@@ -249,7 +247,6 @@ describe('HttpClient', function() {
     it('sendRequestWithOutputStream', function(done) {
         var fail = this.fail.bind(this);
 
-        var config = require('../config');
         var client = new HttpClient(config);
 
         var output_stream = new WMStream();

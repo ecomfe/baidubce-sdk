@@ -25,7 +25,7 @@ var EventEmitter = require('events').EventEmitter;
 
 var u = require('underscore');
 var Q = require('q');
-var debug = require('debug')('HttpClient');
+var debug = require('debug')('bce-sdk.HttpClient');
 
 var H = require('./headers');
 
@@ -48,7 +48,6 @@ function HttpClient(config) {
 }
 util.inherits(HttpClient, EventEmitter);
 
-
 /**
  * Send Http Request
  *
@@ -60,6 +59,7 @@ util.inherits(HttpClient, EventEmitter);
  * @param {Object=} params The querystrings in url.
  * @param {function():string=} signFunction The `Authorization` signature function
  * @param {stream.Writable=} outputStream The http response body.
+ * @param {number=} retry The maximum number of network connection attempts.
  *
  * @resolve {{http_headers:Object,body:Object}}
  * @reject {Object}
@@ -67,7 +67,7 @@ util.inherits(HttpClient, EventEmitter);
  * @return {Q.defer}
  */
 HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, params,
-    signFunction, outputStream) {
+                                             signFunction, outputStream) {
 
     var requestUrl = this._getRequestUrl(path, params);
     var options = require('url').parse(requestUrl);
@@ -97,8 +97,8 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     // Check the content-length
     if (!headers.hasOwnProperty(H.CONTENT_LENGTH)) {
         var contentLength = this._guessContentLength(body);
-        if (!(contentLength === 0 && /GET/i.test(httpMethod))) {
-            // 如果是 GET 请求，并且 Content-Length 是 0，那么 Request Header 里面就不要出现 Content-Length
+        if (!(contentLength === 0 && /GET|HEAD/i.test(httpMethod))) {
+            // 如果是 GET 或 HEAD 请求，并且 Content-Length 是 0，那么 Request Header 里面就不要出现 Content-Length
             // 否则本地计算签名的时候会计算进去，但是浏览器发请求的时候不一定会有，此时导致 Signature Mismatch 的情况
             headers[H.CONTENT_LENGTH] = contentLength;
         }
@@ -145,21 +145,27 @@ function isPromise(obj) {
     return obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function';
 }
 
-HttpClient.prototype._doRequest = function (options, body, outputStream) {
-    var api = options.protocol === 'https:' ? https : http;
-    var deferred = Q.defer();
+HttpClient.prototype._isValidStatus = function (statusCode) {
+    return statusCode >= 200 && statusCode < 300;
+};
 
+HttpClient.prototype._doRequest = function (options, body, outputStream) {
+    var deferred = Q.defer();
+    var api = options.protocol === 'https:' ? https : http;
     var client = this;
+
     var req = client._req = api.request(options, function (res) {
-        if (outputStream
+        if (client._isValidStatus(res.statusCode) && outputStream
             && outputStream instanceof stream.Writable) {
             res.pipe(outputStream);
-            res.on('end', function () {
+            outputStream.on('finish', function () {
                 deferred.resolve(success(client._fixHeaders(res.headers), {}));
+            });
+            outputStream.on('error', function (error) {
+                deferred.reject(error);
             });
             return;
         }
-
         deferred.resolve(client._recvResponse(res));
     });
 
@@ -178,10 +184,9 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
     try {
         client._sendRequest(req, body);
     }
-    catch(ex) {
+    catch (ex) {
         deferred.reject(ex);
     }
-
     return deferred.promise;
 };
 
@@ -217,9 +222,9 @@ HttpClient.prototype._guessContentLength = function (data) {
             return data.length;
         }
         /*
-        if (typeof FormData !== 'undefined' && data instanceof FormData) {
-        }
-        */
+         if (typeof FormData !== 'undefined' && data instanceof FormData) {
+         }
+         */
     }
     else if (Buffer.isBuffer(data)) {
         return data.length;
@@ -258,7 +263,7 @@ HttpClient.prototype._recvResponse = function (res) {
             return {};
         }
         else if (contentType
-                 && /(application|text)\/json/.test(contentType)) {
+            && /(application|text)\/json/.test(contentType)) {
             return JSON.parse(raw.toString());
         }
         return raw;
@@ -277,7 +282,9 @@ HttpClient.prototype._recvResponse = function (res) {
             payload.push(new Buffer(chunk));
         }
     });
-    res.on('error', function (e) { deferred.reject(e); });
+    res.on('error', function (e) {
+        deferred.reject(e);
+    });
     /*eslint-enable*/
     res.on('end', function () {
         var raw = Buffer.concat(payload);
@@ -312,16 +319,27 @@ HttpClient.prototype._recvResponse = function (res) {
 
 /*eslint-disable*/
 function isXHR2Compatible(obj) {
-    if (typeof Blob !== 'undefined' && obj instanceof Blob) return true;
-    if (typeof ArrayBuffer !== 'undefined' && obj instanceof ArrayBuffer) return true;
-    if (typeof FormData !== 'undefined' && obj instanceof FormData) return true;
+    if (typeof Blob !== 'undefined' && obj instanceof Blob) {
+        return true;
+    }
+    if (typeof ArrayBuffer !== 'undefined' && obj instanceof ArrayBuffer) {
+        return true;
+    }
+    if (typeof FormData !== 'undefined' && obj instanceof FormData) {
+        return true;
+    }
 }
 /*eslint-enable*/
 
 HttpClient.prototype._sendRequest = function (req, data) {
     /*eslint-disable*/
-    if (!data) { req.end(); return; }
-    if (typeof data === 'string') { data = new Buffer(data); }
+    if (!data) {
+        req.end();
+        return;
+    }
+    if (typeof data === 'string') {
+        data = new Buffer(data);
+    }
     /*eslint-enable*/
 
     if (Buffer.isBuffer(data) || isXHR2Compatible(data)) {
@@ -350,7 +368,7 @@ HttpClient.prototype.buildQueryString = function (params) {
 };
 
 HttpClient.prototype._getRequestUrl = function (path, params) {
-    var uri = encodeURI(path);
+    var uri = path;
     var qs = this.buildQueryString(params);
     if (qs) {
         uri += '?' + qs;
@@ -372,7 +390,7 @@ function failure(statusCode, message, code, requestId) {
     var response = {};
 
     response[H.X_STATUS_CODE] = statusCode;
-    response[H.X_MESSAGE] = message;
+    response[H.X_MESSAGE] = Buffer.isBuffer(message) ? String(message) : message;
     if (code) {
         response[H.X_CODE] = code;
     }
@@ -384,13 +402,5 @@ function failure(statusCode, message, code, requestId) {
 }
 
 module.exports = HttpClient;
-
-
-
-
-
-
-
-
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */

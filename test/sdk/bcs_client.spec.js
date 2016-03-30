@@ -28,6 +28,8 @@ describe('BcsClient', function () {
     var fail;
 
     beforeEach(function () {
+        jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
+
         fail = helper.fail(this);
         client = new BcsClient(config.bcs);
     });
