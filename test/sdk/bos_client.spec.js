@@ -87,6 +87,52 @@ describe('BosClient', function() {
         fs.closeSync(fd);
     }
 
+    it('getBucketLocation', function (done) {
+        client.createBucket(bucket)
+            .then(function () {
+                return client.getBucketLocation(bucket);
+            })
+            .then(function (response) {
+                expect(response.body).to.eql({locationConstraint: 'bj'});
+                return client.getBucketLocation(bucket, {
+                    config: {
+                        endpoint: 'https://gz.bcebos.com'
+                    }
+                });
+            })
+            .then(function (response) {
+                expect(response.body).to.eql({locationConstraint: 'bj'});
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
+    it('deleteMultipleObjects', function (done) {
+        client.createBucket(bucket)
+            .then(function () {
+                return Q.all([
+                    client.putObjectFromFile(bucket, '1/' + key, __filename),
+                    client.putObjectFromFile(bucket, '2/' + key, __filename),
+                    client.putObjectFromFile(bucket, '3/' + key, __filename)
+                ]);
+            })
+            .then(function () {
+                return client.deleteMultipleObjects(bucket, [
+                    '1/' + key,
+                    '2/' + key,
+                    '3/' + key,
+                    '4/' + key
+                ]);
+            })
+            .then(function (response) {
+                expect(response.body.deleteResult).not.to.be(undefined);
+                expect(response.body.deleteResult.errors).not.to.be(undefined);
+                expect(response.body.deleteResult.errors[0].code).to.eql('NoSuchKey');
+            })
+            .catch(fail)
+            .fin(done);
+    });
+
     it('listBuckets', function(done) {
         client.listBuckets()
             .then(function(response) {

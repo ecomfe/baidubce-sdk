@@ -248,6 +248,35 @@ BosClient.prototype.getBucketAcl = function (bucketName, options) {
     });
 };
 
+BosClient.prototype.getBucketLocation = function (bucketName, options) {
+    options = options || {};
+
+    return this.sendRequest('GET', {
+        bucketName: bucketName,
+        params: {location: ''},
+        config: options.config
+    });
+};
+
+BosClient.prototype.deleteMultipleObjects = function (bucketName, objects, options) {
+    options = options || {};
+
+    var body = u.map(objects, function (object) {
+        return {key: object};
+    });
+
+    return this.sendRequest('POST', {
+        bucketName: bucketName,
+        params: {'delete': ''},
+        body: JSON.stringify({
+            'delete': {
+                objects: body
+            }
+        }),
+        config: options.config
+    });
+};
+
 BosClient.prototype.deleteObject = function (bucketName, key, options) {
     options = options || {};
 
