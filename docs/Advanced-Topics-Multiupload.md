@@ -123,6 +123,91 @@ client.initiateMultipartUpload(bucket, key, options)
 * 上传分块（uploadPartFromFile）
 * 上传完成（completeMultipartUpload）
 
+```js
+var PART_SIZE = 5 * 1024 * 1024; // 指定分块大小
+var uploadId;
+client.initiateMultipartUpload(bucket, key, options)
+    .then(function(response) {
+        uploadId = response.body.uploadId; // 开始上传，获取服务器生成的uploadId
+
+        var deferred = sdk.Q.defer();
+        var tasks = getTasks(blob, uploadId, bucket, key);
+        var state = {
+            lengthComputable: true,
+            loaded: 0,
+            total: tasks.length
+        };
+
+        // 为了管理分块上传，使用了async（https://github.com/caolan/async）库来进行异步处理
+        var THREADS = 2; // 同时上传的分块数量
+        async.mapLimit(tasks, THREADS, uploadPartFile(state, client), function(err, results) {
+            if (err) {
+                deferred.reject(err);
+            } else {
+                deferred.resolve(results);
+            }
+        });
+        return deferred.promise;
+    })
+    .then(function(allResponse) {
+        var partList = [];
+        allResponse.forEach(function(response, index) {
+            // 生成分块清单
+            partList.push({
+                partNumber: index + 1,
+                eTag: response.http_headers.etag
+            });
+        });
+        return client.completeMultipartUpload(bucket, key, uploadId, partList); // 完成上传
+    })
+    .then(function (res) {
+        // 上传完成
+    })
+    .catch(function (err) {
+        // 上传失败，添加您的代码
+        console.error(err);
+    });
+
+function getTasks(file, uploadId, bucketName, key) {
+    var leftSize = file.size;
+    var offset = 0;
+    var partNumber = 1;
+
+    var tasks = [];
+
+    while (leftSize > 0) {
+        var partSize = Math.min(leftSize, PART_SIZE);
+        tasks.push({
+            file: file,
+            uploadId: uploadId,
+            bucketName: bucketName,
+            key: key,
+            partNumber: partNumber,
+            partSize: partSize,
+            start: offset,
+            stop: offset + partSize - 1
+        });
+
+        leftSize -= partSize;
+        offset += partSize;
+        partNumber += 1;
+    }
+    return tasks;
+}
+function uploadPartFile(state, client) {
+    return function(task, callback) {
+        return client.uploadPartFromFile(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, task.file , task.start)
+            .then(function(res) {
+                ++state.loaded;
+                callback(null, res);
+            })
+            .catch(function(err) {
+                callback(err);
+            });
+    };
+}
+```
+
 ### 取消分块上传事件
 
 用户可以使用abortMultipartUpload方法取消分块上传。
