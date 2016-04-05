@@ -39,43 +39,82 @@ var util = require('util');
 var Auth = require('bce-sdk-js').Auth;
 
 var kCredentials = {
-    ak: '您的AK',
-    sk: '您的SK'
+    ak: '<你的AK>'
+    sk: '<你的SK>'
 };
 
+function safeParse(text) {
+    try {
+        return JSON.parse(text);
+    }
+    catch (ex) {
+        return null;
+    }
+}
+
 http.createServer(function (req, res) {
+    console.log(req.url);
+
+    // query: { httpMethod: '$0', path: '$1', params: '$2', headers: '$3' },
     var query = url.parse(req.url, true).query;
+
     var statusCode = 200;
+    var policy = null;
     var signature = null;
-    if (!query.httpMethod || !query.path || !query.params || !query.headers) {
+
+    if (query.policy) {
+        var auth = new Auth(kCredentials.ak, kCredentials.sk);
+        policy = new Buffer(query.policy).toString('base64');
+        signature = auth.hash(policy, kCredentials.sk);
+    }
+    else if (query.httpMethod && query.path && query.params && query.headers) {
+        if (query.httpMethod !== 'PUT' && query.httpMethod !== 'POST' && query.httpMethod !== 'GET') {
+            // 只允许 PUT/POST/GET Method
+            statusCode = 403;
+        }
+        else {
+            var httpMethod = query.httpMethod;
+            var path = query.path;
+            var params = safeParse(query.params) || {};
+            var headers = safeParse(query.headers) || {};
+
+            var auth = new Auth(kCredentials.ak, kCredentials.sk);
+            signature = auth.generateAuthorization(httpMethod, path, params, headers);
+        }
+    }
+    else {
         statusCode = 403;
     }
-    else {
-        var httpMethod = query.httpMethod;
-        var path = query.path;
-        var params = safeParse(query.params) || {};
-        var headers = safeParse(query.headers) || {};
 
-        // 添加您自己的额外逻辑
+    // 最多10s的延迟
+    var delay = Math.min(query.delay || 0, 10);
+    setTimeout(function () {
+        var payload = query.policy
+                      ? {
+                          accessKey: kCredentials.ak,
+                          policy: policy,
+                          signature: signature
+                      }
+                      : {
+                          statusCode: statusCode,
+                          signature: signature,
+                          xbceDate: new Date().toISOString().replace(/\.\d+Z$/, 'Z')
+                      };
 
-        var auth = new Auth(kCredentials.ak, kCredentials.sk);
-        signature = auth.generateAuthorization(httpMethod, path, params, headers);
-    }
-
-    var payload = {
-        statusCode: statusCode,
-        signature: signature,
-        xbceDate: new Date().toISOString().replace(/\.\d+Z$/, 'Z')
-    };
-    res.writeHead(statusCode, {'Content-Type': 'text/javascript; charset=utf-8'});
-    if (query.callback) {
-        res.end(util.format('%s(%s)', query.callback, JSON.stringify(payload)));
-    }
-    else {
-        res.end(JSON.stringify(payload));
-    }
+        res.writeHead(statusCode, {
+            'Content-Type': 'text/javascript; charset=utf-8',
+            'Access-Control-Allow-Origin': '*'
+        });
+        if (query.callback) {
+            res.end(util.format('%s(%s)', query.callback, JSON.stringify(payload)));
+        }
+        else {
+            res.end(JSON.stringify(payload));
+        }
+    }, delay * 1000);
 }).listen(1337);
 console.log('Server running at http://0.0.0.0:1337/');
+
 ```
 
 #### C# 后端实现
@@ -92,40 +131,79 @@ using BaiduBce.Auth;
 using BaiduBce.Internal;
 using Newtonsoft.Json;
 using BaiduBce.Util;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace BaiduCloudEngine.Controllers
 {
-  class SignatureResult {
+  class SignatureResult
+  {
     public int statusCode { get; set; }
+
     public string signature { get; set; }
+
     public string xbceDate { get; set; }
+  }
+
+  class PolicySignatureResult
+  {
+    public string policy { get; set; }
+
+    public string signature { get; set; }
+
+    public string accessKey { get; set; }
   }
 
   public class HomeController : Controller
   {
-    public string Index(string httpMethod, string path, string queries, string headers, string callback) {
-      BceClientConfiguration config = new BceClientConfiguration();
-      config.Credentials = new DefaultBceCredentials("AK", "SK");
-      BceV1Signer bceV1Signer = new BceV1Signer();
-      InternalRequest internalRequest = new InternalRequest();
-      internalRequest.Config = config;
-      internalRequest.Uri = new Uri("http://www.baidu.com" + path);
-      internalRequest.HttpMethod = httpMethod;
-      if (headers != null) {
-        internalRequest.Headers = JsonConvert.DeserializeObject> (headers);
-      }
-      if (queries != null) {
-        internalRequest.Parameters = JsonConvert.DeserializeObject> (queries);
-      }
-      var sign = bceV1Signer.Sign(internalRequest);
 
-      var xbceDate = DateUtils.FormatAlternateIso8601Date (DateTime.Now);
-      var result = JsonConvert.SerializeObject (new SignatureResult() {
-        statusCode = 200,
-        signature = sign,
-        xbceDate = xbceDate
-      });
+    private static string EncodeHex (byte[] data)
+    {
+      var sb = new StringBuilder ();
+      foreach (var b in data) {
+        sb.Append (BceV1Signer.HexTable [b]);
+      }
+      return sb.ToString ();
+    }
 
+    // http://127.0.0.1:8080/?httpMethod=PUT&path=%2Fv1%2Fbce-javascript-sdk-demo-test%2Fbce.png&delay=0&queries=%7B%7D&headers=%7B%22User-Agent%22%3A%22Mozilla%2F5.0+(Macintosh%3B+Intel+Mac+OS+X+10_11_2)+AppleWebKit%2F537.36+(KHTML%2C+like+Gecko)+Chrome%2F48.0.2564.97+Safari%2F537.36%22%2C%22x-bce-date%22%3A%222016-02-22T08%3A03%3A13Z%22%2C%22Connection%22%3A%22close%22%2C%22Content-Type%22%3A%22image%2Fpng%3B+charset%3DUTF-8%22%2C%22Host%22%3A%22bos.bj.baidubce.com%22%2C%22Content-Length%22%3A4800%7D
+    public string Index (string httpMethod, string path, string queries, string headers, string policy, string callback)
+    {
+      BceClientConfiguration config = new BceClientConfiguration ();
+      string ak = "b92ea4a39f3645c8ae5f64ba5fc2a357";
+      string sk = "a4ce012968714958a21bb90dc180de17";
+      config.Credentials = new DefaultBceCredentials (ak, sk);
+      BceV1Signer bceV1Signer = new BceV1Signer ();
+      string result = null;
+      if (policy != null) {
+        string base64 = Convert.ToBase64String (Encoding.UTF8.GetBytes (policy));
+        var hash = new HMACSHA256 (Encoding.UTF8.GetBytes (sk));
+        string signature = EncodeHex (hash.ComputeHash (Encoding.UTF8.GetBytes (base64)));
+        result = JsonConvert.SerializeObject (new PolicySignatureResult () {
+          policy = base64,
+          signature = signature,
+          accessKey = ak,
+        });
+      } else {
+        InternalRequest internalRequest = new InternalRequest ();
+        internalRequest.Config = config;
+        internalRequest.Uri = new Uri ("http://www.baidu.com" + path);
+        internalRequest.HttpMethod = httpMethod;
+        if (headers != null) {
+          internalRequest.Headers = JsonConvert.DeserializeObject<Dictionary<string, string>> (headers);
+        }
+        if (queries != null) {
+          internalRequest.Parameters = JsonConvert.DeserializeObject<Dictionary<string, string>> (queries);
+        }
+        var sign = bceV1Signer.Sign (internalRequest);
+
+        var xbceDate = DateUtils.FormatAlternateIso8601Date (DateTime.Now);
+        result = JsonConvert.SerializeObject (new SignatureResult () {
+          statusCode = 200,
+          signature = sign,
+          xbceDate = xbceDate,
+        });
+      }
       if (callback != null) {
         result = callback + "(" + result + ")";
       }
