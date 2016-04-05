@@ -51,7 +51,7 @@ describe('STS', function () {
             });
     }
 
-    beforeEach(function (done) {
+    beforeEach(function () {
         // jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
 
         fail = helper.fail(this);
@@ -60,20 +60,18 @@ describe('STS', function () {
         bucket = util.format('test-bucket%d', id);
         key = util.format('test_object %d', id);
 
-        bosClient.createBucket(bucket)
+        return bosClient.createBucket(bucket)
             .then(function () {
                 return bosClient.putObjectFromString(bucket, key, defaultText);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    afterEach(function (done) {
-        clearBucket(bucket).fin(done);
+    afterEach(function () {
+        return clearBucket(bucket);
     });
 
-    it('Read From BOS', function (done) {
-        stsClient.getSessionToken(6000, {
+    it('Read From BOS', function () {
+        return stsClient.getSessionToken(6000, {
                 accessControlList: [{
                     service: 'bce:bos',
                     resource: [bucket + '/*'],
@@ -102,15 +100,13 @@ describe('STS', function () {
                 expect(response.http_headers['content-md5']).to.eql(
                     require('../../src/crypto').md5sum(defaultText)
                 );
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('Write To BOS', function (done) {
+    it('Write To BOS', function () {
         var newText = 'Happy New Year';
         var client;
-        stsClient.getSessionToken(6000, {
+        return stsClient.getSessionToken(6000, {
                 accessControlList: [{
                     service: 'bce:bos',
                     resource: [bucket + '/*'],
@@ -141,9 +137,7 @@ describe('STS', function () {
                 expect(response.http_headers['content-md5']).to.eql(
                     require('../../src/crypto').md5sum(newText)
                 );
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 });
 

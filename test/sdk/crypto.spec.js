@@ -26,22 +26,20 @@ describe('crypto', function () {
         expect(crypto.md5sum('hello world')).to.eql('XrY7u+Ae7tCTyyK7j1rNww==');
     });
 
-    it('md5file', function (done) {
-        crypto.md5file(path.join(__dirname, '..', 'Makefile'))
+    it('md5file', function () {
+        return crypto.md5file(path.join(__dirname, '..', 'Makefile'))
             .then(function (md5sum) {
                 expect(md5sum).to.eql('yRK9tU4xvtCYzRI7VHTRhg==');
-            })
-            .fin(done);
+            });
     });
 
-    it('md5stream', function (done) {
+    it('md5stream', function () {
         var fp = fs.createReadStream(__filename, {start: 0, end: 99});
         var buffer = fs.readFileSync(__filename).slice(0, 100);
-        crypto.md5stream(fp)
+        return crypto.md5stream(fp)
             .then(function (md5sum) {
                 expect(md5sum).to.eql(crypto.md5sum(buffer));
-            })
-            .fin(done);
+            });
     });
 });
 

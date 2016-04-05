@@ -34,7 +34,7 @@ describe('UploadHelper', function() {
 
     this.timeout(10 * 60 * 1000);
 
-    beforeEach(function(done) {
+    beforeEach(function() {
         // jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
 
         fail = helper.fail(this);
@@ -46,10 +46,10 @@ describe('UploadHelper', function() {
 
         client = new BosClient(config.bos);
 
-        client.createBucket(bucket).catch(fail).fin(done);
+        return client.createBucket(bucket);
     });
 
-    afterEach(function(done) {
+    afterEach(function() {
         function deleteBucket(bucket_name) {
             var promise
                 = client.listObjects(bucket_name)
@@ -66,7 +66,7 @@ describe('UploadHelper', function() {
             return promise;
         }
 
-        client.listBuckets()
+        var res = client.listBuckets()
             .then(function(response) {
                 var defers = [];
                 (response.body.buckets || []).forEach(function(bucket) {
@@ -75,15 +75,15 @@ describe('UploadHelper', function() {
                     }
                 });
                 return Q.all(defers);
-            })
-            .catch(fail)
-            .fin(done);
+            });
 
         try {
             fs.unlinkSync(filename);
         }
         catch (ex) {
         }
+
+        return res;
     });
 
     function prepareTemporaryFile(size) {
@@ -95,8 +95,8 @@ describe('UploadHelper', function() {
         fs.closeSync(fd);
     }
 
-    it('upload direct from file', function (done) {
-        UploadHelper.upload(client, bucket, key, __filename)
+    it('upload direct from file', function () {
+        return UploadHelper.upload(client, bucket, key, __filename)
             .then(function (response) {
                 return client.getObjectMetadata(bucket, key);
             })
@@ -105,16 +105,14 @@ describe('UploadHelper', function() {
                 expect(response.http_headers['content-length']).to.eql(
                     '' + fs.lstatSync(__filename).size);
                 debug(response);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('upload multipart from file', function (done) {
+    it('upload multipart from file', function () {
         var filesize = 5 * 1024 * 1024 + 1;
         prepareTemporaryFile(filesize);
 
-        UploadHelper.upload(client, bucket, key, filename)
+        return UploadHelper.upload(client, bucket, key, filename)
             .then(function (response) {
                 return client.getObjectMetadata(bucket, key);
             })
@@ -123,16 +121,14 @@ describe('UploadHelper', function() {
                 expect(response.http_headers['content-length']).to.eql(
                     '' + fs.lstatSync(filename).size);
                 debug(response);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('upload direct from stream', function (done) {
+    it('upload direct from stream', function () {
         var stream = fs.createReadStream(__filename);
         var options = {};
         options['Content-Length'] = fs.lstatSync(__filename).size;
-        UploadHelper.upload(client, bucket, key, stream, options)
+        return UploadHelper.upload(client, bucket, key, stream, options)
             .then(function (response) {
                 return client.getObjectMetadata(bucket, key);
             })
@@ -141,19 +137,17 @@ describe('UploadHelper', function() {
                 expect(response.http_headers['content-length']).to.eql(
                     '' + fs.lstatSync(__filename).size);
                 debug(response);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('upload multipart from stream', function (done) {
+    it('upload multipart from stream', function () {
         var filesize = 5 * 1024 * 1024 + 1;
         prepareTemporaryFile(filesize);
 
         var stream = fs.createReadStream(filename);
         var options = {};
         options['Content-Length'] = fs.lstatSync(filename).size;
-        UploadHelper.upload(client, bucket, key, stream, options)
+        return UploadHelper.upload(client, bucket, key, stream, options)
             .then(function (response) {
                 return client.getObjectMetadata(bucket, key);
             })
@@ -166,16 +160,14 @@ describe('UploadHelper', function() {
                     .then(function(md5sum) {
                         expect(response.http_headers['content-md5']).to.eql(md5sum);
                     });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('upload direct from buffer', function (done) {
+    it('upload direct from buffer', function () {
         var buffer = fs.readFileSync(__filename);
         var options = {};
         options['Content-Type'] = 'application/javascript';
-        UploadHelper.upload(client, bucket, key, buffer, options)
+        return UploadHelper.upload(client, bucket, key, buffer, options)
             .then(function (response) {
                 return client.getObjectMetadata(bucket, key);
             })
@@ -184,19 +176,17 @@ describe('UploadHelper', function() {
                 expect(response.http_headers['content-length']).to.eql(
                     '' + fs.lstatSync(__filename).size);
                 debug(response);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('upload multipart from buffer', function (done) {
+    it('upload multipart from buffer', function () {
         var filesize = 5 * 1024 * 1024 + 1;
         prepareTemporaryFile(filesize);
 
         var buffer = fs.readFileSync(filename);
         var options = {};
         options['Content-Type'] = 'application/javascript';
-        UploadHelper.upload(client, bucket, key, buffer, options)
+        return UploadHelper.upload(client, bucket, key, buffer, options)
             .then(function (response) {
                 return client.getObjectMetadata(bucket, key);
             })
@@ -205,9 +195,7 @@ describe('UploadHelper', function() {
                 expect(response.http_headers['content-type']).to.eql('application/javascript');
                 expect(response.http_headers['content-length']).to.eql(
                     '' + fs.lstatSync(filename).size);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 });
 

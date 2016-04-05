@@ -37,29 +37,28 @@ describe('BcsClient', function () {
         client = new BcsClient(config.bcs);
     });
 
-    afterEach(function (done) {
-        client.deleteBucket('bcs-client-testcase').fin(done);
+    afterEach(function () {
+        return client.deleteBucket('bcs-client-testcase').catch(function () {
+        });
     });
 
-    it('putObjectFromString', function (done) {
+    it('putObjectFromString', function () {
         var bucket = 'adtest';
         var object = 'this/is/the/path/a.txt';
-        client.putObjectFromString(bucket, object, 'Hello world')
+        return client.putObjectFromString(bucket, object, 'Hello world')
             .then(function (response) {
                 expect(response.http_headers['etag']).to.eql('3e25960a79dbc69b674cd4ec67a72c62');
                 return client.deleteObject(bucket, object);
             })
             .then(function (response) {
                 expect(response.body).to.eql({});
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('createBucket', function (done) {
+    it('createBucket', function () {
         var bucket = 'bcs-client-testcase';
         var object = 'a.txt';
-        client.createBucket(bucket)
+        return client.createBucket(bucket)
             .then(function (response) {
                 expect(response.body).to.eql({});
                 return client.putObjectFromString(bucket, object, 'Hello world');
@@ -74,14 +73,12 @@ describe('BcsClient', function () {
             })
             .then(function (response) {
                 expect(response.body).to.eql({});
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getBucketAcl', function (done) {
+    it('getBucketAcl', function () {
         var bucket = 'bcs-client-testcase';
-        client.createBucket(bucket)
+        return client.createBucket(bucket)
             .then(function (response) {
                 return client.getBucketAcl(bucket);
             })
@@ -102,14 +99,12 @@ describe('BcsClient', function () {
                         }
                     ]
                 });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('listObjects with pagination', function (done) {
+    it('listObjects with pagination', function () {
         var bucket = 'bcs-client-testcase';
-        client.createBucket(bucket)
+        return client.createBucket(bucket)
             .then(function (response) {
                 return Q.all([
                     client.putObjectFromString(bucket, 'a.txt', 'Hello a'),
@@ -122,14 +117,12 @@ describe('BcsClient', function () {
                     client.deleteObject(bucket, 'a.txt'),
                     client.deleteObject(bucket, 'b.txt')
                 ]);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('listObjects in empty bucket', function (done) {
+    it('listObjects in empty bucket', function () {
         var bucket = 'bcs-client-testcase';
-        client.createBucket(bucket)
+        return client.createBucket(bucket)
             .then(function (response) {
                 return client.listObjects(bucket);
             })
@@ -152,14 +145,12 @@ describe('BcsClient', function () {
                     limit: 7,
                     object_list: []
                 });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('deleteBucket failed if not empty', function (done) {
+    it('deleteBucket failed if not empty', function () {
         var bucket = 'bcs-client-testcase';
-        client.createBucket(bucket)
+        return client.createBucket(bucket)
             .then(function (response) {
                 expect(response.body).to.eql({});
                 return client.putObjectFromString(bucket, 'a.txt', 'Hello world');
@@ -176,46 +167,41 @@ describe('BcsClient', function () {
                     'status_code': 403,
                     'message': {}
                 });
-            })
-            .fin(done);
+            });
     });
 
-    it('listBuckets', function (done) {
-        client.listBuckets()
+    it('listBuckets', function () {
+        return client.listBuckets()
             .then(function (response) {
                 expect(Array.isArray(response.body)).to.be(true);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('putObjectFromFile', function(done) {
+    it('putObjectFromFile', function () {
         var bucket = 'adtest';
-        client.putObjectFromFile(bucket, path.basename(__filename), __filename)
-            .then(function(response) {
+        return client.putObjectFromFile(bucket, path.basename(__filename), __filename)
+            .then(function (response) {
                 expect(response.http_headers['x-bs-bucket']).to.eql(bucket);
                 expect(response.http_headers['x-bs-file-size']).to.eql('' + fs.lstatSync(__filename).size);
                 return crypto.md5file(__filename, 'hex')
-                    .then(function(md5sum) {
+                    .then(function (md5sum) {
                         expect(response.http_headers['content-md5']).to.eql(md5sum);
                         expect(response.http_headers['etag']).to.eql(md5sum);
                     });
             })
-            .then(function() {
+            .then(function () {
                 return client.getObjectMetadata(bucket, path.basename(__filename));
             })
             .then(function (response) {
                 // console.log(response);
                 expect(response.http_headers['content-length']).to.eql('' + fs.lstatSync(__filename).size);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('listObjects', function (done) {
+    it('listObjects', function () {
         var bucket = 'adtest';
 
-        client.listObjects(bucket, {start: 1, limit: 3})
+        return client.listObjects(bucket, {start: 1, limit: 3})
             .then(function (response) {
                 // object_total 居然是 object_list.length，有卵用?
                 expect(response.body.object_total).to.eql(3);
@@ -223,18 +209,8 @@ describe('BcsClient', function () {
                 expect(response.body.start).to.eql(1);
                 expect(response.body.limit).to.eql(3);
                 expect(response.body.object_list.length).to.eql(3);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 });
-
-
-
-
-
-
-
-
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */

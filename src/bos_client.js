@@ -347,8 +347,8 @@ BosClient.prototype.putObjectFromFile = function (bucketName, key, filename, opt
     // 如果没有显式的设置，就使用默认值
     var fileSize = fs.statSync(filename).size;
     var contentLength = u.has(options, H.CONTENT_LENGTH)
-                        ? options[H.CONTENT_LENGTH]
-                        : fileSize;
+        ? options[H.CONTENT_LENGTH]
+        : fileSize;
     if (contentLength > fileSize) {
         throw new Error('options[\'Content-Length\'] should less than ' + fileSize);
     }
@@ -657,6 +657,102 @@ BosClient.prototype.listMultipartUploads = function (bucketName, options) {
     });
 };
 
+BosClient.prototype.appendObject = function (bucketName, key, data, offset, options) {
+    if (!key) {
+        throw new TypeError('key should not be empty.');
+    }
+
+    options = this._checkOptions(options || {});
+    var params = {append: ''};
+    if (u.isNumber(offset)) {
+        params.offset = offset;
+    }
+    return this.sendRequest('POST', {
+        bucketName: bucketName,
+        key: key,
+        body: data,
+        headers: options.headers,
+        params: params,
+        config: options.config
+    });
+};
+
+BosClient.prototype.appendObjectFromBlob = function (bucketName, key, blob, offset, options) {
+    var headers = {};
+
+    // https://developer.mozilla.org/en-US/docs/Web/API/Blob/size
+    headers[H.CONTENT_LENGTH] = blob.size;
+    // 对于浏览器调用API的时候，默认不添加 H.CONTENT_MD5 字段，因为计算起来比较慢
+    // 而且根据 API 文档，这个字段不是必填的。
+    options = u.extend(headers, options);
+
+    return this.appendObject(bucketName, key, blob, offset, options);
+};
+
+BosClient.prototype.appendObjectFromDataUrl = function (bucketName, key, data, offset, options) {
+    data = new Buffer(data, 'base64');
+
+    var headers = {};
+    headers[H.CONTENT_LENGTH] = data.length;
+    // 对于浏览器调用API的时候，默认不添加 H.CONTENT_MD5 字段，因为计算起来比较慢
+    // headers[H.CONTENT_MD5] = require('./crypto').md5sum(data);
+    options = u.extend(headers, options);
+
+    return this.appendObject(bucketName, key, data, offset, options);
+};
+
+BosClient.prototype.appendObjectFromString = function (bucketName, key, data, offset, options) {
+    options = options || {};
+
+    var headers = {};
+    headers[H.CONTENT_LENGTH] = Buffer.byteLength(data);
+    headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(key));
+    headers[H.CONTENT_MD5] = crypto.md5sum(data);
+    options = u.extend(headers, options);
+
+    return this.appendObject(bucketName, key, data, offset, options);
+};
+
+BosClient.prototype.appendObjectFromFile = function (bucketName, key, filename, offset, size, options) {
+    options = options || {};
+    if (size === 0) {
+        return this.appendObjectFromString(bucketName, key, '', offset, options);
+    }
+
+    var headers = {};
+
+    // append的起止位置应该在文件内
+    var fileSize = fs.statSync(filename).size;
+    if (size + offset > fileSize) {
+        throw new Error('Can\'t read the content beyond the end of file.');
+    }
+
+    headers[H.CONTENT_LENGTH] = size;
+
+    // 因为Firefox会在发起请求的时候自动给 Content-Type 添加 charset 属性
+    // 导致我们计算签名的时候使用的 Content-Type 值跟服务器收到的不一样，为了
+    // 解决这个问题，我们需要显式的声明Charset
+    headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(filename));
+    options = u.extend(headers, options);
+
+    var streamOptions = {
+        start: offset || 0,
+        end: (offset || 0) + size - 1
+    };
+    var fp = fs.createReadStream(filename, streamOptions);
+    if (!u.has(options, H.CONTENT_MD5)) {
+        var me = this;
+        var fp2 = fs.createReadStream(filename, streamOptions);
+        return crypto.md5stream(fp2)
+            .then(function (md5sum) {
+                options[H.CONTENT_MD5] = md5sum;
+                return me.appendObject(bucketName, key, fp, offset, options);
+            });
+    }
+
+    return this.appendObject(bucketName, key, fp, offset, options);
+};
+
 /**
  * Generate PostObject policy signature.
  *
@@ -791,7 +887,11 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
         H.CONTENT_TYPE,
         H.CONTENT_DISPOSITION,
         H.ETAG,
-        H.SESSION_TOKEN
+        H.SESSION_TOKEN,
+        H.CACHE_CONTROL,
+        H.EXPIRES,
+        H.X_BCE_OBJECT_ACL,
+        H.X_BCE_OBJECT_GRANT_READ
     ];
     var metaSize = 0;
     var headers = u.pick(options, function (value, key) {

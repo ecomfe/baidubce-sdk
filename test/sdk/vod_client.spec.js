@@ -57,15 +57,15 @@ describe('VodClient', function () {
         // TODO
     });
 
-    it('Create Media Source', function (done) {
+    it('Create Media Source', function () {
         var vod = new VodClient(config.vod);
         var filePath = path.join(__dirname, '123.mp3');
-        vod.createMediaResource(title, description, filePath)
+        return vod.createMediaResource(title, description, filePath)
             .then(function (response) {
                 debug(response);
                 mediaId = response.body.mediaId;
                 expect(mediaId).not.to.be(undefined);
-                return helper.loop(240, 30, function () {
+                return helper.loop(600, 30, function () {
                     return vod.getMediaResource(mediaId)
                         .then(function (response) {
                             debug('loop = %j', response.body);
@@ -74,29 +74,25 @@ describe('VodClient', function () {
                             }
                         });
                 });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('Get Media Source', function (done) {
+    it('Get Media Source', function () {
         expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
-        vod.getMediaResource(mediaId)
+        return vod.getMediaResource(mediaId)
             .then(function (response) {
                 debug(response);
                 expect(response.body.mediaId).to.eql(mediaId);
                 expect(response.body.attributes.title).to.eql(title);
                 expect(response.body.attributes.description).to.eql(description);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('Get All Media Sources', function (done) {
+    it('Get All Media Sources', function () {
         expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
-        vod.listMediaResource()
+        return vod.listMediaResource()
             .then(function (response) {
                 debug(response);
                 var uploadMedia = u.filter(response.body.media, function (media) {
@@ -105,15 +101,13 @@ describe('VodClient', function () {
                 expect(uploadMedia.length).to.eql(1);
                 expect(uploadMedia[0].attributes.title).to.eql(title);
                 expect(uploadMedia[0].attributes.description).to.eql(description);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('Disable Media Source', function (done) {
+    it('Disable Media Source', function () {
         expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
-        vod.stopMediaResource(mediaId)
+        return vod.stopMediaResource(mediaId)
             .then(function () {
                 return vod.getMediaResource(mediaId);
             })
@@ -121,15 +115,13 @@ describe('VodClient', function () {
                 debug(response);
                 expect(response.body.mediaId).to.eql(mediaId);
                 expect(response.body.status).to.eql(MediaStatus.DISABLED);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('Publish Media Source', function (done) {
+    it('Publish Media Source', function () {
         expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
-        vod.publishMediaResource(mediaId)
+        return vod.publishMediaResource(mediaId)
             .then(function () {
                 return vod.getMediaResource(mediaId);
             })
@@ -137,17 +129,15 @@ describe('VodClient', function () {
                 debug(response);
                 expect(response.body.mediaId).to.eql(mediaId);
                 expect(response.body.status).to.eql(MediaStatus.PUBLISHED);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('Update Media Source', function (done) {
+    it('Update Media Source', function () {
         expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
         title = 'updateTitle' + (+new Date());
         description = 'updateDescription' + (+new Date());
-        vod.updateMediaResource(mediaId, title, description)
+        return vod.updateMediaResource(mediaId, title, description)
             .then(function () {
                 return vod.getMediaResource(mediaId);
             })
@@ -156,15 +146,13 @@ describe('VodClient', function () {
                 expect(response.body.mediaId).to.eql(mediaId);
                 expect(response.body.attributes.title).to.eql(title);
                 expect(response.body.attributes.description).to.eql(description);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('Get Player Code', function (done) {
+    it('Get Player Code', function () {
         expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
-        vod.getPlayerCode(mediaId, 800, 600, true)
+        return vod.getPlayerCode(mediaId, 800, 600, true)
             .then(function (response) {
                 debug(response);
                 var codes = u.filter(response.body.codes, function (code) {
@@ -179,28 +167,24 @@ describe('VodClient', function () {
                         expect(code.sourceCode).to.match(/[a-zA-Z0-9+/]+/);
                     }
                 });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('Get Playable Url', function (done) {
+    it('Get Playable Url', function () {
         expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
-        vod.getPlayableUrl(mediaId)
+        return vod.getPlayableUrl(mediaId)
             .then(function (response) {
                 debug(response);
                 expect(response.body.result.file).to.match(/^http:\/\//);
                 expect(response.body.result.media_id).to.eql(mediaId);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('Delete Media Source', function (done) {
+    it('Delete Media Source', function () {
         expect(mediaId).not.to.be(undefined);
         var vod = new VodClient(config.vod);
-        vod.deleteMediaResource(mediaId)
+        return vod.deleteMediaResource(mediaId)
             .then(function () {
                 return vod.listMediaResource();
             })
@@ -210,9 +194,7 @@ describe('VodClient', function () {
                     return media.mediaId === mediaId;
                 });
                 expect(uploadMedia.length).to.eql(0);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 });
 

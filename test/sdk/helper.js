@@ -51,6 +51,7 @@ exports.loop = function (maxWaitSeconds, tickSeconds, iterate) {
     var deferred = Q.defer();
 
     var startTime = Date.now();
+
     function check() {
         var now = Date.now();
         if ((now - startTime) >= maxWaitSeconds * 1000) {
@@ -68,6 +69,7 @@ exports.loop = function (maxWaitSeconds, tickSeconds, iterate) {
             }
         });
     }
+
     setTimeout(check, tickSeconds * 1000);
 
     return deferred.promise;
@@ -95,14 +97,5 @@ exports.get = function (url) {
         .on('error', deferred.reject);
     return deferred.promise;
 };
-
-
-
-
-
-
-
-
-
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */

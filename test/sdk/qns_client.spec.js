@@ -29,9 +29,9 @@ describe('QnsClient', function () {
     var fail;
     var account = 'bce-sdk-qns-test-case';
 
-    beforeEach(function (done) {
+    beforeEach(function () {
         fail = helper.fail(this);
-        new QnsClient.Topic(config.qns, account).list()
+        return new QnsClient.Topic(config.qns, account).list()
             .then(function (response) {
                 var topics = response.body.topics || [];
                 return Q.all(topics.map(function (item) {
@@ -46,20 +46,18 @@ describe('QnsClient', function () {
                 return Q.all(subscriptions.map(function (item) {
                     return new QnsClient.Subscription(config.qns, account, item.name).remove();
                 }));
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    afterEach(function (done) {
-        done();
+    afterEach(function () {
+        // nothing
     });
 
     it('ok', function () {});
 
-    it('Topic.create and sendMessages', function (done) {
+    it('Topic.create and sendMessages', function () {
         var topic = new QnsClient.Topic(config.qns, account, 'my-test-topic');
-        topic.create()
+        return topic.create()
             .then(function (response) {
                 var messages = [
                     'hello',
@@ -92,15 +90,13 @@ describe('QnsClient', function () {
             })
             .then(function () {
                 return topic.remove();
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getTopic and updateTopic', function (done) {
+    it('getTopic and updateTopic', function () {
         var topicName = 'my-test-topic';
         var topic = new QnsClient.Topic(config.qns, account, topicName);
-        topic.create()
+        return topic.create()
             .then(function (response) {
                 return topic.get();
             })
@@ -136,15 +132,13 @@ describe('QnsClient', function () {
             })
             .then(function () {
                 return topic.remove();
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('Topic.create but failed', function (done) {
+    it('Topic.create but failed', function () {
         var topicName = 'my-test-topic';
         var topic = new QnsClient.Topic(config.qns, account, topicName);
-        topic.create()
+        return topic.create()
             .then(function (response) {
                 expect(response.body).toEqual({});
                 return topic.create();
@@ -184,15 +178,14 @@ describe('QnsClient', function () {
                     "marker": "MA==",
                     "topics":[]
                 });
-            })
-            .fin(done);
+            });
     });
 
-    it('Subscription.create', function (done) {
+    it('Subscription.create', function () {
         var topicName = 'my-topic-name';
         var subscriptionName = 'my-subscription-name';
         var topic = new QnsClient.Topic(config.qns, account, topicName);
-        topic.create()
+        return topic.create()
             .then(function (response) {
                 return topic.createSubscription(subscriptionName, {
                     receiveMessageWaitTimeInSeconds: 20,
@@ -245,12 +238,10 @@ describe('QnsClient', function () {
             })
             .then(function (response) {
                 expect(response.body).toEqual({});
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('send & receive', function (done) {
+    it('send & receive', function () {
         var topicName = 'my-test-topic';
         var subscriptionName = 'my-subscription-name';
         var receiptHandle = null;
@@ -258,7 +249,7 @@ describe('QnsClient', function () {
         var topic = new QnsClient.Topic(config.qns, account, topicName);
         var subscription = new QnsClient.Subscription(config.qns,
             account, subscriptionName);
-        topic.create()
+        return topic.create()
             .then(function () {
                 return topic.createSubscription(subscriptionName);
             })
@@ -298,9 +289,7 @@ describe('QnsClient', function () {
             .then(function (response) {
                 debug('%j', response);
                 expect(response.body).toEqual({});
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 });
 

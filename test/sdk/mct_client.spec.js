@@ -31,23 +31,23 @@ describe('MctClient', function () {
 
     this.timeout(10 * 60 * 1000);
 
-    beforeEach(function (done) {
+    beforeEach(function () {
         // jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
 
         fail = helper.fail(this);
 
-        Q.all([
+        return Q.all([
             new MctClient.Watermark(config.media).removeAll(),
             new MctClient.Pipeline(config.media).removeAll(),
             new MctClient.Preset(config.media).removeAll()
-        ]).catch(fail).fin(done);
+        ]);
     });
 
-    afterEach(function (done) {
-        done();
+    afterEach(function () {
+        // nothing
     });
 
-    it('Watermark.create', function (done) {
+    it('Watermark.create', function () {
         var watermark = new MctClient.Watermark(config.media);
         var options = {
             bucket: 'bcesdk',
@@ -61,7 +61,7 @@ describe('MctClient', function () {
             // 0 ~ 4096
             horizontalOffsetInPixel: 1024
         };
-        watermark.create(options)
+        return watermark.create(options)
             .then(function (response) {
                 debug(response);
                 expect(response.body.watermarkId).not.to.be(undefined);
@@ -81,14 +81,12 @@ describe('MctClient', function () {
             })
             .then(function (response) {
                 expect(response.body).to.eql({});
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('MediaInfo.get', function (done) {
+    it('MediaInfo.get', function () {
         var mediaInfo = new MctClient.MediaInfo(config.media);
-        mediaInfo.get('bcesdk', 'big_buck_bunny_720p_surround.avi')
+        return mediaInfo.get('bcesdk', 'big_buck_bunny_720p_surround.avi')
             .then(function (response) {
                 var info = {
                   bucket: 'bcesdk',
@@ -117,27 +115,24 @@ describe('MctClient', function () {
             })
             .then(function (response) {
                 debug('%j', response);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('MediaInfo.get invalid media info', function (done) {
+    it('MediaInfo.get invalid media info', function () {
         var mediaInfo = new MctClient.MediaInfo(config.media);
-        mediaInfo.get('bcesdk', 'KCon.zip')
+        return mediaInfo.get('bcesdk', 'KCon.zip')
             .catch(function (error) {
                 expect(u.omit(error, 'request_id')).to.eql({
                     status_code: 400,
                     message: 'Get media info failed with errno: 1001',
-                    code: 'VideoExceptions.GetMediaInfoFailed'
+                    code: 'MetaInfoExceptions.GetMediaInfoFailed'
                 });
-            })
-            .fin(done);
+            });
     });
 
-    it('Pipeline.list should be empty', function (done) {
+    it('Pipeline.list should be empty', function () {
         var pipeline = new MctClient.Pipeline(config.media);
-        pipeline.list()
+        return pipeline.list()
             .then(function (response) {
                 debug('%j', response.body);
                 expect(u.filter(response.body.pipelines, function (item) {
@@ -145,12 +140,10 @@ describe('MctClient', function () {
                     var status = item.jobStatus;
                     return (status.running + status.pending) <= 0;
                 })).to.eql([]);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('Pipeline.create & Transcoding.create & Thumbnail.create', function (done) {
+    it('Pipeline.create & Transcoding.create & Thumbnail.create', function () {
         var pipelineName = 'google_is_good_' + Date.now();
         var pipeline = new MctClient.Pipeline(config.media);
         var options = {
@@ -165,7 +158,7 @@ describe('MctClient', function () {
                 // notification: 'my_notification_name'
             }
         };
-        pipeline.create(options)
+        return pipeline.create(options)
             .then(function (response) {
                 expect(response.body).to.eql({});
                 return pipeline.get();
@@ -236,16 +229,14 @@ describe('MctClient', function () {
             })
             .then(function (job) {
                 expect(job._jobId).not.to.be(null);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('Preset.copy', function (done) {
+    it('Preset.copy', function () {
         var preset = new MctClient.Preset(config.media);
         var original = 'bce.video_mp4_1920x1080_3660kbps';
         var target = 'leeight_' + Date.now();
-        preset.get(original)
+        return preset.get(original)
             .then(function (response) {
                 debug('%j', response);
                 var options = u.clone(response.body);
@@ -260,9 +251,7 @@ describe('MctClient', function () {
             .then(function (response) {
                 expect(response.body.presetName).to.eql(target);
                 return preset.remove();
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 });
 

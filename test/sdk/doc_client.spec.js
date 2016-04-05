@@ -34,28 +34,26 @@ describe('DocClient.Notification', function () {
 
     this.timeout(10 * 60 * 1000);
 
-    beforeEach(function (done) {
+    beforeEach(function () {
         fail = helper.fail(this);
 
         notification = new DocClient.Notification(config.doc);
 
-        notification.removeAll().catch(fail).fin(done);
+        return notification.removeAll();
     });
 
-    it('list', function (done) {
-        notification.list()
+    it('list', function () {
+        return notification.list()
             .then(function (response) {
                 expect(response.body.notifications).not.to.be(undefined);
                 expect(response.body.notifications).to.eql([]);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('create', function (done) {
+    it('create', function () {
         var name = 'haha';
         var endpoint = 'http://www.baidu.com';
-        notification.create(name, endpoint)
+        return notification.create(name, endpoint)
             .then(function () {
                 return notification.get()
             })
@@ -81,37 +79,33 @@ describe('DocClient.Notification', function () {
             .catch(function (error) {
                 expect(error.status_code).to.eql(404);
                 expect(error.code).to.eql('DocExceptions.NoSuchNotification');
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('create with invalid name', function (done) {
+    it('create with invalid name', function () {
         var name = '你好';
         var endpoint = 'http://www.baidu.com';
-        notification.create(name, endpoint)
+        return notification.create(name, endpoint)
             .then(function () {
                 expect().fail('SHOULD NOT REACH HERE.');
             })
             .catch(function (error) {
                 expect(error.status_code).to.eql(400);
                 expect(error.code).to.eql('BceValidationException');
-            })
-            .fin(done);
+            });
     });
 
-    it('create with invalid endpoint', function (done) {
+    it('create with invalid endpoint', function () {
         var name = 'haha';
         var endpoint = new Array(300).join('a');
-        notification.create(name, endpoint)
+        return notification.create(name, endpoint)
             .then(function () {
                 expect().fail('SHOULD NOT REACH HERE.');
             })
             .catch(function (error) {
                 expect(error.status_code).to.eql(400);
                 expect(error.code).to.eql('BceValidationException');
-            })
-            .fin(done);
+            });
     });
 });
 
@@ -121,22 +115,22 @@ describe('DocClient.Document', function () {
 
     this.timeout(10 * 60 * 1000);
 
-    beforeEach(function (done) {
+    beforeEach(function () {
         fail = helper.fail(this);
 
         document = new DocClient.Document(config.doc);
 
-        document.removeAll().catch(fail).fin(done);
+        return document.removeAll();
     });
 
-    afterEach(function (done) {
-        done();
+    afterEach(function () {
+        // nothing
     });
 
-    it('create from local file', function (done) {
+    it('create from local file', function () {
         var file = path.join(__dirname, 'doc_client.spec.txt');
         var documentId;
-        document.create(file)
+        return document.create(file)
             .then(function (response) {
                 debug(response);
 
@@ -196,55 +190,47 @@ describe('DocClient.Document', function () {
                 expect(body.token).not.to.be(undefined);
                 expect(body.createTime).not.to.be(undefined);
                 expect(body.expireTime).not.to.be(undefined);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('create from local file with invalid md5', function (done) {
+    it('create from local file with invalid md5', function () {
         var file = path.join(__dirname, 'doc_client.spec.txt');
-        document.create(file, {meta: {md5: 'haha'}})
+        return document.create(file, {meta: {md5: 'haha'}})
             .catch(function (error) {
                 expect(error.status_code).to.eql(400);
                 expect(error.code).to.eql('BceValidationException');
                 expect(error.message).to.eql('meta.md5:meta.md5=invalid md5 value\n');
-            })
-            .fin(done);
+            });
     });
 
-    it('create from buffer without format and title', function (done) {
+    it('create from buffer without format and title', function () {
         var buffer = fs.readFileSync(path.join(__dirname, 'doc_client.spec.txt'));
-        document.create(buffer)
+        return document.create(buffer)
             .catch(function (error) {
-                expect(error.toString()).to.eql('buffer type required options.format and options.title');
-            })
-            .fin(done);
+                expect(error.message).to.eql('buffer type required options.format and options.title');
+            });
     });
 
-    it('create from buffer with format and title', function (done) {
+    it('create from buffer with format and title', function () {
         var buffer = fs.readFileSync(path.join(__dirname, 'doc_client.spec.txt'));
-        document.create(buffer, {format: 'txt', title: 'hello world'})
+        return document.create(buffer, {format: 'txt', title: 'hello world'})
             .then(function (response) {
                 expect(response.body.documentId).not.to.be(undefined);
                 expect(response.body.bosEndpoint).not.to.be(undefined);
                 expect(response.body.bucket).not.to.be(undefined);
                 expect(response.body.object).not.to.be(undefined);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('list', function (done) {
-        document.list()
+    it('list', function () {
+        return document.list()
             .then(function (response) {
                 var documents = response.body.documents || [];
                 expect(documents.length).to.eql(0);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('create from bos', function (done) {
+    it('create from bos', function () {
         var bosClient = new BosClient(config.bos);
         var bucket = 'bce-bos-uploader';
         var object = 'doc_client.spec.txt';
@@ -252,7 +238,7 @@ describe('DocClient.Document', function () {
         var fsize = fs.lstatSync(__filename).size;
         var bceMetaMd5;
 
-        crypto.md5file(__filename, 'hex')
+        return crypto.md5file(__filename, 'hex')
             .then(function (md5) {
                 bceMetaMd5 = md5;
                 return bosClient.putObjectFromFile(bucket, object, __filename, {
@@ -284,9 +270,7 @@ describe('DocClient.Document', function () {
                 expect(body.meta.md5).to.eql(bceMetaMd5);
                 expect(body.meta.sizeInBytes).to.eql(fsize);
                 expect(body.status).to.eql('PROCESSING');
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
 

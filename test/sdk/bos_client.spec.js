@@ -1,15 +1,15 @@
 /*
-* Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
-*
-* Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-* an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-* specific language governing permissions and limitations under the License.
-*/
+ * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 
 var util = require('util');
 var path = require('path');
@@ -24,8 +24,7 @@ var config = require('../config');
 var helper = require('./helper');
 var BosClient = require('../..').BosClient;
 var crypto = require('../../src/crypto');
-
-describe('BosClient', function() {
+describe('BosClient', function () {
     var client;
     var fail;
 
@@ -35,7 +34,7 @@ describe('BosClient', function() {
 
     this.timeout(10 * 60 * 1000);
 
-    beforeEach(function() {
+    beforeEach(function () {
         // jasmine.getEnv().defaultTimeoutInterval = 60 * 1000;
 
         fail = helper.fail(this);
@@ -48,35 +47,33 @@ describe('BosClient', function() {
         client = new BosClient(config.bos);
     });
 
-    afterEach(function(done) {
+    afterEach(function () {
         function deleteBucket(bucket_name) {
             var promise =
                 client.listObjects(bucket_name)
-                    .then(function(response) {
+                    .then(function (response) {
                         var defers = [];
-                        u.each(response.body.contents, function(object) {
+                        u.each(response.body.contents, function (object) {
                             defers.push(client.deleteObject(bucket_name, object.key))
                         });
                         return Q.all(defers);
                     })
-                    .then(function() {
+                    .then(function () {
                         return client.deleteBucket(bucket_name);
-                    })
+                    });
             return promise;
         }
 
-        client.listBuckets()
-            .then(function(response) {
+        return client.listBuckets()
+            .then(function (response) {
                 var defers = [];
-                (response.body.buckets || []).forEach(function(bucket) {
+                (response.body.buckets || []).forEach(function (bucket) {
                     if (/^test\-bucket/.test(bucket.name)) {
                         defers.push(deleteBucket(bucket.name));
                     }
                 });
                 return Q.all(defers);
             })
-            .catch(fail)
-            .fin(done);
     });
 
     function prepareTemporaryFile(size) {
@@ -87,8 +84,8 @@ describe('BosClient', function() {
         fs.closeSync(fd);
     }
 
-    it('getBucketLocation', function (done) {
-        client.createBucket(bucket)
+    it('getBucketLocation', function () {
+        return client.createBucket(bucket)
             .then(function () {
                 return client.getBucketLocation(bucket);
             })
@@ -102,13 +99,11 @@ describe('BosClient', function() {
             })
             .then(function (response) {
                 expect(response.body).to.eql({locationConstraint: 'bj'});
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('deleteMultipleObjects', function (done) {
-        client.createBucket(bucket)
+    it('deleteMultipleObjects', function () {
+        return client.createBucket(bucket)
             .then(function () {
                 return Q.all([
                     client.putObjectFromFile(bucket, '1/' + key, __filename),
@@ -128,96 +123,87 @@ describe('BosClient', function() {
                 expect(response.body.deleteResult).not.to.be(undefined);
                 expect(response.body.deleteResult.errors).not.to.be(undefined);
                 expect(response.body.deleteResult.errors[0].code).to.eql('NoSuchKey');
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('listBuckets', function(done) {
-        client.listBuckets()
-            .then(function(response) {
+    it('listBuckets', function () {
+        return client.listBuckets()
+            .then(function (response) {
                 var buckets = u.filter(response.body.buckets, function (bucket) {
                     return /^test\-bucket/.test(bucket);
                 });
                 expect(buckets.length).to.eql(0);
                 // expect(response.body.owner).to.eql(config.bos.account);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('doesBucketExist', function(done) {
-        client.doesBucketExist(bucket)
-            .then(function(response) {
+    it('doesBucketExist', function () {
+        return client.doesBucketExist(bucket)
+            .then(function (response) {
                 expect(response).to.be(false);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('deleteBucket', function(done) {
-        client.createBucket(bucket)
-            .then(function() {
+    it('deleteBucket', function () {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.doesBucketExist(bucket)
             })
-            .then(function(response) {
+            .then(function (response) {
                 expect(response).to.be(true);
             })
-            .then(function() {
+            .then(function () {
                 return client.deleteBucket(bucket);
             })
-            .then(function() {
+            .then(function () {
                 return client.doesBucketExist(bucket)
             })
-            .then(function(response) {
+            .then(function (response) {
                 expect(response).to.be(false);
             })
-            .catch(fail)
-            .fin(done);
+
     });
 
-    it('setBucketCannedAcl', function(done) {
-        client.createBucket(bucket)
-            .then(function() {
+    it('setBucketCannedAcl', function () {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.setBucketCannedAcl(bucket, 'public-read-write');
             })
-            .then(function(response) {
+            .then(function (response) {
                 return client.setBucketCannedAcl(bucket, 'public-read');
             })
-            .then(function(response) {
+            .then(function (response) {
                 return client.setBucketCannedAcl(bucket, 'private');
             })
-            .then(function(response) {
+            .then(function (response) {
                 return client.setBucketCannedAcl(bucket, 'invalid-acl');
             })
-            .then(function(response) {
+            .then(function (response) {
                 return client.setBucketCannedAcl(bucket, 'private private ');
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 if (error.code !== 'InvalidArgument') {
                     fail(error);
                 }
             })
-            .fin(done);
+
     });
 
-    it('setBucketCannedAcl with invalid CannedAcl(tail spaces)', function(done) {
-        client.createBucket(bucket)
-            .then(function(response) {
-                return client.setBucketCannedAcl(bucket, 'private private  ');
-            })
-            .then(function () {
-                fail('should not reach here');
-            })
-            .catch(function(error) {
-                if (error.code !== 'InvalidArgument') {
-                    fail(error);
-                }
-            })
-            .fin(done);
+    it('setBucketCannedAcl with invalid CannedAcl(tail spaces)', function () {
+        return client.createBucket(bucket)
+            .then(function (response) {
+                return client.setBucketCannedAcl(bucket, 'private private  ')
+                    .then(function () {
+                        fail('should not reach here');
+                    }, function (error) {
+                        if (error.code !== 'InvalidArgument') {
+                            fail(error);
+                        }
+                    });
+            });
     });
 
-    it('setBucketAcl', function(done) {
+    it('setBucketAcl', function () {
         var grant_list = [
             {
                 'grantee': [
@@ -233,71 +219,68 @@ describe('BosClient', function() {
                 'permission': ['FULL_CONTROL']
             }
         ];
-        client.createBucket(bucket)
-            .then(function() {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.setBucketAcl(bucket, grant_list);
             })
-            .then(function() {
+            .then(function () {
                 return client.getBucketAcl(bucket)
             })
-            .then(function(response) {
+            .then(function (response) {
                 expect(response.body.accessControlList[0]).to.eql(grant_list[0]);
                 expect(response.body.accessControlList[1]).to.eql(grant_list[1]);
             })
-            .catch(fail)
-            .fin(done);
+
     });
 
-    it('putObjectWithInvalidSHA256', function (done) {
-        client.createBucket(bucket)
+    it('putObjectWithInvalidSHA256', function () {
+        return client.createBucket(bucket)
             .then(function () {
                 return client.putObjectFromString(bucket, key, 'hello world', {
-                    'x-bce-content-sha256': 'hahahaha'
-                });
-            })
-            .then(function () {
-                fail('should not reach here');
-            })
-            .catch(function (error) {
-                expect(error.status_code).to.eql(400);
-                expect(error.code).to.eql('BadDigest');
-            })
-            .fin(done);
+                        'x-bce-content-sha256': 'hahahaha'
+                    })
+                    .then(function () {
+                        fail('should not reach here');
+                    }, function (error) {
+                        expect(error.status_code).to.eql(400);
+                        expect(error.code).to.eql('BadDigest');
+                    });
+            });
+
     });
 
-    it('putObjectFromDataUrl', function (done) {
-        client.createBucket(bucket)
-            .then(function() {
+    it('putObjectFromDataUrl', function () {
+        return client.createBucket(bucket)
+            .then(function () {
                 var dataUrl = new Buffer('hello world').toString('base64');
                 return client.putObjectFromDataUrl(bucket, key, dataUrl);
             })
-            .then(function() {
+            .then(function () {
                 return client.getObjectMetadata(bucket, key);
             })
-            .then(function(response) {
+            .then(function (response) {
                 expect(response.http_headers['content-length']).to.eql('11');
                 expect(response.http_headers['content-md5']).to.eql(crypto.md5sum('hello world'));
             })
-            .catch(fail)
-            .fin(done);
+
     });
 
-    it('putObjectFromString2', function (done) {
+    it('putObjectFromString2', function () {
         var objectName = '/this/is/a/file.txt';
-        client.createBucket(bucket)
-            .then(function() {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.putObjectFromString(bucket, objectName, 'hello world');
             })
-            .then(function() {
+            .then(function () {
                 return client.getObjectMetadata(bucket, objectName);
             })
-            .then(function(response) {
+            .then(function (response) {
                 expect(response.http_headers['content-length']).to.eql('11');
                 expect(response.http_headers['content-md5']).to.eql(crypto.md5sum('hello world'));
 
                 return client.generatePresignedUrl(bucket, objectName, 0, 1800, null, {'x-bce-range': '0-5'});
             })
-            .then(function(url) {
+            .then(function (url) {
                 debug('url = %s', url);
                 return helper.get(url);
             })
@@ -309,27 +292,25 @@ describe('BosClient', function() {
                 return helper.get(url);
             })
             .then(function (body) {
-               expect(body.toString()).to.eql('hello world');
-            })
-            .catch(fail)
-            .fin(done);
+                expect(body.toString()).to.eql('hello world');
+            });
     });
 
-    it('putObjectFromString', function(done) {
-        client.createBucket(bucket)
-            .then(function() {
+    it('putObjectFromString', function () {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.putObjectFromString(bucket, key, 'hello world');
             })
-            .then(function() {
+            .then(function () {
                 return client.getObjectMetadata(bucket, key);
             })
-            .then(function(response) {
+            .then(function (response) {
                 expect(response.http_headers['content-length']).to.eql('11');
                 expect(response.http_headers['content-md5']).to.eql(crypto.md5sum('hello world'));
 
                 return client.generatePresignedUrl(bucket, key, 0, 1800, null, {'x-bce-range': '0-5'});
             })
-            .then(function(url) {
+            .then(function (url) {
                 debug('url = %s', url);
                 return helper.get(url);
             })
@@ -341,58 +322,52 @@ describe('BosClient', function() {
                 return helper.get(url);
             })
             .then(function (body) {
-               expect(body.toString()).to.eql('hello world');
-            })
-            .catch(fail)
-            .fin(done);
+                expect(body.toString()).to.eql('hello world');
+            });
     });
 
-    it('putObjectFromFile', function(done) {
-        client.createBucket(bucket)
-            .then(function() {
+    it('putObjectFromFile', function () {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.putObjectFromFile(bucket, path.basename(__filename), __filename);
             })
-            .then(function() {
+            .then(function () {
                 return client.getObjectMetadata(bucket, path.basename(__filename));
             })
-            .then(function(response) {
+            .then(function (response) {
                 expect(response.http_headers['content-length']).to.eql('' + fs.lstatSync(__filename).size);
                 expect(response.http_headers['content-type']).to.eql('application/javascript');
                 return crypto.md5file(__filename)
-                    .then(function(md5sum) {
+                    .then(function (md5sum) {
                         expect(response.http_headers['content-md5']).to.eql(md5sum);
                     });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('putObjectFromFileWithContentLength', function (done) {
+    it('putObjectFromFileWithContentLength', function () {
         var options = {
             'Content-Length': 100
         };
-        client.createBucket(bucket)
+        return client.createBucket(bucket)
             .then(function () {
                 return client.putObjectFromFile(bucket, path.basename(__filename), __filename, options);
             })
             .then(function () {
                 return client.getObjectMetadata(bucket, path.basename(__filename))
             })
-            .then(function(response) {
+            .then(function (response) {
                 expect(response.http_headers['content-length']).to.eql('100');
                 expect(response.http_headers['content-type']).to.eql('application/javascript');
                 return crypto.md5stream(fs.createReadStream(__filename, {start: 0, end: 99}))
-                    .then(function(md5sum) {
+                    .then(function (md5sum) {
                         expect(response.http_headers['content-md5']).to.eql(md5sum);
                     });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('createBucketFailed', function (done) {
+    it('createBucketFailed', function () {
         var invalidBucketName = 'invalid-bucket-你好\\&1231@#@#@';
-        client.createBucket(invalidBucketName)
+        return client.createBucket(invalidBucketName)
             .catch(function (error) {
                 expect(error.status_code).to.eql(400);
                 expect(error.code).to.eql('InvalidBucketName');
@@ -402,72 +377,66 @@ describe('BosClient', function() {
             .catch(function (error) {
                 expect(error.status_code).to.eql(400);
                 expect(error.code).to.eql('InvalidBucketName');
-            })
-            .fin(done);
+            });
     });
 
-    it('getObject', function(done) {
-        client.createBucket(bucket)
-            .then(function() {
+    it('getObject', function () {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.putObjectFromFile(bucket, path.basename(__filename), __filename);
             })
-            .then(function() {
+            .then(function () {
                 return client.getObject(bucket, path.basename(__filename));
             })
-            .then(function(response) {
+            .then(function (response) {
                 expect(response.http_headers['content-length']).to.eql('' + fs.lstatSync(__filename).size);
                 expect(response.http_headers['content-type']).to.eql('application/javascript');
                 expect(Buffer.isBuffer(response.body)).to.eql(true);
                 expect(response.body.length).to.eql(fs.lstatSync(__filename).size);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getObjectFailed', function (done) {
-        client.createBucket(bucket)
-            .then(function() {
+    it('getObjectFailed', function () {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.putObjectFromFile(bucket, path.basename(__filename), __filename);
             })
-            .then(function() {
+            .then(function () {
                 return client.getObject(bucket, path.basename(__filename) + '.failed');
             })
             .catch(function (response) {
                 expect(response.status_code).to.eql(404);
                 expect(response.code).to.eql('NoSuchKey');
-            })
-            .fin(done);
+            });
     });
 
-    it('getObjectWithRange', function(done) {
-        client.createBucket(bucket)
-            .then(function() {
+    it('getObjectWithRange', function () {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.putObjectFromFile(bucket, path.basename(__filename), __filename);
             })
-            .then(function() {
+            .then(function () {
                 return client.getObject(bucket, path.basename(__filename), '9-19');
             })
-            .then(function(response) {
+            .then(function (response) {
                 var filesize = fs.lstatSync(__filename).size;
                 expect(response.http_headers['content-length']).to.eql('11');
                 expect(response.http_headers['content-type']).to.eql('application/javascript');
                 expect(response.http_headers['content-range']).to.eql('bytes 9-19/' + filesize);
                 expect(Buffer.isBuffer(response.body)).to.eql(true);
                 expect(response.body.length).to.eql(11);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getObjectToFile', function(done) {
-        client.createBucket(bucket)
-            .then(function() {
+    it('getObjectToFile', function () {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.putObjectFromFile(bucket, path.basename(__filename), __filename);
             })
-            .then(function() {
+            .then(function () {
                 return client.getObjectToFile(bucket, path.basename(__filename), filename);
             })
-            .then(function(response) {
+            .then(function (response) {
                 debug('response = %j', response);
                 expect(fs.existsSync(filename)).to.eql(true);
                 var filesize = fs.lstatSync(filename).size;
@@ -475,20 +444,18 @@ describe('BosClient', function() {
                 expect(response.http_headers['content-type']).to.eql('application/javascript');
                 expect(response.body).to.eql({});
                 fs.unlinkSync(filename);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getObjectToFileWithRange', function(done) {
-        client.createBucket(bucket)
-            .then(function() {
+    it('getObjectToFileWithRange', function () {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.putObjectFromFile(bucket, path.basename(__filename), __filename);
             })
-            .then(function() {
+            .then(function () {
                 return client.getObjectToFile(bucket, path.basename(__filename), filename, '9-19');
             })
-            .then(function(response) {
+            .then(function (response) {
                 expect(fs.existsSync(filename)).to.eql(true);
                 var filesize = fs.lstatSync(filename).size;
                 expect(filesize).to.eql(11);
@@ -496,18 +463,16 @@ describe('BosClient', function() {
                 expect(response.http_headers['content-type']).to.eql('application/javascript');
                 expect(response.body).to.eql({});
                 fs.unlinkSync(filename);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('copyObjectAndCopyMeta', function(done) {
+    it('copyObjectAndCopyMeta', function () {
         var target_bucket_name = 'test-bucket-a-is-this';
-        client.createBucket(bucket)
-            .then(function() {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.createBucket(target_bucket_name);
             })
-            .then(function() {
+            .then(function () {
                 return client.putObjectFromString(bucket, key, 'Hello World', {
                     'x-bce-meta-foo1': 'bar1',
                     'x-bce-meta-foo2': 'bar 2',
@@ -515,31 +480,30 @@ describe('BosClient', function() {
                     'x-bce-meta-foo4': 'bar4 '
                 });
             })
-            .then(function() {
+            .then(function () {
                 return client.copyObject(bucket, key, target_bucket_name, key, {
                     'ETag': crypto.md5sum('Hello World', null, 'hex')
                 });
             })
-            .then(function() {
+            .then(function () {
                 return client.getObjectMetadata(target_bucket_name, key);
             })
-            .then(function(response) {
+            .then(function (response) {
                 expect(response.http_headers['x-bce-meta-foo1']).to.eql('bar1');
                 expect(response.http_headers['x-bce-meta-foo2']).to.eql('bar 2');
                 expect(response.http_headers['x-bce-meta-foo3']).to.eql('bar 3');
                 expect(response.http_headers['x-bce-meta-foo4']).to.eql('bar4');
             })
-            .catch(fail)
-            .fin(done);
+
     });
 
-    it('copyObjectWithCustomMeta', function(done) {
+    it('copyObjectWithCustomMeta', function () {
         var target_bucket_name = 'test-bucket-a-is-this';
-        client.createBucket(bucket)
-            .then(function() {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.createBucket(target_bucket_name);
             })
-            .then(function() {
+            .then(function () {
                 return client.putObjectFromString(bucket, key, 'Hello World', {
                     'x-bce-meta-foo1': 'bar1',
                     'x-bce-meta-foo2': 'bar2',
@@ -547,7 +511,7 @@ describe('BosClient', function() {
                     'x-bce-meta-foo4': 'bar4'
                 });
             })
-            .then(function() {
+            .then(function () {
                 return client.copyObject(bucket, key, target_bucket_name, key, {
                     'ETag': crypto.md5sum('Hello World', null, 'hex'),
                     'x-bce-meta-bar1': 'foo1',
@@ -555,35 +519,31 @@ describe('BosClient', function() {
                     'x-bce-meta-bar3': 'foo3'
                 });
             })
-            .then(function() {
+            .then(function () {
                 return client.getObjectMetadata(target_bucket_name, key);
             })
-            .then(function(response) {
+            .then(function (response) {
                 expect(response.http_headers['x-bce-meta-bar1']).to.eql('foo1');
                 expect(response.http_headers['x-bce-meta-bar2']).to.eql('foo2');
                 expect(response.http_headers['x-bce-meta-bar3']).to.eql('foo3');
             })
-            .catch(fail)
-            .fin(done);
+
     });
 
-    it('putObject without key', function (done) {
-        client.createBucket(bucket)
+    it('putObject without key', function () {
+        return client.createBucket(bucket)
             .then(function () {
-                return client.putObject(object, null, 'hello world');
+                return client.putObject(bucket, null, 'hello world');
             })
             .then(function () {
                 expect().fail('SHOULD NOT REACH HERE.');
-            })
-            .catch(function (error) {
-                expect(error).to.b.a(Error);
-                expect(error.toString()).to.eql('object is not defined');
-            })
-            .fin(done);
+            }, function (error) {
+                expect(error).to.be.a(Error);
+            });
     });
 
-    it('putObjectFromFile with customized md5 header', function (done) {
-        client.createBucket(bucket)
+    it('putObjectFromFile with customized md5 header', function () {
+        return client.createBucket(bucket)
             .then(function () {
                 return crypto.md5stream(fs.createReadStream(__filename))
             })
@@ -599,28 +559,26 @@ describe('BosClient', function() {
                 expect(response.http_headers['content-length']).to.eql('' +
                     fs.lstatSync(__filename).size);
             })
-            .catch(fail)
-            .fin(done);
+
     });
 
-    it('uploadPartFromDataUrl with invalid size', function (done) {
-        client.createBucket(bucket)
+    it('uploadPartFromDataUrl with invalid size', function () {
+        return client.createBucket(bucket)
             .then(function () {
-                var dataUrl = new Buffer([1,2,3,4,5,6,7,8,9,10,11]).toString('base64');
+                var dataUrl = new Buffer([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]).toString('base64');
                 return client.uploadPartFromDataUrl(bucket, key, 'uploadId',
                     1, 10, dataUrl);
             })
             .then(function () {
-                expect().fail('SHOULD NOT REACH HERE.');
-            })
-            .catch(function (error) {
-                expect(error).to.be.a(TypeError);
-            })
-            .fin(done);
+                    expect().fail('SHOULD NOT REACH HERE.');
+                },
+                function (error) {
+                    expect(error).to.be.a(TypeError);
+                });
     });
 
-    it('uploadPart with invalid parameters', function (done) {
-        client.createBucket(bucket)
+    it('uploadPart with invalid parameters', function () {
+        return client.createBucket(bucket)
             .then(function () {
                 return client.uploadPart();
             })
@@ -639,11 +597,11 @@ describe('BosClient', function() {
             .catch(function (error) {
                 expect(error).to.be.a(TypeError);
             })
-            .fin(done);
+
     });
 
-    it('putObject with invalid content-length', function (done) {
-        client.createBucket(bucket)
+    it('putObject with invalid content-length', function () {
+        return client.createBucket(bucket)
             .then(function () {
                 return client.putObject(bucket, key, new Buffer('hello world'), {
                     'Content-Length': -1
@@ -660,12 +618,11 @@ describe('BosClient', function() {
             })
             .catch(function (error) {
                 expect(error).to.be.a(TypeError);
-            })
-            .fin(done);
+            });
     });
 
-    it('putObjectFromFile with invalid content-length', function (done) {
-        client.createBucket(bucket)
+    it('putObjectFromFile with invalid content-length', function () {
+        return client.createBucket(bucket)
             .then(function () {
                 return client.putObjectFromFile(bucket, key, __filename, {
                     'Content-Length': fs.lstatSync(__filename).size + 1
@@ -673,15 +630,13 @@ describe('BosClient', function() {
             })
             .then(function () {
                 expect().fail('SHOULD NOT REACH HERE.');
-            })
-            .catch(function (error) {
-                expect(error).to.b.a(Error);
-            })
-            .fin(done);
+            }, function (error) {
+                expect(error).to.be.a(Error);
+            });
     });
 
-    it('copyObject with invalid parameters', function (done) {
-        client.createBucket(bucket)
+    it('copyObject with invalid parameters', function () {
+        return client.createBucket(bucket)
             .then(function () {
                 return client.copyObject();
             })
@@ -701,27 +656,27 @@ describe('BosClient', function() {
             .catch(function (error) {
                 expect(error).to.be.a(TypeError);
             })
-            .fin(done);
+
     });
 
-    it('initiateMultipartUpload', function(done) {
+    it('initiateMultipartUpload', function () {
         var uploadIds = [];
-        client.createBucket(bucket)
-            .then(function() {
+        return client.createBucket(bucket)
+            .then(function () {
                 return Q.all([
                     client.initiateMultipartUpload(bucket, key),
                     client.initiateMultipartUpload(bucket, key),
                     client.initiateMultipartUpload(bucket, key)
                 ]);
             })
-            .then(function(responses) {
+            .then(function (responses) {
                 debug(responses);
                 responses.forEach(function (response) {
                     uploadIds.push(response.body.uploadId);
                 });
                 return client.listMultipartUploads(bucket, {maxUploads: 10});
             })
-            .then(function(response) {
+            .then(function (response) {
                 debug(response.body);
                 expect(response.body.bucket).to.eql(bucket);
                 expect(response.body.prefix).to.eql('');
@@ -731,33 +686,30 @@ describe('BosClient', function() {
                 expect(response.body.uploads).not.to.be(undefined);
                 expect(response.body.uploads.length).to.eql(3);
             })
-            .then(function(response) {
+            .then(function (response) {
                 var asyncTasks = uploadIds.map(function (uploadId) {
                     return client.abortMultipartUpload(bucket, key, uploadId);
                 });
                 return Q.all(asyncTasks);
             })
-            .catch(fail)
-            .fin(done);
+
     });
 
-    it('listParts with invalid parameters', function (done) {
-        client.createBucket(bucket)
+    it('listParts with invalid parameters', function () {
+        return client.createBucket(bucket)
             .then(function () {
                 return client.listParts(bucket, key);
             })
             .then(function () {
                 expect().fail('SHOULD NOT REACH HERE.');
-            })
-            .catch(function (error) {
+            }, function (error) {
                 expect(error).to.be.a(TypeError);
-            })
-            .fin(done);
+            });
     });
 
-    it('listParts', function (done) {
+    it('listParts', function () {
         var uploadId;
-        client.createBucket(bucket)
+        return client.createBucket(bucket)
             .then(function () {
                 return client.initiateMultipartUpload(bucket, key);
             })
@@ -792,11 +744,10 @@ describe('BosClient', function() {
 
                 return client.abortMultipartUpload(bucket, key, uploadId);
             })
-            .catch(fail)
-            .fin(done);
+
     });
 
-    it('uploadPartFromFile', function(done) {
+    it('uploadPartFromFile', function () {
         var MIN_PART_SIZE = 5 * 1024 * 1024;
         var filesize = 20 * 1024 * 1024 + 317;
         prepareTemporaryFile(filesize);
@@ -804,11 +755,11 @@ describe('BosClient', function() {
         var upload_id = null;
         var part_list = [];
         var etags = '';
-        client.createBucket(bucket)
-            .then(function() {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.initiateMultipartUpload(bucket, key);
             })
-            .then(function(response) {
+            .then(function (response) {
                 upload_id = response.body.uploadId;
 
                 var left_size = filesize;
@@ -834,8 +785,8 @@ describe('BosClient', function() {
 
                 return Q.all(defers);
             })
-            .then(function(all_response) {
-                u.each(all_response, function(response, index) {
+            .then(function (all_response) {
+                u.each(all_response, function (response, index) {
                     part_list.push({
                         partNumber: index + 1,
                         eTag: response.http_headers['etag'],
@@ -845,17 +796,16 @@ describe('BosClient', function() {
 
                 return client.completeMultipartUpload(bucket, key, upload_id, part_list);
             })
-            .then(function(response) {
+            .then(function (response) {
                 fs.unlinkSync(filename);
                 expect(response.body.eTag).to.eql(
                     '-' + crypto.md5sum(etags, null, 'hex')
                 );
             })
-            .catch(fail)
-            .fin(done);
+
     });
 
-    it('testMultipartUploadSmallSuperfileX', function(done) {
+    it('testMultipartUploadSmallSuperfileX', function () {
         var MIN_PART_SIZE = 5 * 1024 * 1024;
         var filesize = 1 * 1024 * 1024 - 1;
         prepareTemporaryFile(filesize);
@@ -863,11 +813,11 @@ describe('BosClient', function() {
         var upload_id = null;
         var part_list = [];
         var etags = '';
-        client.createBucket(bucket)
-            .then(function() {
+        return client.createBucket(bucket)
+            .then(function () {
                 return client.initiateMultipartUpload(bucket, key);
             })
-            .then(function(response) {
+            .then(function (response) {
                 upload_id = response.body.uploadId;
 
                 var left_size = filesize;
@@ -893,8 +843,8 @@ describe('BosClient', function() {
 
                 return Q.all(defers);
             })
-            .then(function(all_response) {
-                u.each(all_response, function(response, index) {
+            .then(function (all_response) {
+                u.each(all_response, function (response, index) {
                     part_list.push({
                         partNumber: index + 1,
                         eTag: response.http_headers['etag'],
@@ -904,22 +854,285 @@ describe('BosClient', function() {
 
                 return client.completeMultipartUpload(bucket, key, upload_id, part_list);
             })
-            .then(function(response) {
+            .then(function (response) {
                 fs.unlinkSync(filename);
                 expect(response.body.eTag).to.eql('e57598cd670284cf7d09e16ed9d4b2ac');
             })
-            .catch(fail)
-            .fin(done);
+
+    });
+
+    it('append object from dataUrl', function () {
+        return client.createBucket(bucket)
+            .then(function () {
+                var dataUrl = new Buffer('hello ').toString('base64');
+                return client.appendObjectFromDataUrl(bucket, key, dataUrl, null);
+            })
+            .then(function (response) {
+                expect(response.http_headers['x-bce-next-append-offset']).to.eql('6');
+                var dataUrl = new Buffer('world').toString('base64');
+                return client.appendObjectFromDataUrl(bucket, key, dataUrl, 6);
+            })
+            .then(function (response) {
+                expect(response.http_headers['x-bce-next-append-offset']).to.eql('11');
+                return client.getObjectMetadata(bucket, key);
+            })
+            .then(function (response) {
+                expect(response.http_headers['content-length']).to.eql('11');
+                expect(response.http_headers['content-md5']).to.eql(crypto.md5sum('hello world'));
+            })
+    });
+
+    it('append Object From String2', function () {
+        var objectName = '/this/is/a/file.txt';
+        return client.createBucket(bucket)
+            .then(function () {
+                return client.appendObjectFromString(bucket, objectName, 'hello ', null);
+            })
+            .then(function (response) {
+                expect(response.http_headers['x-bce-next-append-offset']).to.eql('6');
+                return client.appendObjectFromString(bucket, objectName, 'world', 6);
+            })
+            .then(function (response) {
+                expect(response.http_headers['x-bce-next-append-offset']).to.eql('11');
+                return client.getObjectMetadata(bucket, objectName);
+            })
+            .then(function (response) {
+                expect(response.http_headers['content-length']).to.eql('11');
+                expect(response.http_headers['content-md5']).to.eql(crypto.md5sum('hello world'));
+
+                return client.generatePresignedUrl(bucket, objectName, 0, 1800, null, {'x-bce-range': '0-5'});
+            })
+            .then(function (url) {
+                debug('url = %s', url);
+                return helper.get(url);
+            })
+            .then(function (body) {
+                expect(body.toString()).to.eql('hello ');
+                return client.generatePresignedUrl(bucket, objectName);
+            })
+            .then(function (url) {
+                return helper.get(url);
+            })
+            .then(function (body) {
+                expect(body.toString()).to.eql('hello world');
+            });
+    });
+
+    it('append Object From String', function () {
+        return client.createBucket(bucket)
+            .then(function () {
+                return client.appendObjectFromString(bucket, key, 'hello ', null);
+            })
+            .then(function (response) {
+                expect(response.http_headers['x-bce-next-append-offset']).to.eql('6');
+                return client.appendObjectFromString(bucket, key, 'world', 6);
+            })
+            .then(function (response) {
+                expect(response.http_headers['x-bce-next-append-offset']).to.eql('11');
+                return client.getObjectMetadata(bucket, key);
+            })
+            .then(function (response) {
+                expect(response.http_headers['x-bce-next-append-offset']).to.eql('11');
+                expect(response.http_headers['content-md5']).to.eql(crypto.md5sum('hello world'));
+
+                return client.generatePresignedUrl(bucket, key, 0, 1800, null, {'x-bce-range': '0-5'});
+            })
+            .then(function (url) {
+                debug('url = %s', url);
+                return helper.get(url);
+            })
+            .then(function (body) {
+                expect(body.toString()).to.eql('hello ');
+                return client.generatePresignedUrl(bucket, key);
+            })
+            .then(function (url) {
+                return helper.get(url);
+            })
+            .then(function (body) {
+                expect(body.toString()).to.eql('hello world');
+            })
+    });
+
+    it('append Object From File', function () {
+        var fileSize = fs.lstatSync(__filename).size;
+        return client.createBucket(bucket)
+            .then(function () {
+                return client.appendObjectFromFile(bucket, path.basename(__filename), __filename, null, 1);
+            })
+            .then(function (response) {
+                expect(response.http_headers['x-bce-next-append-offset']).to.eql('1');
+                return client.appendObjectFromFile(bucket, path.basename(__filename), __filename, 1, fileSize - 1);
+            })
+            .then(function (response) {
+                expect(response.http_headers['x-bce-next-append-offset']).to.eql('' + fileSize);
+                return client.getObjectMetadata(bucket, path.basename(__filename));
+            })
+            .then(function (response) {
+                expect(response.http_headers['content-length']).to.eql('' + fileSize);
+                expect(response.http_headers['content-type']).to.eql('application/javascript');
+                return crypto.md5file(__filename)
+                    .then(function (md5sum) {
+                        expect(response.http_headers['content-md5']).to.eql(md5sum);
+                    });
+            });
+    });
+
+    it('appendObjectWithInvalidSHA256', function () {
+        return client.createBucket(bucket)
+            .then(function () {
+                return client.appendObjectFromString(bucket, key, 'hello world', null, {
+                        'x-bce-content-sha256': 'hahahaha'
+                    })
+                    .then(function () {
+                        fail('should not reach here');
+                    }, function (error) {
+                        expect(error.status_code).to.eql(400);
+                        expect(error.code).to.eql('BadDigest');
+                    })
+            });
+    });
+
+    it('overwrite a normal object', function () {
+        return client.createBucket(bucket)
+            .then(function () {
+                return client.putObjectFromString(bucket, key, 'hello world');
+            })
+            .then(function () {
+                return client.appendObjectFromString(bucket, key, 'hello world', null);
+            })
+            .then(function (response) {
+                expect(response.http_headers['x-bce-next-append-offset']).to.eql('11');
+                return client.getObjectMetadata(bucket, key);
+            })
+            .then(function (response) {
+                expect(response.http_headers['content-length']).to.eql('11');
+                expect(response.http_headers['content-md5']).to.eql(crypto.md5sum('hello world'));
+                expect(response.http_headers['x-bce-next-append-offset']).to.eql('11');
+                expect(response.http_headers['x-bce-object-type']).to.eql('Appendable');
+            })
+    });
+
+    it('overwrite by a appendable object', function () {
+        return client.createBucket(bucket)
+            .then(function () {
+                return client.appendObjectFromString(bucket, key, 'hello world', null);
+            })
+            .then(function () {
+                return client.appendObjectFromString(bucket, key, 'hello world', 11);
+            })
+            .then(function () {
+                return client.appendObjectFromString(bucket, key, 'hello world', null);
+            })
+            .then(function () {
+                return client.getObjectMetadata(bucket, key);
+            })
+            .then(function (response) {
+                expect(response.http_headers['content-length']).to.eql('11');
+                expect(response.http_headers['content-md5']).to.eql(crypto.md5sum('hello world'));
+                expect(response.http_headers['x-bce-next-append-offset']).to.eql('11');
+                expect(response.http_headers['x-bce-object-type']).to.eql('Appendable');
+            })
+    });
+
+    it('append to a normal object', function () {
+        return client.createBucket(bucket)
+            .then(function () {
+                return client.putObjectFromString(bucket, key, 'hello world');
+            })
+            .then(function () {
+                return client.appendObjectFromString(bucket, key, 'hello world', 11)
+                    .then(function () {
+                        fail('should not reach here');
+                    }, function (error) {
+                        expect(error.status_code).to.eql(403);
+                        expect(error.code).to.eql('ObjectUnappendable');
+                    });
+            })
+    });
+
+    it('append object with invalid offset1', function () {
+        return client.createBucket(bucket)
+            .then(function () {
+                return client.appendObjectFromString(bucket, key, 'hello world', 11)
+                    .then(function () {
+                        fail('should not reach here');
+                    }, function (error) {
+                        expect(error.status_code).to.eql(404);
+                    });
+            })
+    });
+    it('append object with invalid offset2', function () {
+        return client.createBucket(bucket)
+            .then(function () {
+                return client.appendObjectFromString(bucket, key, 'hello ', null)
+            }).then(function () {
+                return client.appendObjectFromString(bucket, key, 'hello world', 11)
+                    .then(function () {
+                        fail('should not reach here');
+                    }, function (error) {
+                        expect(error.status_code).to.eql(409);
+                        expect(error.code).to.eql('OffsetIncorrect');
+                    });
+            });
+    });
+
+    it('append object with custom metadata', function () {
+        return client.createBucket(bucket)
+            .then(function () {
+                return client.appendObjectFromString(bucket, key, 'hello ', null, {
+                    'x-bce-meta-foo': 'bar'
+                })
+            }).then(function () {
+                return client.appendObjectFromString(bucket, key, 'world', 6, {
+                    'x-bce-meta-foo': 'bar1'
+                });
+            }).then(function () {
+                return client.getObjectMetadata(bucket, key);
+            })
+            .then(function (response) {
+                expect(response.http_headers['x-bce-meta-foo']).to.eql('bar');
+            });
+    });
+
+    it('copy a appendable object', function () {
+        return client.createBucket(bucket)
+            .then(function () {
+                return client.appendObjectFromString(bucket, key, 'hello ', null)
+            }).then(function () {
+                return client.appendObjectFromString(bucket, key, 'world', 6);
+            }).then(function () {
+                return client.copyObject(bucket, key, bucket, key + key)
+                    .then(function () {
+                        fail('SHOULD NOT REACH HERE.');
+                    }, function (error) {
+                        expect(error.status_code).to.eql(400);
+                        expect(error.code).to.eql('NotAllowCopy');
+                    });
+            });
+    });
+
+    it('copy a appendable object itself', function () {
+        return client.createBucket(bucket)
+            .then(function () {
+                return client.appendObjectFromString(bucket, key, 'hello ', null, {
+                    'x-bce-meta-foo': 'bar'
+                })
+            }).then(function () {
+                return client.appendObjectFromString(bucket, key, 'world', 6, {
+                    'x-bce-meta-foo': 'bar1'
+                });
+            }).then(function () {
+                return client.copyObject(bucket, key, bucket, key, {
+                    'x-bce-meta-foo': 'bar3'
+                });
+            }).then(function () {
+                return client.getObjectMetadata(bucket, key);
+            })
+            .then(function (response) {
+                expect(response.http_headers['x-bce-meta-foo']).to.eql('bar3');
+                expect(response.http_headers['x-bce-object-type']).to.eql('Appendable');
+            });
     });
 });
-
-
-
-
-
-
-
-
-
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */

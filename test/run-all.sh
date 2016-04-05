@@ -65,8 +65,8 @@ SPECS=(
   test/sdk/bcs_client.spec.js
   test/sdk/ses_client.spec.js
   test/sdk/ocr_client.spec.js
-  test/sdk/face_client.spec.js
-  test/sdk/vod_client.spec.js
+# test/sdk/face_client.spec.js
+# test/sdk/vod_client.spec.js
 )
 
 # SPECS=(

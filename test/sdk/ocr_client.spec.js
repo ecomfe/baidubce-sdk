@@ -38,9 +38,9 @@ describe('OCRClient', function () {
 
     it('ok', function () {});
 
-    it('allText', function (done) {
+    it('allText', function () {
         var data = fs.readFileSync(path.join(__dirname, 'ocr_client.allText.png'));
-        client.allText(data)
+        return client.allText(data)
             .then(function (response) {
                 debug('%j', response);
                 expect(response.body).to.eql({
@@ -51,14 +51,12 @@ describe('OCRClient', function () {
                         {rectangle: {left: 60, top: 56, width: 51, height: 16}, word: '  长出问题'}
                     ]
                 });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('oneLine', function (done) {
+    it('oneLine', function () {
         var data = fs.readFileSync(path.join(__dirname, 'ocr_client.oneLine.png'));
-        client.oneLine(data)
+        return client.oneLine(data)
             .then(function (response) {
                 debug('%j', response);
                 expect(response.body).to.eql({
@@ -69,14 +67,12 @@ describe('OCRClient', function () {
                         }
                     ]
                 });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('singleCharacter', function (done) {
+    it('singleCharacter', function () {
         var data = fs.readFileSync(path.join(__dirname, 'ocr_client.singleCharacter.png'));
-        client.singleCharacter(data)
+        return client.singleCharacter(data)
             .then(function (response) {
                 debug('%j', response);
                 expect(response.body).to.eql({
@@ -88,9 +84,7 @@ describe('OCRClient', function () {
                         {"word":"圄", "confidence":0.000002}
                     ]
                 });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 });
 

@@ -40,14 +40,14 @@ describe('SesClient', function () {
         client = new SesClient(config.ses);
     });
 
-    afterEach(function (done) {
-        done();
+    afterEach(function () {
+        // nothing
     });
 
     it('ok', function () {});
 
-    it('addVerifiedEmail', function (done) {
-        client.addVerifiedEmail('liyubei@baidu.com').then(function (response) {
+    it('addVerifiedEmail', function () {
+        return client.addVerifiedEmail('liyubei@baidu.com').then(function (response) {
             debug('%j', response);
         }).catch(function (error) {
             if (error.code == '207') {
@@ -58,11 +58,11 @@ describe('SesClient', function () {
             else {
                 fail(error);
             }
-        }).fin(done);
+        });
     });
 
-    it('getAllVerifiedEmails', function (done) {
-        client.getAllVerifiedEmails()
+    it('getAllVerifiedEmails', function () {
+        return client.getAllVerifiedEmails()
             .then(function (response) {
                 expect(response.body).to.eql({
                     details: [
@@ -72,13 +72,11 @@ describe('SesClient', function () {
                         }
                     ]
                 });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('sendMail', function (done) {
-        client.sendMail({
+    it('sendMail', function () {
+        return client.sendMail({
             from: 'liyubei@baidu.com',
             to: 'liyubei@baidu.com',
             // cc: 'liyubei@baidu.com',
@@ -114,24 +112,24 @@ describe('SesClient', function () {
             ]
         }).then(function (response) {
             expect(response.body.message_id).not.to.be(undefined);
-        }).catch(fail).fin(done);
+        });
     });
 
-    it('getQuota', function (done) {
-        client.getQuota().then(function (response) {
+    it('getQuota', function () {
+        return client.getQuota().then(function (response) {
             expect(response.body.maxPerDay).not.to.be(undefined);
             expect(response.body.maxPerSecond).not.to.be(undefined);
             expect(response.body.usedToday).not.to.be(undefined);
-        }).catch(fail).fin(done);
+        });
     });
 
-    it('setQuota', function (done) {
+    it('setQuota', function () {
         var quota = {
             maxPerDay: 100
         };
-        client.setQuota(quota).then(function (response) {
+        return client.setQuota(quota).then(function (response) {
             expect(response.body).to.eql({});
-        }).catch(fail).fin(done);
+        });
     });
 });
 

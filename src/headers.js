@@ -25,12 +25,16 @@ exports.ETAG = 'ETag';
 exports.CONNECTION = 'Connection';
 exports.HOST = 'Host';
 exports.USER_AGENT = 'User-Agent';
+exports.CACHE_CONTROL = 'Cache-Control';
+exports.EXPIRES = 'Expires';
 
 exports.AUTHORIZATION = 'Authorization';
 exports.X_BCE_DATE = 'x-bce-date';
 exports.X_BCE_ACL = 'x-bce-acl';
 exports.X_BCE_REQUEST_ID = 'x-bce-request-id';
 exports.X_BCE_CONTENT_SHA256 = 'x-bce-content-sha256';
+exports.X_BCE_OBJECT_ACL = 'x-bce-object-acl';
+exports.X_BCE_OBJECT_GRANT_READ = 'x-bce-object-grant-read';
 
 exports.X_HTTP_HEADERS = 'http_headers';
 exports.X_BODY = 'body';

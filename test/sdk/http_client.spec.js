@@ -34,12 +34,12 @@ describe('HttpClient', function() {
         fail = helper.fail(this);
     });
 
-    xit('invalidUrl', function(done) {
+    xit('invalidUrl', function() {
         var config = {
             'endpoint': 'http://no-such-url',
         };
         var client = new HttpClient(config);
-        client.sendRequest('GET', '/')
+        return client.sendRequest('GET', '/')
             .then(
                 function() {
                     fail('Should not reach here');
@@ -47,45 +47,42 @@ describe('HttpClient', function() {
                 function(e) {
                     expect(e.code).to.eql('ENOTFOUND');
                 }
-            )
-            .then(done);
+            );
     });
 
-    it('get', function(done) {
+    it('get', function() {
         var config = {
             'endpoint': 'https://bs.baidu.com'
         };
         var client = new HttpClient(config);
 
-        client.sendRequest('GET', '/adtest/test.json')
+        return client.sendRequest('GET', '/adtest/test.json')
             .then(function(response) {
                 expect(response.body).to.eql({hello: 'world'});
                 expect(response.http_headers['content-type']).to.eql('text/json');
                 expect(response.http_headers.server).to.eql('POMS/CloudUI 1.0');
                 expect(response.http_headers.etag).to.eql('d0b8560f261410878a68bbe070d81853');
-            })
-            .then(done);
+            });
     });
 
-    it('invalidHttpStatus', function(done) {
+    it('invalidHttpStatus', function() {
         var config = {
             'endpoint': 'https://bs.baidu.com'
         };
         var client = new HttpClient(config);
-        client.sendRequest('GET', '/')
+        return client.sendRequest('GET', '/')
             .then(
                 function(){ fail('Should not reach here'); },
                 function(e) {
                     expect(e.status_code).to.eql(403);
                 }
-            )
-            .then(done);
+            );
     });
 
-    it('sendRequest', function(done) {
+    it('sendRequest', function() {
         var client = new HttpClient(config);
 
-        client.sendRequest('GET', '/v1', null, null, null, sign_function)
+        return client.sendRequest('GET', '/v1', null, null, null, sign_function)
             .then(
                 function(response) {
                     expect(response.http_headers['content-type']).to.eql('application/json; charset=utf-8');
@@ -94,13 +91,11 @@ describe('HttpClient', function() {
                     expect(response.body.owner).to.eql(config.account);
                     expect(Array.isArray(response.body.buckets)).to.eql(true);
                 }
-            )
-            .catch(fail)
-            .then(done);
+            );
     });
 
 
-    it('readRequestBodyFromBuffer', function(done) {
+    it('readRequestBodyFromBuffer', function() {
         var grant_list = [
             {
                 grantee: [
@@ -109,7 +104,7 @@ describe('HttpClient', function() {
                 ],
                 permission: ['FULL_CONTROL']
             }
-        ]
+        ];
         var bucket = 'no-such-bucket-name';
 
         // Prepare the request body
@@ -119,12 +114,12 @@ describe('HttpClient', function() {
         var path = '/v1/' + bucket;
 
 
-        client.sendRequest('DELETE', path, null, null, null, sign_function)
+        return client.sendRequest('DELETE', path, null, null, null, sign_function)
             .then(start, start);
 
         function start() {
             // Create the bucket
-            client.sendRequest('PUT', path, null, null, null, sign_function)
+            return client.sendRequest('PUT', path, null, null, null, sign_function)
                 .then(function(x) {
                     // Set bucket acl
                     var params = {'acl': ''};
@@ -140,13 +135,11 @@ describe('HttpClient', function() {
                 })
                 .then(function() {
                     return client.sendRequest('DELETE', path, null, null, null, sign_function);
-                })
-                .catch(fail)
-                .fin(done);
+                });
         }
     });
 
-    it('readRequestBodyFromString', function(done) {
+    it('readRequestBodyFromString', function() {
         var grant_list = [
             {
                 grantee: [
@@ -155,7 +148,7 @@ describe('HttpClient', function() {
                 ],
                 permission: ['FULL_CONTROL']
             }
-        ]
+        ];
         var bucket = 'no-such-bucket-name';
 
         // Prepare the request body
@@ -188,11 +181,11 @@ describe('HttpClient', function() {
                     return client.sendRequest('DELETE', path, null, null, null, sign_function);
                 })
                 .catch(fail)
-                .fin(done);
+                .fin();
         }
     });
 
-    it('readRequestBodyFromStream', function(done) {
+    it('readRequestBodyFromStream', function() {
         var grant_list = [
             {
                 grantee: [
@@ -239,11 +232,11 @@ describe('HttpClient', function() {
                     return client.sendRequest('DELETE', path, null, null, null, sign_function);
                 })
                 .catch(fail)
-                .fin(done);
+                .fin();
         }
     });
 
-    it('sendRequestWithOutputStream', function(done) {
+    it('sendRequestWithOutputStream', function() {
         var client = new HttpClient(config);
 
         var output_stream = new WMStream();
@@ -255,7 +248,7 @@ describe('HttpClient', function() {
                 expect(owner).to.eql(config.account);
             })
             .catch(fail)
-            .fin(done);
+            .fin();
     });
 });
 

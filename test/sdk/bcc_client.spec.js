@@ -32,8 +32,8 @@ describe('BccClient', function () {
         client = new BccClient(config.bcc);
     });
 
-    afterEach(function (done) {
-        client.listInstances()
+    afterEach(function () {
+        return client.listInstances()
             .then(function (response) {
                 var defers = (response.body.instances || [])
                     .filter(function (item) {
@@ -44,8 +44,7 @@ describe('BccClient', function () {
                         return client.deleteInstance(item.id);
                     });
                 return Q.all(defers);
-            })
-            .fin(done);
+            });
     });
 
     function delay(ms) {
@@ -54,17 +53,15 @@ describe('BccClient', function () {
         return deferred.promise;
     }
 
-    it('deleteInstance with invalid instance id', function (done) {
-        client.deleteInstance('no-such-instance-id')
+    it('deleteInstance with invalid instance id', function () {
+        return client.deleteInstance('no-such-instance-id')
             .then(function (response) {
                 expect(response.body).toEqual({});
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('deleteInstance with valid instance id', function (done) {
-        client.listInstances()
+    it('deleteInstance with valid instance id', function () {
+        return client.listInstances()
             .then(function (response) {
                 var instance = u.find(response.body.instances, function (item) {
                     return item.payment !== 'prepay';
@@ -73,13 +70,11 @@ describe('BccClient', function () {
             })
             .then(function (response) {
                 expect(response.body).toEqual({});
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('listInstances', function (done) {
-        client.listInstances()
+    it('listInstances', function () {
+        return client.listInstances()
             .then(function (response) {
                 var body = response.body;
                 expect(body).not.toBeUndefined();
@@ -94,13 +89,11 @@ describe('BccClient', function () {
             // .then(function (response) {
             //    expect(response.body.server).not.toBeUndefined();
             //    expect(response.body.server.id).not.toBe('');
-            // })
-            .catch(fail)
-            .fin(done);
+            // });
     });
 
-    it('getImages', function (done) {
-        client.getImages({maxKeys: 1})
+    it('getImages', function () {
+        return client.getImages({maxKeys: 1})
             .then(function (response) {
                 var body = response.body;
                 expect(body.maxKeys).toBe(1);
@@ -108,22 +101,18 @@ describe('BccClient', function () {
                 expect(body.nextMarker).not.toBe('');
                 expect(body.isTruncated).toBe(true);
                 expect(Array.isArray(body.images)).toBe(true);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getClientToken', function (done) {
-        client.getClientToken()
+    it('getClientToken', function () {
+        return client.getClientToken()
             .then(function (response) {
                 expect(response.body.token).not.toBe('');
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('createInstance', function (done) {
-        Q.all([client.getImages({maxKeys: 1}), client.getPackages()])
+    it('createInstance', function () {
+        return Q.all([client.getImages({maxKeys: 1}), client.getPackages()])
             .then(function (results) {
                 var images = results[0].body.images;
                 var packages = results[1].body.instanceTypes;
@@ -146,13 +135,11 @@ describe('BccClient', function () {
             .then(function (response) {
                 expect(response.body).not.toBe(null);
                 expect(response.body.server).not.toBeUndefined();
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getPackages', function (done) {
-        client.getPackages()
+    it('getPackages', function () {
+        return client.getPackages()
             .then(function (response) {
                 expect(response.body.instanceTypes[0]).toEqual({
                     name: 'bcc.t1.tiny',
@@ -161,51 +148,41 @@ describe('BccClient', function () {
                     memorySizeInGB: 1,
                     localDiskSizeInGB: -1
                 });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    xit('startInstance', function (done) {
+    xit('startInstance', function () {
         var id = '85f47301-fb64-4d6f-a761-870875537020';
-        client.startInstance(id)
+        return client.startInstance(id)
             .then(function (response) {
                 expect(response.body).toEqual({});
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    xit('restartInstance', function (done) {
+    xit('restartInstance', function () {
         var id = '85f47301-fb64-4d6f-a761-870875537020';
-        client.restartInstance(id)
+        return client.restartInstance(id)
             .then(function (response) {
                 expect(response.body).toEqual({});
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    xit('stopInstance', function (done) {
+    xit('stopInstance', function () {
         var id = '85f47301-fb64-4d6f-a761-870875537020';
-        client.stopInstance(id)
+        return client.stopInstance(id)
             .then(function (response) {
                 expect(response.body).toEqual({});
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getVNCUrl', function (done) {
+    it('getVNCUrl', function () {
         var id = '85f47301-fb64-4d6f-a761-870875537020';
 
-        client.getVNCUrl(id)
+        return client.getVNCUrl(id)
             .then(function (response) {
                 // { vncUrl: 'http://10.105.97.40/vnc_auto.html?token=6996258f-a655-42b4-ba46-93e46eac0325' }
                 expect(response.body.vncUrl).not.toBe('');
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 });
 

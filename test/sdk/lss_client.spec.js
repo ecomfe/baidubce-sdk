@@ -31,24 +31,22 @@ describe('LssClient.Preset', function () {
 
     this.timeout(10 * 60 * 1000);
 
-    beforeEach(function (done) {
+    beforeEach(function () {
         fail = helper.fail(this);
 
-        new LssClient.Preset(config.lss).removeAll().catch(fail).fin(done);
+        return new LssClient.Preset(config.lss).removeAll();
     });
 
-    it('list', function (done) {
+    it('list', function () {
         var preset = new LssClient.Preset(config.lss);
-        preset.list()
+        return preset.list()
             .then(function (response) {
                 var presets = response.body.presets || [];
                 expect(presets.length).to.be.above(0);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('create', function (done) {
+    it('create', function () {
         var preset = new LssClient.Preset(config.lss);
         var options = {
             // preset name must match pattern:[a-z][0-9a-z_]{0,39}
@@ -113,7 +111,7 @@ describe('LssClient.Preset', function () {
             }
         };
 
-        preset.create(options)
+        return preset.create(options)
             .then(function (response) {
                 expect(response.body).to.eql({});
                 return preset.get();
@@ -121,9 +119,7 @@ describe('LssClient.Preset', function () {
             .then(function (response) {
                 debug('%j', response);
                 expect(u.omit(response.body, 'userId', 'createTime')).to.eql(options);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 });
 
@@ -132,15 +128,15 @@ describe('LssClient.Session', function () {
 
     this.timeout(10 * 60 * 1000);
 
-    beforeEach(function (done) {
+    beforeEach(function () {
         fail = helper.fail(this);
 
-        new LssClient.Session(config.lss).removeAll().catch(fail).fin(done);
+        return new LssClient.Session(config.lss).removeAll();
     });
 
-    it('list', function (done) {
+    it('list', function () {
         var session = new LssClient.Session(config.lss);
-        session.list()
+        return session.list()
             .then(function (response) {
                 debug('%j', response.body);
                 var sessions = response.body.liveInfos;
@@ -148,12 +144,10 @@ describe('LssClient.Session', function () {
                     debug('%j', item.sessionId);
                     expect(item.sessionId).to.be.an('string');
                 });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('create', function (done) {
+    it('create', function () {
         var session = new LssClient.Session(config.lss);
         var options = {
             target: {
@@ -168,7 +162,7 @@ describe('LssClient.Session', function () {
             // notification=must match \"[a-z][0-9a-z_]{0,39}\"
             notification: undefined
         };
-        session.create(options)
+        return session.create(options)
             .then(function (response) {
                 debug(response);
 
@@ -232,9 +226,7 @@ describe('LssClient.Session', function () {
                 expect(s.lastUpdateTime).not.to.be(undefined);
                 expect(s.sessionId).not.to.be(undefined);
                 expect(s.userId).not.to.be(undefined);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 });
 
@@ -243,28 +235,26 @@ describe('LssClient.Notification', function () {
 
     this.timeout(10 * 60 * 1000);
 
-    beforeEach(function (done) {
+    beforeEach(function () {
         fail = helper.fail(this);
 
-        new LssClient.Notification(config.lss).removeAll().catch(fail).fin(done);
+        return new LssClient.Notification(config.lss).removeAll();
     });
 
-    it('list', function (done) {
+    it('list', function () {
         var notification = new LssClient.Notification(config.lss);
-        notification.list()
+        return notification.list()
             .then(function (response) {
                 var notifications = response.body.notifications;
                 expect(notifications).to.eql([]);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('create', function (done) {
+    it('create', function () {
         var notification = new LssClient.Notification(config.lss);
         var name = 'live_notification';
         var endpoint = 'http://www.baidu.com';
-        notification.removeAll()
+        return notification.removeAll()
             .then(function () {
                 // 好像有数据同步的问题，删除之后还是可以读取
                 return helper.delayMs(5 * 1000);
@@ -296,9 +286,7 @@ describe('LssClient.Notification', function () {
             })
             .then(function (response) {
                 expect(response.body.notifications).to.eql([]);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 });
 

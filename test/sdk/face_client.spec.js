@@ -37,10 +37,10 @@ describe('FaceClient', function () {
         client = new FaceClient(config.face);
     });
 
-    afterEach(function (done) {
+    afterEach(function () {
         // client.deleteBucket('bcs-client-testcase').fin(done);
         var appId;
-        client.listApps()
+        return client.listApps()
             .then(function (response) {
                 if (!response.body.apps
                     || !response.body.apps.length) {
@@ -73,14 +73,13 @@ describe('FaceClient', function () {
             })
             .catch(function (error) {
                 console.log(error);
-            })
-            .fin(done);
+            });
     });
 
     it('ok', function () {});
 
-    it('createApp & listApps', function (done) {
-        client.listApps()
+    it('createApp & listApps', function () {
+        return client.listApps()
             .then(function (response) {
                 expect(Array.isArray(response.body.apps)).to.be(true);
                 if (!response.body.apps.length) {
@@ -97,14 +96,12 @@ describe('FaceClient', function () {
             .then(function (response) {
                 debug('response = %j', response);
                 expect(response.body.appId).not.to.be(undefined);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('createGroup', function (done) {
+    it('createGroup', function () {
         var appId;
-        client.listApps()
+        return client.listApps()
             .then(function (response) {
                 return (appId = response.body.apps[0].appId);
             })
@@ -121,15 +118,13 @@ describe('FaceClient', function () {
             })
             .then(function (response) {
                 debug('listGroups = %j', response);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('createGroup & getGroup', function (done) {
+    it('createGroup & getGroup', function () {
         var appId;
         var groupName = 'mygroup';
-        client.listApps()
+        return client.listApps()
             .then(function (response) {
                 return (appId = response.body.apps[0].appId);
             })
@@ -142,12 +137,10 @@ describe('FaceClient', function () {
             .then(function (response) {
                 debug('getGroup = %j', response);
                 expect(response.body).to.eql({groupName: 'mygroup'});
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('listPersons by group', function (done) {
+    it('listPersons by group', function () {
         var appId;
         var groupName1 = 'mygroup1';
         var personName1 = 'leeight1';
@@ -164,7 +157,7 @@ describe('FaceClient', function () {
             'faces/photos/stars/liudehua/8.jpg',
             'faces/photos/stars/liudehua/9.jpg'
         ];
-        var face2 = [
+        var faces2 = [
             'faces/photos/stars/canglaoshi/c1.jpg',
             'faces/photos/stars/canglaoshi/c2.jpg',
             'faces/photos/stars/canglaoshi/c3.jpg',
@@ -172,7 +165,7 @@ describe('FaceClient', function () {
             'faces/photos/stars/canglaoshi/c5.jpg',
             'faces/photos/stars/canglaoshi/c6.jpg'
         ];
-        client.listApps()
+        return client.listApps()
             .then(function (response) {
                 return (appId = response.body.apps[0].appId);
             })
@@ -184,7 +177,7 @@ describe('FaceClient', function () {
             })
             .then(function () {
                 return Q.all([
-                    client.createPerson(appId, groupName1, personName1, face1),
+                    client.createPerson(appId, groupName1, personName1, faces1),
                     client.createPerson(appId, groupName2, personName2, faces2)
                 ]);
             })
@@ -208,15 +201,11 @@ describe('FaceClient', function () {
                         }
                     ]
                 });
-            })
-            .catch(function (error) {
-                throw error;
-            })
-            .fin(done);
+            });
 
     }, 60 * 1000);
 
-    xit('createPerson & deletePerson & updatePerson & getPerson', function (done) {
+    xit('createPerson & deletePerson & updatePerson & getPerson', function () {
         var appId;
         var groupName = 'mygroup';
         var personName = 'leeight';
@@ -231,7 +220,7 @@ describe('FaceClient', function () {
             'faces/photos/stars/liudehua/8.jpg',
             'faces/photos/stars/liudehua/9.jpg'
         ];
-        client.listApps()
+        return client.listApps()
             .then(function (response) {
                 return (appId = response.body.apps[0].appId);
             })
@@ -304,9 +293,7 @@ describe('FaceClient', function () {
                 var persons = response.body.persons;
                 debug('Persons = %j', persons);
                 expect(persons.length).to.eql(0);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     }, 60 * 1000);
 });
 

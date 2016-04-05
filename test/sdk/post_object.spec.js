@@ -41,20 +41,19 @@ describe('XBosClient', function () {
         });
     });
 
-    it('postObject to public-read bucket', function (done) {
-        client.postObject('bcecdn', 'world.txt', new Buffer('hello world'))
+    it('postObject to public-read bucket', function () {
+        return client.postObject('bcecdn', 'world.txt', new Buffer('hello world'))
             .then(function (response) {
                 expect().fail('SHOULD NOT REACH HERE.');
             })
             .catch(function (error) {
                 debug(error);
                 expect(error.status_code).to.eql(403);
-            })
-            .fin(done);
+            });
     });
 
-    it('postObject with expired policy', function (done) {
-        client.postObject('bcecdn', 'world.txt', new Buffer('hello world'), {
+    it('postObject with expired policy', function () {
+        return client.postObject('bcecdn', 'world.txt', new Buffer('hello world'), {
                 'policy': {
                     'expiration': '2015-04-26T13:29:46Z',
                     'conditions': [
@@ -69,12 +68,11 @@ describe('XBosClient', function () {
                 debug(error);
                 expect(error.status_code).to.eql(403);
                 expect(error.code).to.eql('RequestExpired');
-            })
-            .fin(done);
+            });
     });
 
-    it('postObject with success-action-status-200', function (done) {
-        client.postObject('bcecdn', 'world.txt', new Buffer('hello world'), {
+    it('postObject with success-action-status-200', function () {
+        return client.postObject('bcecdn', 'world.txt', new Buffer('hello world'), {
             'success-action-status': '204',
             'policy': {
                 'expiration': '2016-04-26T13:29:46Z',
@@ -86,13 +84,11 @@ describe('XBosClient', function () {
         .then(function (response) {
             debug(response);
             expect(response.http_headers['etag']).to.eql('5eb63bbbe01eeed093cb22bb8f5acdc3');
-        })
-        .catch(fail)
-        .fin(done);
+        });
     });
 
-    it('postObject with invalid content-length', function (done) {
-        client.postObject('bcecdn', 'world.txt', new Buffer('hello world'), {
+    it('postObject with invalid content-length', function () {
+        return client.postObject('bcecdn', 'world.txt', new Buffer('hello world'), {
             'policy': {
                 'expiration': '2016-04-26T13:29:46Z',
                 'conditions': [
@@ -108,12 +104,11 @@ describe('XBosClient', function () {
             debug(error);
             expect(error.status_code).to.eql(400);
             expect(error.code).to.eql('MaxMessageLengthExceeded');
-        })
-        .fin(done);
+        });
     });
 
-    it('postObject with invalid key name', function (done) {
-        client.postObject('bcecdn', 'world.txt', new Buffer('hello world'), {
+    it('postObject with invalid key name', function () {
+        return client.postObject('bcecdn', 'world.txt', new Buffer('hello world'), {
             'policy': {
                 'expiration': '2016-04-26T13:29:46Z',
                 'conditions': [
@@ -130,12 +125,11 @@ describe('XBosClient', function () {
             // expect(1).to.eql(2);
             expect(error.status_code).to.eql(403);
             expect(error.code).to.eql('AccessDenied');
-        })
-        .fin(done);
+        });
     });
 
-    it('postObject with success-action-status-201', function (done) {
-        client.postObject('bcecdn', 'world.txt', new Buffer('hello world'), {
+    it('postObject with success-action-status-201', function () {
+        return client.postObject('bcecdn', 'world.txt', new Buffer('hello world'), {
             'Content-Type': 'foo/bar',
             'x-bce-meta-foo': 'bar',
             'success-action-redirect': 'https://www.baidu.com',
@@ -159,7 +153,6 @@ describe('XBosClient', function () {
             debug(response);
             expect(response.http_headers['content-type']).to.eql('foo/bar');
             expect(response.http_headers['x-bce-meta-foo']).to.eql('bar');
-        })
-        .fin(done);
+        });
     });
 });

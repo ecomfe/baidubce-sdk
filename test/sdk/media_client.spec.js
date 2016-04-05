@@ -31,89 +31,75 @@ describe('MediaClient', function () {
         // TODO delete all pipelines
     });
 
-    it('createPipeline', function (done) {
+    it('createPipeline', function () {
         var pipelineName = 'medium_priority_pipe';
         var sourceBucket = 'example-input-bucket';
         var targetBucket = 'example-output-bucket';
-        client.createPipeline(pipelineName, sourceBucket, targetBucket)
+        return client.createPipeline(pipelineName, sourceBucket, targetBucket)
             .then(function (response) {
                 debug('%j', response);
             })
             .catch(function (error) {
                 expect(error.message).toEqual("duplicated pipeline name:medium_priority_pipe");
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getPipeline', function (done) {
+    it('getPipeline', function () {
         var pipelineName = 'medium_priority_pipe';
-        client.getPipeline(pipelineName)
+        return client.getPipeline(pipelineName)
             .then(function (response) {
                 expect(response.body.pipelineName).toEqual(pipelineName);
                 expect(response.body.sourceBucket).toEqual('example-input-bucket');
                 expect(response.body.targetBucket).toEqual('example-output-bucket');
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getAllPipelines', function (done) {
-        client.getAllPipelines()
+    it('getAllPipelines', function () {
+        return client.getAllPipelines()
             .then(function (response) {
                 expect(response.body.pipelines).not.toBe(null);
                 expect(response.body.pipelines.length > 0).toBe(true);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('createJob', function (done) {
+    it('createJob', function () {
         var pipelineName = 'medium_priority_pipe';
         var source = {sourceKey: 'a'};
         var target = {targetKey: 'b'};
         var presetName = 'bce_video_mp4_1920x1080_3660kbps';
-        client.createJob(pipelineName, source, target, presetName)
+        return client.createJob(pipelineName, source, target, presetName)
             .then(function (response) {
                 debug('%j', response);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getAllJobs', function (done) {
+    it('getAllJobs', function () {
         var pipelineName = 'medium_priority_pipe';
-        client.getAllJobs(pipelineName)
+        return client.getAllJobs(pipelineName)
             .then(function (response) {
                 // debug('getAllJobs response %j', response);
                 expect(response.body.jobs).not.toBe(null);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getJob', function (done) {
+    it('getJob', function () {
         var jobId = 'jobId';
-        client.getJob(jobId)
+        return client.getJob(jobId)
             .then(function (response) {
                 debug('%j', response);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('deletePreset', function (done) {
+    it('deletePreset', function () {
         var presetName = 'tmp_bce_video_mp4_320x640_128kbps';
-        client.deletePreset(presetName)
+        return client.deletePreset(presetName)
             .then(function (response) {
                 debug('deletePreset response = %j', response);
                 expect(response.body).toEqual({});
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('createPreset', function (done) {
+    it('createPreset', function () {
         var presetName = 'tmp_bce_video_mp4_320x640_128kbps';
         var container = 'mp4';
         var clip = {
@@ -134,18 +120,16 @@ describe('MediaClient', function () {
             maxHeightInPixel: 3072,
             sizingPolicy: 'keep'
         };
-        client.createPreset(presetName, container, clip, audio, video)
+        return client.createPreset(presetName, container, clip, audio, video)
             .then(function (response) {
                 debug('createPreset response = %j', response);
                 return client.deletePreset(presetName);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getPreset', function (done) {
+    it('getPreset', function () {
         var presetName = 'bce_video_mp4_1920x1080_3660kbps';
-        client.getPreset(presetName)
+        return client.getPreset(presetName)
             .then(function (response) {
                 expect(response.body.presetName).toEqual(presetName);
                 expect(response.body.state).toEqual('ACTIVE');
@@ -157,20 +141,16 @@ describe('MediaClient', function () {
                     sampleRateInHz: 44100,
                     channels: 2
                 });
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 
-    it('getMediainfo', function (done) {
+    it('getMediainfo', function () {
         var bucket = 'bucket';
         var key = 'key';
-        client.getMediainfo(bucket, key)
+        return client.getMediainfo(bucket, key)
             .then(function (response) {
                 debug('%j', response);
-            })
-            .catch(fail)
-            .fin(done);
+            });
     });
 });
 
