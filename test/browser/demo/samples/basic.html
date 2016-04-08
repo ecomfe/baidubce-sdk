@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>BosClient Basic Usage</title>
+        <script src="https://ss1.bdstatic.com/5eN1bjq8AAUYm2zgoY3K/r/www/cache/ecom/esl/2-1-4/esl.js"></script>
+        <script>
+        require.config({
+            baseUrl: 'src',
+            paths: {
+                'baidubce-sdk': '../dep/baidubce-sdk.bundle',
+                'jquery': '../dep/jquery'
+            }        
+        });
+        </script>
+        <link type="text/css" rel="stylesheet" href="samples.css" />
+    </head>
+    <body>
+        <div class="container">
+            <section>
+                <p>
+                    使用 <code>putObjectFromBlob</code> 接口直传到 BOS 服务器。
+                </p>
+                <table border="1" width="450px">
+                    <tr>
+                        <th>Endpoint:</th>
+                        <td>http://bos.bj.baidubce.com</td>
+                    </tr>
+                    <tr>
+                        <th>Bucket: </th>
+                        <td><input id="bucket" /><p class="tip">请输入bucket的名字，需要按照下图配置CORS</p></td>
+                    </tr>
+                    <tr>
+                        <th>AK: </th>
+                        <td><input id="ak" /><p class="tip">请输入你的AK</p></td>
+                    </tr>
+                    <tr>
+                        <th>SK: </th>
+                        <td><input id="sk" /><p class="tip">请输入你的SK</p></td>
+                    </tr>
+                    <tr>
+                        <th>Object: </th>
+                        <td>
+                            <input type="file" id="file" />
+                            <p class="tip">为了方便演示，添加了人为的限制，文件大小不能超过5M.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>URL: </th>
+                        <td id="url">
+                            -
+                        </td>
+                    </tr>
+                </table>
+                <pre id="log"></pre>
+
+                <img src="img/cors.png" width="448px" style="border: 1px solid #ccc" />
+            </section>
+            <section>
+                <pre id="code">
+                </pre>
+            </section>
+        </div>
+    </body>
+    <script>
+    require(['basic'], function (app) {
+        app.start();        
+    });
+    </script>
+</html>
+

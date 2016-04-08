@@ -1,0 +1,252 @@
+header {
+  text-align: right;
+}
+
+th {
+  width: 100px;
+  text-align: right;
+}
+tr.hard {
+  display: none;
+}
+tr.easy {
+  display: none;
+}
+input {
+  width: 300px;
+  line-height: 22p;x
+  height: 22px;
+}
+input[type=radio] {
+  width: auto;
+}
+progress {
+  width: 300px;
+}
+input[disabled] {
+  background-color: #c0c0c0;
+}
+.warning {
+  text-align: center;
+  padding: 5px;
+  background: yellow;
+  display: none;
+}
+legend {
+  font-family: monospace;
+  font-size: 14px;
+}
+.collapse, .expand {
+  cursor: pointer;
+}
+
+.container {
+  margin-bottom: 10px;
+}
+
+.hide {
+  display: none;
+}
+
+.crumb {
+  padding: 8px 15px;
+  box-shadow: 1px 1px 3px 1px #e5e8e3;
+}
+
+#dropzone {
+  position: relative;
+  border: 1px solid #ddd;
+}
+#dropzone .overlay {
+  /*display: none;*/
+  font-weight: bold;
+  border: 2px dashed #333;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-content: center;
+  align-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: rgba(255, 255, 255, .5);
+}
+#dropzone .msg {
+  width: 100%;
+  text-align: center;
+}
+#dropzone .loading {
+  padding: 10px;
+}
+
+
+/** file browser */
+.file-list {
+  background-color: transparent;
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  table-layout: fixed;
+}
+.file-list .progress {
+  height: 10px;
+  margin-bottom: 0;
+}
+.file-list thead {
+  background-color: #f6f8f8;
+  border-radius: 2px 2px 0 0;
+  padding: 10px 15px;
+  border-bottom: 1px solid transparent;
+}
+
+.file-list thead th {
+  padding: 8px 15px;
+  text-align: left;
+}
+/*
+.file-list tr .fa {
+  display: none;
+}
+.file-list tr:hover .fa {
+  display: inline-block;
+}*/
+.file-list td {
+  padding: 8px 15px;
+  border-top: 1px solid #eaeff0;
+}
+.file-list .no-content,
+.file-list .load-more {
+  text-align: center;
+}
+
+.file-list .dropdown {
+  display: inline-block;
+}
+
+.file-list .dropdown-menu > li > a {
+  font-size: 12px;
+}
+
+.file-list .fa-lock,
+.file-list .fa-unlock,
+.file-list .fa-unlock-alt {
+  width: 12px;
+}
+
+.file-list .bucket-usage {
+  vertical-align: middle;
+}
+
+/* ocr */
+.ocr {
+  padding: 10px 0;
+  text-align: center;
+}
+
+.ocr .image {
+  margin: 0 auto;
+  display: inline-block;
+  position: relative;
+}
+
+.private {
+  color: rgb(213, 64, 64);
+}
+
+.public-read-write {
+  color: green;
+}
+
+.public-read {
+  color: blue;
+}
+
+.log {
+  width: 500px;
+  position: fixed;
+  margin-left: -250px;
+  top: 10px;
+  left: 50%;
+}
+
+.log .alert {
+  margin-bottom: 0;
+  padding: 5px 10px;
+}
+
+.log .close {
+  margin-top: -2px;
+}
+
+.panel {
+  margin-bottom: 20px;
+  background-color: #fff;
+  border: 1px solid transparent;
+  box-shadow: 0 1px 1px rgba(0,0,0,.05);
+}
+
+.upload-panel {
+  width: 500px;
+  height: 300px;
+  position: fixed;
+  z-index: 500;
+  bottom: 0;
+  right: 0;
+  border: 1px solid #ddd;
+  margin-bottom: 0;
+}
+
+.upload-panel table {
+  table-layout: fixed;
+}
+
+.upload-panel td {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.upload-panel header {
+  background: #23b7e5;
+  color: #fff;
+  overflow: hidden;
+  padding: 8px 10px;
+}
+
+.upload-panel .item-list {
+  height: 460px;
+  overflow: hidden;
+  overflow-y: scroll;
+}
+
+.upload-panel .progress {
+  height: 10px;
+  margin-bottom: 0;
+  margin-top: 5px;
+}
+
+.fa {
+  cursor: pointer;
+}
+.fa:hover {
+  font-weight: bold;
+}
+
+/* 人脸识别 group list */
+.dropdown-menu .fa.fa-times-circle {
+  float: right;
+  margin-top: 3px;
+}
+
+footer p {
+  text-align: center;
+}
+footer p span {
+  background: url(./img/fi.ico) left center no-repeat;
+  padding-left: 20px;
+}
