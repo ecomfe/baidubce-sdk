@@ -78,8 +78,9 @@ client.createBucket(newBucketName)
 ```js
 client.listBuckets()
     .then(function(response) {
-        for(var bucket in (response.body.buckets || [])){
-            console.log(bucket.name);
+        var buckets = response.body.buckets || [];
+        for(var i =0 , l = buckets.length; i < l; i++){
+            console.log(buckets[i].name);
         }
     })
     .catch(function() {
@@ -259,8 +260,9 @@ client.putObjectFromFile(bucket, object, <path-to-file>, options)
 ```js
 client.listObjects(<bucketName>)
     .then(function(response) {
-        for(var obj in response.body.contents){
-            console.log(obj.key);
+        var contents = response.body.contents;
+        for(var i = 0, l = contents.length; i < l; i++){
+            console.log(contents[i].key);
         }
     })
     .catch(function(error) {
@@ -286,8 +288,9 @@ var options = {
 
 client.listObjects(<bucketName>, options)
     .then(function(response) {
-        for(var obj in response.body.contents){
-            console.log(obj.key);
+        var contents = response.body.contents;
+        for(var i = 0, l = contents.length; i < l; i++){
+            console.log(contents[i].key);
         }
     })
     .catch(function(error) {
@@ -330,8 +333,9 @@ var options = {
 client.listObjects(<bucketName>, options)
     .then(function(response) {
         console.log('Objects:');
-        for(var obj in response.body.contents){
-            console.log(obj.key);
+        var contents = response.body.contents;
+        for(var i = 0, l = contents.length; i < l; i++){
+            console.log(contents[i].key);
         }
     })
     .catch(function(error) {
@@ -363,12 +367,14 @@ var options = {
 client.listObjects(<bucketName>, options)
     .then(function(response) {
         console.log('Objects:');
-        for(var obj in response.body.contents){
-            console.log(obj.key);
+        var contents = response.body.contents;
+        for(var i = 0, l = contents.length; i < l; i++){
+            console.log(contents[i].key);
         }
         console.log('CommonPrefixs:');
-        for(var commonPrefix in response.body.commonPrefixs){
-            console.log(commonPrefix);
+        var commonPrefixes = response.body.commonPrefixs;
+        for(i = 0, l = commonPrefixes.length; i < l; i++){
+            console.log(commonPrefixes[i]);
         }
     })
     .catch(function(error) {
