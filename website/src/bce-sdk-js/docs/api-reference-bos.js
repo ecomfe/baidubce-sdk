@@ -60,10 +60,10 @@ Bucket的命名有以下规范：
 \`\`\`js
 var newBucketName = <bucketName>; // 指定Bucket的名称
 client.createBucket(newBucketName)
-    .then(function() {
+    .then(function () {
         // 创建完成，用户添加自已的代码；
     })
-    .catch(function(error) {
+    .catch(function (error) {
         // 创建失败，用户添加自己的代码，处理异常
     });
 \`\`\`
@@ -74,12 +74,13 @@ client.createBucket(newBucketName)
 
 \`\`\`js
 client.listBuckets()
-    .then(function(response) {
-        for(var bucket in (response.body.buckets || [])){
-            console.log(bucket.name);
+    .then(function (response) {
+        var buckets = response.body.buckets || [];
+        for (var i = 0 , l = buckets.length; i < l; i++) {
+            console.log(buckets[i].name);
         }
     })
-    .catch(function() {
+    .catch(function () {
         // 查询失败，用户添加自己的代码，处理异常
     });
 \`\`\`
@@ -90,7 +91,7 @@ client.listBuckets()
 
 \`\`\`js
 client.doesBucketExist(<bucketName>)
-    .then(function(response) {
+    .then(function (response) {
         if(response) {
             console.log('bucket存在');
         }
@@ -98,7 +99,7 @@ client.doesBucketExist(<bucketName>)
             console.log('bucket不存在');
         }
     })
-    .catch(function() {
+    .catch(function () {
         // 查询失败，用户添加自己的代码，处理异常
     });
 \`\`\`
@@ -109,10 +110,10 @@ client.doesBucketExist(<bucketName>)
 
 \`\`\`
 client.deleteBucket(<bucketName>)
-    .then(function() {
+    .then(function () {
         // 删除完成
     })
-    .catch(function(error) {
+    .catch(function (error) {
         // 删除失败
     });
 \`\`\`
@@ -127,10 +128,10 @@ client.deleteBucket(<bucketName>)
 
 \`\`\`js
 client.setBucketCannedAcl(<bucketName>, 'private')
-    .then(function() {
+    .then(function () {
         // 设置完成
     })
-    .catch(function(error) {
+    .catch(function (error) {
         // 设置失败
     });
 \`\`\`
@@ -158,10 +159,10 @@ var grant_list = [
     }
 ];
 client.setBucketAcl(<bucketName>, grant_list)
-    .then(function() {
+    .then(function () {
         // 设置完成
     })
-    .catch(function(error) {
+    .catch(function (error) {
         // 设置失败
     });
 \`\`\`
@@ -255,12 +256,13 @@ client.putObjectFromFile(bucket, object, <path-to-file>, options)
 
 \`\`\`js
 client.listObjects(<bucketName>)
-    .then(function(response) {
-        for(var obj in response.body.contents){
-            console.log(obj.key);
+    .then(function (response) {
+        var contents = response.body.contents;
+        for (var i = 0, l = contents.length; i < l; i++) {
+            console.log(contents[i].key);
         }
     })
-    .catch(function(error) {
+    .catch(function (error) {
         // 查询失败
     });
 \`\`\`
@@ -282,12 +284,13 @@ var options = {
 };
 
 client.listObjects(<bucketName>, options)
-    .then(function(response) {
-        for(var obj in response.body.contents){
-            console.log(obj.key);
+    .then(function (response) {
+        var contents = response.body.contents;
+        for (var i = 0, l = contents.length; i < l; i++) {
+            console.log(contents[i].key);
         }
     })
-    .catch(function(error) {
+    .catch(function (error) {
         // 查询失败
     });
 \`\`\`
@@ -325,13 +328,14 @@ var options = {
 
 
 client.listObjects(<bucketName>, options)
-    .then(function(response) {
+    .then(function (response) {
         console.log('Objects:');
-        for(var obj in response.body.contents){
-            console.log(obj.key);
+        var contents = response.body.contents;
+        for (var i = 0, l = contents.length; i < l; i++) {
+            console.log(contents[i].key);
         }
     })
-    .catch(function(error) {
+    .catch(function (error) {
         // 查询失败
     });
 \`\`\`
@@ -358,17 +362,19 @@ var options = {
 };
 
 client.listObjects(<bucketName>, options)
-    .then(function(response) {
+    .then(function (response) {
         console.log('Objects:');
-        for(var obj in response.body.contents){
-            console.log(obj.key);
+        var contents = response.body.contents;
+        for (var i = 0, l = contents.length; i < l; i++) {
+            console.log(contents[i].key);
         }
         console.log('CommonPrefixs:');
-        for(var commonPrefix in response.body.commonPrefixs){
-            console.log(commonPrefix);
+        var commonPrefixes = response.body.commonPrefixs;
+        for (i = 0, l = commonPrefixes.length; i < l; i++) {
+            console.log(commonPrefixes[i]);
         }
     })
-    .catch(function(error) {
+    .catch(function (error) {
         // 查询失败
     });
 \`\`\`
@@ -392,7 +398,7 @@ fun/movie/
 \`\`\`js
 var range = '0-100';
 client.getObject(<bucketName>, <key>, range)
-    .then(function(response) {
+    .then(function (response) {
         var buffer = response.body;
     });
 \`\`\`
@@ -406,7 +412,7 @@ client.getObject(<bucketName>, <key>, range)
 \`\`\`js
 var range = '0-100';
 client.getObjectToFile(<bucketName>, <key>, <filePath>, range)
-    .then(function() {
+    .then(function () {
         // 下载完成
     });
 \`\`\`
@@ -419,7 +425,7 @@ range的用法同上。
 
 \`\`\`js
 client.getObjectMetadata(<bucketName>, <key>)
-    .then(function(response) {
+    .then(function (response) {
         console.dir(response.http_headers);
     });
 \`\`\`

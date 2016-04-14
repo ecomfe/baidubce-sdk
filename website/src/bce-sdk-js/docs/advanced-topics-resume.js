@@ -145,7 +145,7 @@ function getTasks (file, uploadId, chunkSize, bucket, object, parts) {
 
 \`\`\`js
 function uploadPartFile(state, bosClient) {
-    return function(task, callback) {
+    return function (task, callback) {
         if (task.etag) {
             // 如果有etag字段，则直接跳过上传
             callback(null, {
@@ -159,11 +159,11 @@ function uploadPartFile(state, bosClient) {
             // 否则进行上传
             var blob = task.file.slice(task.start, task.stop + 1);
             bosClient.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob)
-                .then(function(res) {
+                .then(function (res) {
                     ++state.loaded;
                     callback(null, res);
                 })
-                .catch(function(err) {
+                .catch(function (err) {
                     callback(err);
                 });
         }
@@ -179,7 +179,7 @@ function uploadPartFile(state, bosClient) {
 var chunkSize = 5 * 1024 * 1024; // 分块大小
 var uploadId;
 initiateMultipartUpload(file, chunkSize, bucket, object)
-    .then(function(response) {
+    .then(function (response) {
         uploadId = response.body.uploadId; // uploadId，可能是服务器刚刚生成的，也可能是从localStorage获取的
         var parts = response.body.parts || []; // 已上传的分块列表。如果是新上传，则为空数组
 
@@ -196,7 +196,7 @@ initiateMultipartUpload(file, chunkSize, bucket, object)
 
         // 为了管理分块上传，使用了async（https://github.com/caolan/async）库来进行异步处理
         var THREADS = 2; // 同时上传的分块数量
-        async.mapLimit(tasks, THREADS, uploadPartFile(state, bosClient), function(err, results) {
+        async.mapLimit(tasks, THREADS, uploadPartFile(state, bosClient), function (err, results) {
             if (err) {
                 deferred.reject(err);
             } else {
@@ -205,9 +205,9 @@ initiateMultipartUpload(file, chunkSize, bucket, object)
         });
         return deferred.promise;
     })
-    .then(function(allResponse) {
+    .then(function (allResponse) {
         var partList = [];
-        allResponse.forEach(function(response, index) {
+        allResponse.forEach(function (response, index) {
             // 生成分块清单
             partList.push({
                 partNumber: index + 1,

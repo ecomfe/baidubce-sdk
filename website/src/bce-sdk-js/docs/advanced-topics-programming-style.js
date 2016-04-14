@@ -33,18 +33,18 @@ var client = new BosClient(config);
 \`\`\`js
 // 0. 开始流程
 client.createBucket('bucket-for-test')
-    .then(function(response){
+    .then(function (response) {
         // 2. 完成bucket创建
         return client.putObjectFromString('bucket-for-test', 'test', 'hello world');
     })
-    .then(function(response){
+    .then(function (response) {
         // 3. 完成Object上传
         return client.deleteObject('bucket-for-test', 'test');
     })
-    .then(function(response){
+    .then(function (response) {
         // 4. 完成Object删除
     })
-    .catch(function(error){
+    .catch(function (error) {
         // 异常处理
     });
 // 1. 先执行其他代码，api操作异步执行
@@ -70,7 +70,7 @@ npm install --save co
 import co from 'co';
 
 // 0. 开始流程
-co(function *(){
+co(function *() {
     var response = yield client.createBucket('bucket-for-test');
     // 2. 完成bucket创建
 
@@ -80,7 +80,7 @@ co(function *(){
     response = yield client.deleteObject('bucket-for-test', 'test');
     // 4. 完成Object删除
 
-}).catch(function (error){
+}).catch(function (error) {
     // 异常处理
 });
 // 1. 先执行其他代码，api操作异步执行

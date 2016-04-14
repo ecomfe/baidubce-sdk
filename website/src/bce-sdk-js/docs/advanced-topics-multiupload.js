@@ -51,14 +51,14 @@ function getTasks(file, uploadId, bucketName, key) {
 
 \`\`\`js
 function uploadPartFile(state, client) {
-    return function(task, callback) {
+    return function (task, callback) {
         var blob = task.file.slice(task.start, task.stop + 1);
         client.uploadPartFromBlob(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, blob)
-            .then(function(res) {
+            .then(function (res) {
                 ++state.loaded;
                 callback(null, res);
             })
-            .catch(function(err) {
+            .catch(function (err) {
                 callback(err);
             });
     };
@@ -70,7 +70,7 @@ function uploadPartFile(state, client) {
 \`\`\`js
 var uploadId;
 client.initiateMultipartUpload(bucket, key, options)
-    .then(function(response) {
+    .then(function (response) {
         uploadId = response.body.uploadId; // 开始上传，获取服务器生成的uploadId
 
         var deferred = sdk.Q.defer();
@@ -83,7 +83,7 @@ client.initiateMultipartUpload(bucket, key, options)
 
         // 为了管理分块上传，使用了async（https://github.com/caolan/async）库来进行异步处理
         var THREADS = 2; // 同时上传的分块数量
-        async.mapLimit(tasks, THREADS, uploadPartFile(state, client), function(err, results) {
+        async.mapLimit(tasks, THREADS, uploadPartFile(state, client), function (err, results) {
             if (err) {
                 deferred.reject(err);
             } else {
@@ -92,9 +92,9 @@ client.initiateMultipartUpload(bucket, key, options)
         });
         return deferred.promise;
     })
-    .then(function(allResponse) {
+    .then(function (allResponse) {
         var partList = [];
-        allResponse.forEach(function(response, index) {
+        allResponse.forEach(function (response, index) {
             // 生成分块清单
             partList.push({
                 partNumber: index + 1,
@@ -124,7 +124,7 @@ client.initiateMultipartUpload(bucket, key, options)
 var PART_SIZE = 5 * 1024 * 1024; // 指定分块大小
 var uploadId;
 client.initiateMultipartUpload(bucket, key, options)
-    .then(function(response) {
+    .then(function (response) {
         uploadId = response.body.uploadId; // 开始上传，获取服务器生成的uploadId
 
         var deferred = sdk.Q.defer();
@@ -137,7 +137,7 @@ client.initiateMultipartUpload(bucket, key, options)
 
         // 为了管理分块上传，使用了async（https://github.com/caolan/async）库来进行异步处理
         var THREADS = 2; // 同时上传的分块数量
-        async.mapLimit(tasks, THREADS, uploadPartFile(state, client), function(err, results) {
+        async.mapLimit(tasks, THREADS, uploadPartFile(state, client), function (err, results) {
             if (err) {
                 deferred.reject(err);
             } else {
@@ -146,9 +146,9 @@ client.initiateMultipartUpload(bucket, key, options)
         });
         return deferred.promise;
     })
-    .then(function(allResponse) {
+    .then(function (allResponse) {
         var partList = [];
-        allResponse.forEach(function(response, index) {
+        allResponse.forEach(function (response, index) {
             // 生成分块清单
             partList.push({
                 partNumber: index + 1,
@@ -192,13 +192,13 @@ function getTasks(file, uploadId, bucketName, key) {
     return tasks;
 }
 function uploadPartFile(state, client) {
-    return function(task, callback) {
+    return function (task, callback) {
         return client.uploadPartFromFile(task.bucketName, task.key, task.uploadId, task.partNumber, task.partSize, task.file , task.start)
-            .then(function(res) {
+            .then(function (res) {
                 ++state.loaded;
                 callback(null, res);
             })
-            .catch(function(err) {
+            .catch(function (err) {
                 callback(err);
             });
     };
@@ -219,10 +219,10 @@ client.abortMultipartUpload(<bucketName>, <key>, <uploadId>);
 
 \`\`\`js
 client.listMultipartUploads(<bucketName>)
-    .then(function(response) {
+    .then(function (response) {
         // 遍历所有上传事件
-        for(var upload in response.body.multipartUploads) {
-            console.log(upload.uploadId);
+        for (var i = 0; i < response.body.multipartUploads.length; i++) {
+            console.log(response.body.multipartUploads[i].uploadId);
         }
     });
 \`\`\`
@@ -233,10 +233,10 @@ client.listMultipartUploads(<bucketName>)
 
 \`\`\`js
 client.listParts(<bucketName>, <key>, <uploadId>)
-    .then(function(response) {
+    .then(function (response) {
         // 遍历所有上传事件
-        for(var part in response.body.parts) {
-            console.log(part.partNumber);
+        for (var i = 0; i < response.body.parts.length; i++) {
+            console.log(response.body.parts[i].partNumber);
         }
     });
 \`\`\`
