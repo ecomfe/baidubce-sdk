@@ -37,13 +37,13 @@ VOD 平台为企业音视频媒资提供通用管理服务，媒资上传 VOD �
 
 ```js
 client.createMediaResource(title, description, data)
-    .then(function(response) {
+    .then(function (response) {
         // 上传完成
         console.log(response.body.mediaId);
     })
-    .catch(error){
+    .catch(function (error) {
         // 上传错误
-    };
+    });
 ```
 
 ### 查询指定的媒资信息
@@ -67,13 +67,13 @@ createTime|-|媒资创建时间
 
 ```js
 client.getMediaResource(<mediaId>)
-    .then(function(response) {
+    .then(function (response) {
         // 查询成功
         console.dir(response.body);
     })
-    .catch(error){
+    .catch(function (error) {
         // 查询错误
-    };
+    });
 ```
 
 ### 查询所有媒资
@@ -82,15 +82,15 @@ client.getMediaResource(<mediaId>)
 
 ```js
 client.listMediaResources(<mediaId>)
-    .then(function(response) {
+    .then(function (response) {
         // 查询成功
-        for(var mediaResource in response.body.media) {
-            console.dir(mediaResource);
+        for (var i = 0; i < response.body.media.length; i++) {
+            console.log(mediaResource[i]);
         }
     })
-    .catch(error){
+    .catch(function (error) {
         // 查询错误
-    };
+    });
 ```
 
 ### 更新媒资的 title 和 description
@@ -99,12 +99,12 @@ client.listMediaResources(<mediaId>)
 
 ```js
 client.updateMediaResource(<mediaId>, title, description)
-    .then(function(response) {
+    .then(function (response) {
         // 更新成功
     })
-    .catch(error){
+    .catch(function (error) {
         // 更新错误
-    };
+    });
 ```
 
 ### 停用指定媒资
@@ -113,12 +113,12 @@ client.updateMediaResource(<mediaId>, title, description)
 
 ```js
 client.stopMediaResource(<mediaId>)
-    .then(function(response) {
+    .then(function (response) {
         // 停用成功
     })
-    .catch(error){
+    .catch(function (error) {
         // 停用错误
-    };
+    });
 ```
 
 ### 恢复指定媒资
@@ -127,12 +127,12 @@ client.stopMediaResource(<mediaId>)
 
 ```js
 client.publishMediaResource(<mediaId>)
-    .then(function(response) {
+    .then(function (response) {
         // 恢复成功
     })
-    .catch(error){
+    .catch(function (error) {
         // 恢复错误
-    };
+    });
 ```
 ### 删除指定媒资
 
@@ -140,12 +140,12 @@ client.publishMediaResource(<mediaId>)
 
 ```js
 client.deleteMediaResource(<mediaId>)
-    .then(function(response) {
+    .then(function (response) {
         // 删除成功
     })
-    .catch(error){
+    .catch(function (error) {
         // 删除错误
-    };
+    });
 ```
 
 ## 播放器管理
@@ -156,14 +156,14 @@ client.deleteMediaResource(<mediaId>)
 
 ```js
 client.getPlayableUrl(<mediaId>)
-    .then(function(response) {
+    .then(function (response) {
         // 查询成功
         console.log(response.body.result.file); // 获取媒资对应的可播放源文件的地址
         console.log(response.body.result.cover); // 获取媒资对应的封面图片的地址
     })
-    .catch(error){
+    .catch(function (error) {
         // 查询错误
-    };
+    });
 ```
 
 ### 查询播放器代码
@@ -181,13 +181,14 @@ var width = 800; // 播放器的宽度
 var height = 600; // 播放器的高度
 var autoStart = true; // 是否自动播放
 client.getPlayerCode(<mediaId>, width, height, autoStart)
-    .then(function(response) {
-        for(var code in esponse.body.codes) {
+    .then(function (response) {
+        for (var i = 0; i < response.body.codes.length; i++) {
+            var code = response.body.codes[i];
             console.log(code.codeType); // 代码类型，为url、html和flash一种，分别表示独立播放页面、嵌入式HTML代码和嵌入式FLASH代码
             console.log(code.sourceCode); // 获取代码
         }
     })
-    .catch(error){
+    .catch(function (error) {
         // 查询错误
-    };
+    });
 ```
