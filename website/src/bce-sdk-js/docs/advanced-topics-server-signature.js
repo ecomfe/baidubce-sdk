@@ -33,11 +33,11 @@ var http = require\('http');
 var url = require\('url');
 var util = require\('util');
 
-var Auth = require\('bce-sdk-js').Auth;
+var sdk = require\('bce-sdk-js');
 
 var kCredentials = {
-    ak: '<你的AK>'
-    sk: '<你的SK>'
+    ak: '<your ak>',
+    sk: '<your sk>'
 };
 
 function safeParse(text) {
@@ -49,69 +49,90 @@ function safeParse(text) {
     }
 }
 
+function buildStsResponse(sts) {
+    var stsClient = new sdk.STS({
+        credentials: kCredentials,
+        region: 'bj'
+    });
+    return stsClient.getSessionToken(60 * 60 * 24, safeParse(sts)).then(function (response) {
+        var body = response.body;
+        return {
+            AccessKeyId: body.accessKeyId,
+            SecretAccessKey: body.secretAccessKey,
+            SessionToken: body.sessionToken,
+            Expiration: body.expiration
+        };
+    });
+}
+
+function buildPolicyResponse(policy) {
+    var auth = new sdk.Auth(kCredentials.ak, kCredentials.sk);
+    policy = new Buffer(policy).toString('base64');
+    signature = auth.hash(policy, kCredentials.sk);
+
+    return sdk.Q.resolve({
+        accessKey: kCredentials.ak,
+        policy: policy,
+        signature: signature
+    });
+}
+
+function buildNormalResponse(query) {
+    if (!(query.httpMethod && query.path && query.params && query.headers)) {
+        return sdk.Q.resolve({statusCode: 403});
+    }
+
+    if (query.httpMethod !== 'PUT' && query.httpMethod !== 'POST' && query.httpMethod !== 'GET') {
+        // 只允许 PUT/POST/GET Method
+        return sdk.Q.resolve({statusCode: 403});
+    }
+
+    var httpMethod = query.httpMethod;
+    var path = query.path;
+    var params = safeParse(query.params) || {};
+    var headers = safeParse(query.headers) || {};
+
+    var auth = new sdk.Auth(kCredentials.ak, kCredentials.sk);
+    signature = auth.generateAuthorization(httpMethod, path, params, headers);
+
+    return sdk.Q.resolve({
+        statusCode: 200,
+        signature: signature,
+        xbceDate: new Date().toISOString().replace(/\\.\\d+Z$/, 'Z')
+    });
+}
+
 http.createServer(function (req, res) {
     console.log(req.url);
 
-    // query: { httpMethod: '$0', path: '$1', params: '$2', headers: '$3' },
     var query = url.parse(req.url, true).query;
 
-    var statusCode = 200;
-    var policy = null;
-    var signature = null;
-
-    if (query.policy) {
-        var auth = new Auth(kCredentials.ak, kCredentials.sk);
-        policy = new Buffer(query.policy).toString('base64');
-        signature = auth.hash(policy, kCredentials.sk);
+    var promise = null;
+    if (query.sts) {
+        promise = buildStsResponse(query.sts);
     }
-    else if (query.httpMethod && query.path && query.params && query.headers) {
-        if (query.httpMethod !== 'PUT' && query.httpMethod !== 'POST' && query.httpMethod !== 'GET') {
-            // 只允许 PUT/POST/GET Method
-            statusCode = 403;
-        }
-        else {
-            var httpMethod = query.httpMethod;
-            var path = query.path;
-            var params = safeParse(query.params) || {};
-            var headers = safeParse(query.headers) || {};
-
-            var auth = new Auth(kCredentials.ak, kCredentials.sk);
-            signature = auth.generateAuthorization(httpMethod, path, params, headers);
-        }
+    else if (query.policy) {
+        promise = buildPolicyResponse(query.policy);
     }
     else {
-        statusCode = 403;
+        promise = buildNormalResponse(query);
     }
 
-    // 最多10s的延迟
-    var delay = Math.min(query.delay || 0, 10);
-    setTimeout(function () {
-        var payload = query.policy
-                      ? {
-                          accessKey: kCredentials.ak,
-                          policy: policy,
-                          signature: signature
-                      }
-                      : {
-                          statusCode: statusCode,
-                          signature: signature,
-                          xbceDate: new Date().toISOString().replace(/\\.\\d+Z$/, 'Z')
-                      };
-
-        res.writeHead(statusCode, {
+    promise.then(function (payload) {
+        res.writeHead(200, {
             'Content-Type': 'text/javascript; charset=utf-8',
             'Access-Control-Allow-Origin': '*'
         });
+
         if (query.callback) {
             res.end(util.format('%s(%s)', query.callback, JSON.stringify(payload)));
         }
         else {
             res.end(JSON.stringify(payload));
         }
-    }, delay * 1000);
+    });
 }).listen(1337);
 console.log('Server running at http://0.0.0.0:1337/');
-
 \`\`\`
 
 #### C# 后端实现
@@ -130,30 +151,27 @@ using Newtonsoft.Json;
 using BaiduBce.Util;
 using System.Text;
 using System.Security.Cryptography;
+using BaiduBce.Services.Sts;
+using BaiduBce.Services.Sts.Model;
 
 namespace BaiduCloudEngine.Controllers
 {
   class SignatureResult
   {
     public int statusCode { get; set; }
-
     public string signature { get; set; }
-
     public string xbceDate { get; set; }
   }
 
   class PolicySignatureResult
   {
     public string policy { get; set; }
-
     public string signature { get; set; }
-
     public string accessKey { get; set; }
   }
 
   public class HomeController : Controller
   {
-
     private static string EncodeHex (byte[] data)
     {
       var sb = new StringBuilder ();
@@ -163,16 +181,26 @@ namespace BaiduCloudEngine.Controllers
       return sb.ToString ();
     }
 
-    // http://127.0.0.1:8080/?httpMethod=PUT&path=%2Fv1%2Fbce-javascript-sdk-demo-test%2Fbce.png&delay=0&queries=%7B%7D&headers=%7B%22User-Agent%22%3A%22Mozilla%2F5.0+(Macintosh%3B+Intel+Mac+OS+X+10_11_2)+AppleWebKit%2F537.36+(KHTML%2C+like+Gecko)+Chrome%2F48.0.2564.97+Safari%2F537.36%22%2C%22x-bce-date%22%3A%222016-02-22T08%3A03%3A13Z%22%2C%22Connection%22%3A%22close%22%2C%22Content-Type%22%3A%22image%2Fpng%3B+charset%3DUTF-8%22%2C%22Host%22%3A%22bos.bj.baidubce.com%22%2C%22Content-Length%22%3A4800%7D
-    public string Index (string httpMethod, string path, string queries, string headers, string policy, string callback)
+    public string Index (string httpMethod, string path, string queries, string headers, string policy, string sts, string callback)
     {
-      BceClientConfiguration config = new BceClientConfiguration ();
-      string ak = "b92ea4a39f3645c8ae5f64ba5fc2a357";
-      string sk = "a4ce012968714958a21bb90dc180de17";
-      config.Credentials = new DefaultBceCredentials (ak, sk);
-      BceV1Signer bceV1Signer = new BceV1Signer ();
+      string ak = "<your ak>";
+      string sk = "<your sk>";
+      BceClientConfiguration config = new BceClientConfiguration () {
+        Credentials = new DefaultBceCredentials (ak, sk)
+      };
+
       string result = null;
-      if (policy != null) {
+      if (sts != null) {
+        StsClient client = new StsClient (config);
+        string accessControlList = sts;
+        GetSessionTokenRequest request = new GetSessionTokenRequest () {
+          DurationSeconds = 60 * 60 * 24,
+          AccessControlList = accessControlList
+        };
+        GetSessionTokenResponse response = client.GetSessionToken (request);
+        result = JsonConvert.SerializeObject (response);
+      }
+      else if (policy != null) {
         string base64 = Convert.ToBase64String (Encoding.UTF8.GetBytes (policy));
         var hash = new HMACSHA256 (Encoding.UTF8.GetBytes (sk));
         string signature = EncodeHex (hash.ComputeHash (Encoding.UTF8.GetBytes (base64)));
@@ -192,15 +220,18 @@ namespace BaiduCloudEngine.Controllers
         if (queries != null) {
           internalRequest.Parameters = JsonConvert.DeserializeObject<Dictionary<string, string>> (queries);
         }
-        var sign = bceV1Signer.Sign (internalRequest);
 
-        var xbceDate = DateUtils.FormatAlternateIso8601Date (DateTime.Now);
+        BceV1Signer bceV1Signer = new BceV1Signer ();
+        string sign = bceV1Signer.Sign (internalRequest);
+
+        string xbceDate = DateUtils.FormatAlternateIso8601Date (DateTime.Now);
         result = JsonConvert.SerializeObject (new SignatureResult () {
           statusCode = 200,
           signature = sign,
           xbceDate = xbceDate,
         });
       }
+
       if (callback != null) {
         result = callback + "(" + result + ")";
       }

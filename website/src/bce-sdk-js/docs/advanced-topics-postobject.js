@@ -39,7 +39,7 @@ BOS 开发了 PostObject 接口，通过一个 multipart/form-data 的格式，�
 通过 bower 安装最新的 bce-bos-uploader
 
 \`\`\`
-bower install bce-bos-uploader#1.1.4-rc.2
+bower install bce-bos-uploader#1.1.5-rc.1
 \`\`\`
 
 ### 通过条件注释引用 polyfills 文件

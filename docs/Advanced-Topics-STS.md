@@ -15,6 +15,57 @@ permalink: docs/advanced-topics-sts.html
 
 ### 实现代码
 
+#### DotNet服务端代码
+
+> 注意：`BceSdkDotNet.dll`的版本需要是`>=1.0.2.0`，才可以使用 `StsClient`
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using BaiduBce;
+using BaiduBce.Auth;
+using BaiduBce.Services.Sts;
+using BaiduBce.Services.Sts.Model;
+using Newtonsoft.Json;
+
+namespace BaiduCloudEngine.Controllers
+{
+    public class StsController : Controller
+    {
+        public string Index()
+        {
+            string ak = "<your ak>";
+            string sk = "<your sk>";
+            string bucket = "<your bucket name>";
+
+            BceClientConfiguration config = new BceClientConfiguration () {
+                Credentials = new DefaultBceCredentials (ak, sk)
+            };
+            StsClient client = new StsClient (config);
+            string accessControlList =
+            "{\"accessControlList\": [{\"service\":\"bce:bos\"," +
+              "\"region\":\"*\"," +
+              "\"effect\":\"Allow\"," +
+              "\"resource\":[\"" + bucket + "/*\"]," +
+              "\"permission\":[\"WRITE\"]" +
+              "}]}";
+            GetSessionTokenRequest request = new GetSessionTokenRequest () {
+                DurationSeconds = 60 * 60 * 24,     // One day
+                AccessControlList = accessControlList
+            };
+            GetSessionTokenResponse response = client.GetSessionToken (request);
+            // response.AccessKeyId
+            // response.SecretAccessKey
+            // response.SessionToken
+            return JsonConvert.SerializeObject (response);
+        }
+    }
+}
+```
+
 #### nodejs服务端代码
 
 ```js
