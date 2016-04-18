@@ -25748,7 +25748,7 @@ return Q;
 },{}],188:[function(require,module,exports){
 module.exports={
   "name": "bce-sdk-js",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
@@ -27495,6 +27495,14 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
         strings.normalize(args.key || '', false)
     )).replace(/\\/g, '/');
 
+    if (config.sessionToken) {
+        args.headers[H.SESSION_TOKEN] = config.sessionToken;
+    }
+
+    return this.sendHTTPRequest(httpMethod, resource, args, config);
+};
+
+BosClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, config) {
     var client = this;
     var agent = this._httpAgent = new HttpClient(config);
     u.each(['progress', 'error', 'abort'], function (eventName) {
@@ -27502,9 +27510,7 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
             client.emit(eventName, u.extend(evt, u.pick(args.params, 'partNumber', 'uploadId')));
         });
     });
-    if (config.sessionToken) {
-        args.headers[H.SESSION_TOKEN] = config.sessionToken;
-    }
+
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
         args.outputStream
