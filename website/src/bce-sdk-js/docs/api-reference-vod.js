@@ -79,11 +79,11 @@ client.getMediaResource(<mediaId>)
 下述示例代码用于查询系统内所有的媒资信息:
 
 \`\`\`js
-client.listMediaResources(<mediaId>)
+client.listMediaResources()
     .then(function (response) {
         // 查询成功
         for (var i = 0; i < response.body.media.length; i++) {
-            console.log(mediaResource[i]);
+            console.log(response.body.media[i]);
         }
     })
     .catch(function (error) {
