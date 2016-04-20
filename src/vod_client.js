@@ -81,6 +81,8 @@ VodClient.prototype.listMediaResource = function (options) {
     return this.buildRequest('GET', null, null, options);
 };
 
+VodClient.prototype.listMediaResources = VodClient.prototype.listMediaResource;
+
 VodClient.prototype.updateMediaResource = function (mediaId, title, description, options) {
     options = options || {};
     return this.buildRequest('PUT', mediaId, 'attributes', u.extend(options, {
