@@ -87,7 +87,14 @@ BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
     var args = u.extend(defaultArgs, varArgs);
 
     var config = u.extend({}, this.config, args.config);
+    if (config.sessionToken) {
+        args.headers[H.SESSION_TOKEN] = config.sessionToken;
+    }
 
+    return this.sendHTTPRequest(httpMethod, resource, args, config);
+};
+
+BceBaseClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, config) {
     var client = this;
     var agent = this._httpAgent = new HttpClient(config);
     u.each(['progress', 'error', 'abort'], function (eventName) {
@@ -96,9 +103,6 @@ BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
         });
     });
 
-    if (config.sessionToken) {
-        args.headers[H.SESSION_TOKEN] = config.sessionToken;
-    }
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
         args.outputStream
