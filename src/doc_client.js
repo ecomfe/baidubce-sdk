@@ -201,6 +201,7 @@ Document.prototype.register = function (options) {
     var url = this._buildUrl();
     return this.sendRequest('POST', url, {
         params: {register: ''},
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(options)
     }).then(function (response) {
         self.setId(response.body.documentId);
@@ -292,6 +293,7 @@ Document.prototype.createFromBos = function (
     var self = this;
     return this.sendRequest('POST', url, {
         params: {source: 'bos'},
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(body)
     }).then(function (response) {
         self.setId(response.body.documentId);
@@ -354,6 +356,7 @@ Notification.prototype.create = function (name, endpoint) {
     var self = this;
     var url = this._buildUrl();
     return self.sendRequest('POST', url, {
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
             name: name,
             endpoint: endpoint

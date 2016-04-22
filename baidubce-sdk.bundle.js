@@ -25748,7 +25748,7 @@ return Q;
 },{}],188:[function(require,module,exports){
 module.exports={
   "name": "bce-sdk-js",
-  "version": "0.1.3",
+  "version": "0.1.5",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
@@ -26258,7 +26258,14 @@ BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
     var args = u.extend(defaultArgs, varArgs);
 
     var config = u.extend({}, this.config, args.config);
+    if (config.sessionToken) {
+        args.headers[H.SESSION_TOKEN] = config.sessionToken;
+    }
 
+    return this.sendHTTPRequest(httpMethod, resource, args, config);
+};
+
+BceBaseClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, config) {
     var client = this;
     var agent = this._httpAgent = new HttpClient(config);
     u.each(['progress', 'error', 'abort'], function (eventName) {
@@ -26267,9 +26274,6 @@ BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
         });
     });
 
-    if (config.sessionToken) {
-        args.headers[H.SESSION_TOKEN] = config.sessionToken;
-    }
     return this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
         args.outputStream
@@ -27916,6 +27920,7 @@ Document.prototype.register = function (options) {
     var url = this._buildUrl();
     return this.sendRequest('POST', url, {
         params: {register: ''},
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(options)
     }).then(function (response) {
         self.setId(response.body.documentId);
@@ -28007,6 +28012,7 @@ Document.prototype.createFromBos = function (
     var self = this;
     return this.sendRequest('POST', url, {
         params: {source: 'bos'},
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(body)
     }).then(function (response) {
         self.setId(response.body.documentId);
@@ -28069,6 +28075,7 @@ Notification.prototype.create = function (name, endpoint) {
     var self = this;
     var url = this._buildUrl();
     return self.sendRequest('POST', url, {
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
             name: name,
             endpoint: endpoint
@@ -31884,6 +31891,8 @@ VodClient.prototype.getMediaResource = function (mediaId, options) {
 VodClient.prototype.listMediaResource = function (options) {
     return this.buildRequest('GET', null, null, options);
 };
+
+VodClient.prototype.listMediaResources = VodClient.prototype.listMediaResource;
 
 VodClient.prototype.updateMediaResource = function (mediaId, title, description, options) {
     options = options || {};
