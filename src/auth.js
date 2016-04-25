@@ -56,6 +56,7 @@ Auth.prototype.generateAuthorization = function (method, resource, params,
     var now = timestamp ? new Date(timestamp * 1000) : new Date();
     var rawSessionKey = util.format('bce-auth-v1/%s/%s/%d',
         this.ak, now.toISOString().replace(/\.\d+Z$/, 'Z'), expirationInSeconds || 1800);
+    debug('rawSessionKey = %j', rawSessionKey);
     var sessionKey = this.hash(rawSessionKey, this.sk);
 
     var canonicalUri = this.uriCanonicalization(resource);
@@ -71,6 +72,8 @@ Auth.prototype.generateAuthorization = function (method, resource, params,
 
     var rawSignature = util.format('%s\n%s\n%s\n%s',
         method, canonicalUri, canonicalQueryString, canonicalHeaders);
+    debug('rawSignature = %j', rawSignature);
+    debug('sessionKey = %j', sessionKey);
     var signature = this.hash(rawSignature, sessionKey);
 
     if (signedHeaders.length) {

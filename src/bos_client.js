@@ -862,16 +862,32 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
 BosClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, config) {
     var client = this;
     var agent = this._httpAgent = new HttpClient(config);
+
+    var httpContext = {
+        httpMethod: httpMethod,
+        resource: resource,
+        args: args,
+        config: config
+    };
     u.each(['progress', 'error', 'abort'], function (eventName) {
         agent.on(eventName, function (evt) {
-            client.emit(eventName, u.extend(evt, u.pick(args.params, 'partNumber', 'uploadId')));
+            client.emit(eventName, evt, httpContext);
         });
     });
 
-    return this._httpAgent.sendRequest(httpMethod, resource, args.body,
+    var promise = this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
         args.outputStream
     );
+
+    promise.abort = function () {
+        if (agent._req && agent._req.xhr) {
+            var xhr = agent._req.xhr;
+            xhr.abort();
+        }
+    };
+
+    return promise;
 };
 
 BosClient.prototype._checkOptions = function (options, allowedParams) {
