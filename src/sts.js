@@ -39,12 +39,18 @@ util.inherits(STS, BceBaseClient);
 
 STS.prototype.getSessionToken = function (durationSeconds, params, options) {
     options = options || {};
-    params = u.pick(params, 'id', 'accessControlList');
 
-    if (params.accessControlList) {
-        params.accessControlList = u.map(params.accessControlList, function (acl) {
-            return u.pick(acl, 'eid', 'service', 'region', 'effect', 'resource', 'permission');
-        });
+    var body = '';
+    if (params) {
+        params = u.pick(params, 'id', 'accessControlList');
+
+        if (params.accessControlList) {
+            params.accessControlList = u.map(params.accessControlList, function (acl) {
+                return u.pick(acl, 'eid', 'service', 'region', 'effect', 'resource', 'permission');
+            });
+        }
+
+        body = JSON.stringify(params);
     }
 
     var url = '/v1/sessionToken';
@@ -54,7 +60,7 @@ STS.prototype.getSessionToken = function (durationSeconds, params, options) {
         params: {
             durationSeconds: durationSeconds
         },
-        body: JSON.stringify(params)
+        body: body
     });
 };
 

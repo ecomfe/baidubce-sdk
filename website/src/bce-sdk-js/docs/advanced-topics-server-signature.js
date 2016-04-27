@@ -13,19 +13,6 @@ var content = `
 
 ### 实现代码
 
-服务端返回内容的格式如下：
-
-\`\`\`js
-{
-  statusCode: number,
-  signature: string,
-  xbceDate: string
-}
-\`\`\`
-
-正常情况下，\`statusCode\`应该是\`200\`
-
-
 #### nodejs 后端示例
 
 \`\`\`js
@@ -89,7 +76,7 @@ function buildNormalResponse(query) {
 
     var httpMethod = query.httpMethod;
     var path = query.path;
-    var params = safeParse(query.params) || {};
+    var params = safeParse(query.queries) || {};
     var headers = safeParse(query.headers) || {};
 
     var auth = new sdk.Auth(kCredentials.ak, kCredentials.sk);
@@ -241,6 +228,230 @@ namespace BaiduCloudEngine.Controllers
   }
 }
 \`\`\`
+
+#### Java 后端实现
+
+\`\`\`java
+package com.baidu.inf.bce;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
+
+import com.baidubce.BceClientConfiguration;
+import com.baidubce.auth.BceCredentials;
+import com.baidubce.auth.BceV1Signer;
+import com.baidubce.auth.DefaultBceCredentials;
+import com.baidubce.auth.SignOptions;
+import com.baidubce.http.Headers;
+import com.baidubce.http.HttpMethodName;
+import com.baidubce.internal.InternalRequest;
+import com.baidubce.services.sts.StsClient;
+import com.baidubce.services.sts.model.Credentials;
+import com.baidubce.services.sts.model.GetSessionTokenRequest;
+import com.baidubce.services.sts.model.GetSessionTokenResponse;
+import com.baidubce.util.DateUtils;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+class MyInternalRequest extends InternalRequest {
+    private boolean x = false;
+
+    public MyInternalRequest(HttpMethodName httpMethod, URI uri) {
+        super(httpMethod, uri);
+    }
+
+    public void addHeader(String name, String value) {
+        if (name.equalsIgnoreCase(Headers.HOST)) {
+            // Host只能被设置一次，绕过 BceV1Signer 里面的一个问题
+            if (x) {
+                return;
+            }
+            x = true;
+        }
+
+        super.addHeader(name, value);
+    }
+
+}
+
+public class SignatureDemo {
+    private static String AK = "<your ak>";
+    private static String SK = "<your sk>";
+    private static String STS_ENDPOINT = "http://sts.bj.baidubce.com";
+    private static String UTF8 = "utf-8";
+
+    private boolean isEmpty(String x) {
+        return x == null || x.length() <= 0;
+    }
+
+    private String getStsToken(String sts) {
+        BceCredentials credentials = new DefaultBceCredentials(AK, SK);
+        BceClientConfiguration config = new BceClientConfiguration()
+                .withEndpoint(STS_ENDPOINT).withCredentials(credentials);
+        StsClient client = new StsClient(config);
+
+        GetSessionTokenRequest request = new GetSessionTokenRequest();
+        request.setAcl(sts);
+        request.setDurationSeconds(24 * 60 * 60);
+
+        GetSessionTokenResponse response = client.getSessionToken(request);
+
+        String pattern = "{" + "\\"AccessKeyId\\":\\"%s\\","
+                + "\\"SecretAccessKey\\": \\"%s\\"," + "\\"SessionToken\\": \\"%s\\","
+                + "\\"Expiration\\": \\"%s\\"" + "}";
+
+        Credentials c = response.getCredentials();
+        return String.format(pattern, c.getAccessKeyId(),
+                c.getSecretAccessKey(), c.getSessionToken(),
+                DateUtils.formatAlternateIso8601Date(c.getExpiration()));
+    }
+
+    private String getPolicySignature(String policy)
+            throws UnsupportedEncodingException, NoSuchAlgorithmException,
+            InvalidKeyException {
+        String policyBase64 = Base64.encodeBase64String(policy.getBytes(UTF8));
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(new SecretKeySpec(SK.getBytes(UTF8), "HmacSHA256"));
+        String policySignature = new String(Hex.encodeHex(mac
+                .doFinal(policyBase64.getBytes(UTF8))));
+
+        String pattern = "{" + "\\"policy\\":\\"%s\\"," + "\\"signature\\": \\"%s\\","
+                + "\\"accessKey\\": \\"%s\\"}";
+        return String.format(pattern, policyBase64, policySignature, AK);
+    }
+
+    private String getNormalSignature(String httpMethod, String path,
+            String queries, String headers) throws URISyntaxException,
+            JsonParseException, JsonMappingException, IOException {
+        URI uri = new URI("http://www.baidu.com" + path);
+        InternalRequest request = new MyInternalRequest(
+                HttpMethodName.valueOf(httpMethod), uri);
+
+        if (!isEmpty(headers)) {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<?, ?> map = mapper.readValue(headers, Map.class);
+            Iterator<?> iterator = map.keySet().iterator();
+            while (iterator.hasNext()) {
+                String name = (String) iterator.next();
+                String value = map.get(name).toString();
+                request.addHeader(name, value);
+            }
+        }
+
+        if (!isEmpty(queries)) {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<?, ?> map = mapper.readValue(queries, Map.class);
+            Iterator<?> iterator = map.keySet().iterator();
+            while (iterator.hasNext()) {
+                String name = (String) iterator.next();
+                String value = map.get(name).toString();
+                request.addParameter(name, value);
+            }
+        }
+
+        SignOptions options = new SignOptions();
+        options.setTimestamp(new Date());
+
+        BceCredentials c = new DefaultBceCredentials(AK, SK);
+        BceV1Signer bceV1Signer = new BceV1Signer();
+        bceV1Signer.sign(request, c, options);
+        String authorization = request.getHeaders().get(Headers.AUTHORIZATION);
+
+        String xbceDate = DateUtils.formatAlternateIso8601Date(options
+                .getTimestamp());
+
+        String pattern = "{" + "\\"statusCode\\":200," + "\\"signature\\": \\"%s\\","
+                + "\\"xbceDate\\": \\"%s\\"}";
+        return String.format(pattern, authorization, xbceDate);
+    }
+
+    public String doIt(String httpMethod, String path, String queries,
+            String headers, String policy, String sts, String callback) {
+        String result = null;
+
+        if (!isEmpty(sts)) {
+            result = this.getStsToken(sts);
+        } else if (!isEmpty(policy)) {
+            try {
+                result = this.getPolicySignature(policy);
+            } catch (InvalidKeyException | UnsupportedEncodingException
+                    | NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+        } else if (!isEmpty(httpMethod) && !isEmpty(path) && !isEmpty(headers)) {
+            try {
+                result = this.getNormalSignature(httpMethod, path, queries,
+                        headers);
+            } catch (URISyntaxException | IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            result = "{\\"statusCode\\": 403}";
+        }
+
+        if (!isEmpty(callback)) {
+            result = callback + "(" + result + ")";
+        }
+
+        return result;
+    }
+}
+\`\`\`
+
+如何使用上面的\`SignatureDemo\`呢？我们可以基于\`NanoHTTPD\`开发一个简单的Web Server来处理这个事情：
+
+\`\`\`java
+package com.baidu.inf.bce;
+
+import java.io.IOException;
+import java.util.Map;
+
+import fi.iki.elonen.NanoHTTPD;
+
+public class App extends NanoHTTPD {
+    public App(int port) {
+        super(port);
+    }
+
+    @Override
+    public Response serve(IHTTPSession session) {
+        Map<String, String> params = session.getParms();
+        String httpMethod = params.get("httpMethod");
+        String path = params.get("path");
+        String queries = params.get("queries");
+        String headers = params.get("headers");
+        String policy = params.get("policy");
+        String sts = params.get("sts");
+        String callback = params.get("callback");
+
+        String responseBody = new SignatureDemo().doIt(httpMethod, path,
+                queries, headers, policy, sts, callback);
+        Response response = newFixedLengthResponse(responseBody);
+        response.addHeader("Content-Type", "text/javascript");
+        return response;
+    }
+
+    public static void main(String args[]) throws IOException {
+        App app = new App(7788);
+        app.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+    }
+}
+\`\`\`
+
 
 #### 浏览器前端实现
 
