@@ -39,7 +39,7 @@ BOS 开发了 PostObject 接口，通过一个 multipart/form-data 的格式，�
 通过 bower 安装最新的 bce-bos-uploader
 
 \`\`\`
-bower install bce-bos-uploader#1.1.5-rc.1
+bower install bce-bos-uploader
 \`\`\`
 
 ### 通过条件注释引用 polyfills 文件
@@ -47,6 +47,7 @@ bower install bce-bos-uploader#1.1.5-rc.1
 因为低版本的IE对 es5 的一些特性支持的不完善，所以需要引入 polyfills 文件来处理一下。
 
 \`\`\`html
+<!--[if lt IE 8]><script src="bower_components/json3/lib/json3.min.js"></script><![endif]-->
 <!--[if lt IE 9]><script src="bower_components/js-polyfills/es5.js"></script><![endif]-->
 <!--[if lt IE 10]><script src="bower_components/moxie/bin/js/moxie.min.js"></script><![endif]-->
 \`\`\`
