@@ -16,6 +16,7 @@ var content = `
 1. [nodejs](https://github.com/leeight/bce-sdk-js-usage/tree/master/nodejs/bce-sdk-js-usage)
 2. [java](https://github.com/leeight/bce-sdk-js-usage/tree/master/java/bce-sdk-js-usage)
 3. [c#](https://github.com/leeight/bce-sdk-js-usage/tree/master/csharp)
+4. [php5.3+](https://github.com/leeight/bce-sdk-js-usage/tree/master/php)
 
 #### 浏览器前端实现
 
