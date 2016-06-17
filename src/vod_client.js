@@ -141,7 +141,11 @@ VodClient.prototype._internalCreateMediaResource = function (mediaId, title, des
         params.description = description;
     }
     options = options || {};
-    return this.buildRequest('POST', 'internal/' + mediaId, null, u.extend(options, {
+    if (options.sourceExtension) {
+        params.sourceExtension = options.sourceExtension;
+        delete options.sourceExtension;
+    }
+    return this.buildRequest('PUT', mediaId, 'process', u.extend(options, {
         body: JSON.stringify(params)
     }));
 };

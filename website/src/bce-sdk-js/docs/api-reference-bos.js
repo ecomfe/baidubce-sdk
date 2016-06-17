@@ -12,8 +12,8 @@ BOS API的服务域名为：
 
 Region|Protocol|Endpoint
 ---|---|---
-BJ|HTTP or HTTPS|http(s)://bos.bj.bcebaidu.com
-GZ|HTTP or HTTPS|http(s)://bos.gz.bcebaidu.com
+BJ|HTTP or HTTPS|http(s)://bj.bcebos.com
+GZ|HTTP or HTTPS|http(s)://gz.bcebos.com
 
 BOS API支持HTTP和HTTPS两种调用方式。为了提升数据的安全性，建议通过HTTPS调用。
 
