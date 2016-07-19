@@ -54,7 +54,7 @@ util.inherits(Document, BceBaseClient);
 // --- B E G I N ---
 
 Document.prototype._buildUrl = function () {
-    var baseUrl = '/v1/document';
+    var baseUrl = '/v2/document';
     var extraPaths = u.toArray(arguments);
 
     if (extraPaths.length) {
@@ -82,7 +82,7 @@ Document.prototype.setId = function (documentId) {
  * @return {Promise}
  */
 Document.prototype.create = function (data, opt_options) {
-    var options = u.extend({meta: {}}, opt_options);
+    var options = u.extend({}, opt_options);
     var dataType = -1;
     var pattern = /^bos:\/\//;
 
@@ -107,7 +107,6 @@ Document.prototype.create = function (data, opt_options) {
         }
 
         dataType = DATA_TYPE_FILE;
-        options.meta.sizeInBytes = fs.lstatSync(data).size;
         options.format = options.format || path.extname(data).substr(1);
         options.title = options.title || path.basename(data, path.extname(data));
     }
@@ -116,13 +115,9 @@ Document.prototype.create = function (data, opt_options) {
             return Q.reject(new Error('buffer type required options.format and options.title'));
         }
         dataType = DATA_TYPE_BUFFER;
-        options.meta.sizeInBytes = data.length;
-        // 同步计算 MD5
-        options.meta.md5 = options.meta.md5 || crypto.md5sum(data, null, 'hex');
     }
     else if (typeof Blob !== 'undefined' && data instanceof Blob) {
         dataType = DATA_TYPE_BLOB;
-        options.meta.sizeInBytes = data.size;
         options.format = options.format || path.extname(data.name).substr(1);
         options.title = options.title || path.basename(data.name, path.extname(data.name));
     }
@@ -249,6 +244,19 @@ Document.prototype.read = function (documentId) {
 };
 
 /**
+ * 通过文档的唯一标识 documentId 获取指定文档的下载链接。仅对状态为PUBLISHED/FAILED的文档有效。
+ *
+ * @param {string=} documentId 需要下载的文档id
+ * @return {Promise.<{documentId: string, downloadUrl: string}, any>}
+ */
+Document.prototype.download = function (documentId) {
+    var url = this._buildUrl(documentId || this._documentId);
+    return this.sendRequest('GET', url, {
+        params: {download: ''}
+    });
+};
+
+/**
  * Create document from bos object.
  *
  * 1. The BOS bucket must in bj-region.
@@ -284,6 +292,8 @@ Document.prototype.createFromBos = function (
         throw new Error('Document format parameter required');
     }
 
+    // doc, docx, ppt, pptx, xls, xlsx, vsd, pot, pps, rtf, wps, et, dps, pdf, txt, epub
+    // 默认值：BOS Object后缀名（当BOS Object有后缀时）
     body.format = format;
     if (opt_notification) {
         body.notification = opt_notification;
