@@ -69,7 +69,7 @@ VodClient.prototype.createMediaResource = function (title, description, blob, op
             return helper.upload(bosClient, res.body.sourceBucket, res.body.sourceKey, blob, options);
         })
         .then(function () {
-            return client._internalCreateMediaResource(mediaId, title, description, options);
+            return client._createMediaResource(mediaId, title, description, options);
         });
 };
 
@@ -81,7 +81,9 @@ VodClient.prototype.listMediaResource = function (options) {
     return this.buildRequest('GET', null, null, options);
 };
 
-VodClient.prototype.listMediaResources = VodClient.prototype.listMediaResource;
+VodClient.prototype.listMediaResources = function (options) {
+    return this.listMediaResource(options);
+};
 
 VodClient.prototype.updateMediaResource = function (mediaId, title, description, options) {
     options = options || {};
@@ -110,32 +112,28 @@ VodClient.prototype.rerunMediaResource = function (mediaId, options) {
 };
 
 VodClient.prototype.getPlayableUrl = function (mediaId, options) {
-    options = options || {};
-    return this._buildRequest('GET', '/v1/service/file', null, null, u.extend(options, {
-        params: {
-            media_id: mediaId
-        }
-    }));
+    var url = '/v1/media/' + mediaId + '/delivery';
+    return this._buildRequest('GET', url, null, null, options);
 };
 
 VodClient.prototype.getPlayerCode = function (mediaId, width, height, autoStart, options) {
+    var url = '/v1/media/' + mediaId + '/code';
     options = options || {};
-    return this._buildRequest('GET', '/v1/service/code', null, null, u.extend(options, {
+    return this._buildRequest('GET', url, null, null, u.extend(options, {
         params: {
-            media_id: mediaId,
             ak: this.config.credentials.ak,
             width: width,
             height: height,
-            auto_start: autoStart
+            autostart: autoStart
         }
     }));
 };
 
 VodClient.prototype._generateMediaId = function (options) {
-    return this.buildRequest('GET', 'internal', null, options);
+    return this.buildRequest('POST', null, 'apply', options);
 };
 
-VodClient.prototype._internalCreateMediaResource = function (mediaId, title, description, options) {
+VodClient.prototype._createMediaResource = function (mediaId, title, description, options) {
     var params = {title: title};
     if (description) {
         params.description = description;
@@ -183,5 +181,3 @@ VodClient.prototype._buildRequest = function (verb, url, mediaId, query, options
 // --- E N D ---
 
 module.exports = VodClient;
-
-/* vim: set ts=4 sw=4 sts=4 tw=120: */

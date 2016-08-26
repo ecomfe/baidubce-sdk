@@ -31,12 +31,13 @@ var MediaStatus = {
     FAILED: 'FAILED',
     RUNNING: 'RUNNING',
     DISABLED: 'DISABLED',
-    BANNED: 'BANNED'
+    BANNED: 'BANNED',
+    PROCESSING: 'PROCESSING'
 };
 var CodeType = [
     'html',
-    'flash',
-    'url'
+    'file',
+    'cover'
 ];
 
 describe('VodClient', function () {
@@ -109,7 +110,16 @@ describe('VodClient', function () {
         var vod = new VodClient(config.vod);
         return vod.stopMediaResource(mediaId)
             .then(function () {
-                return vod.getMediaResource(mediaId);
+                return helper.loop(600, 30, function () {
+                    return vod.getMediaResource(mediaId)
+                        .then(function (response) {
+                            debug('loop = %j', response.body);
+                            if (response.body.status === MediaStatus.PROCESSING) {
+                                throw '$continue';
+                            }
+                            return response;
+                        });
+                });
             })
             .then(function (response) {
                 debug(response);
@@ -123,7 +133,16 @@ describe('VodClient', function () {
         var vod = new VodClient(config.vod);
         return vod.publishMediaResource(mediaId)
             .then(function () {
-                return vod.getMediaResource(mediaId);
+                return helper.loop(600, 30, function () {
+                    return vod.getMediaResource(mediaId)
+                        .then(function (response) {
+                            debug('loop = %j', response.body);
+                            if (response.body.status === MediaStatus.PROCESSING) {
+                                throw '$continue';
+                            }
+                            return response;
+                        });
+                });
             })
             .then(function (response) {
                 debug(response);
@@ -139,10 +158,19 @@ describe('VodClient', function () {
         description = 'updateDescription' + (+new Date());
         return vod.updateMediaResource(mediaId, title, description)
             .then(function () {
-                return vod.getMediaResource(mediaId);
+                return helper.loop(600, 30, function () {
+                    return vod.getMediaResource(mediaId)
+                        .then(function (response) {
+                            debug('loop = %j', response.body);
+                            if (response.body.status === MediaStatus.PROCESSING) {
+                                throw '$continue';
+                            }
+                            return response;
+                        });
+                });
             })
             .then(function (response) {
-                debug(response);
+                debug(response.body);
                 expect(response.body.mediaId).to.eql(mediaId);
                 expect(response.body.attributes.title).to.eql(title);
                 expect(response.body.attributes.description).to.eql(description);
@@ -154,7 +182,7 @@ describe('VodClient', function () {
         var vod = new VodClient(config.vod);
         return vod.getPlayerCode(mediaId, 800, 600, true)
             .then(function (response) {
-                debug(response);
+                debug(response.body);
                 var codes = u.filter(response.body.codes, function (code) {
                     return u.contains(CodeType, code.codeType);
                 });
@@ -175,9 +203,9 @@ describe('VodClient', function () {
         var vod = new VodClient(config.vod);
         return vod.getPlayableUrl(mediaId)
             .then(function (response) {
-                debug(response);
-                expect(response.body.result.file).to.match(/^http:\/\//);
-                expect(response.body.result.media_id).to.eql(mediaId);
+                debug(response.body);
+                expect(response.body.file).to.match(/^http:\/\//);
+                expect(response.body.mediaId).to.eql(mediaId);
             });
     });
 
@@ -197,5 +225,3 @@ describe('VodClient', function () {
             });
     });
 });
-
-/* vim: set ts=4 sw=4 sts=4 tw=120: */

@@ -25748,7 +25748,7 @@ return Q;
 },{}],188:[function(require,module,exports){
 module.exports={
   "name": "bce-sdk-js",
-  "version": "0.1.5",
+  "version": "0.1.8",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
@@ -25839,6 +25839,7 @@ Auth.prototype.generateAuthorization = function (method, resource, params,
     var now = timestamp ? new Date(timestamp * 1000) : new Date();
     var rawSessionKey = util.format('bce-auth-v1/%s/%s/%d',
         this.ak, now.toISOString().replace(/\.\d+Z$/, 'Z'), expirationInSeconds || 1800);
+    debug('rawSessionKey = %j', rawSessionKey);
     var sessionKey = this.hash(rawSessionKey, this.sk);
 
     var canonicalUri = this.uriCanonicalization(resource);
@@ -25854,6 +25855,8 @@ Auth.prototype.generateAuthorization = function (method, resource, params,
 
     var rawSignature = util.format('%s\n%s\n%s\n%s',
         method, canonicalUri, canonicalQueryString, canonicalHeaders);
+    debug('rawSignature = %j', rawSignature);
+    debug('sessionKey = %j', sessionKey);
     var signature = this.hash(rawSignature, sessionKey);
 
     if (signedHeaders.length) {
@@ -27509,16 +27512,32 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
 BosClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, config) {
     var client = this;
     var agent = this._httpAgent = new HttpClient(config);
+
+    var httpContext = {
+        httpMethod: httpMethod,
+        resource: resource,
+        args: args,
+        config: config
+    };
     u.each(['progress', 'error', 'abort'], function (eventName) {
         agent.on(eventName, function (evt) {
-            client.emit(eventName, u.extend(evt, u.pick(args.params, 'partNumber', 'uploadId')));
+            client.emit(eventName, evt, httpContext);
         });
     });
 
-    return this._httpAgent.sendRequest(httpMethod, resource, args.body,
+    var promise = this._httpAgent.sendRequest(httpMethod, resource, args.body,
         args.headers, args.params, u.bind(this.createSignature, this),
         args.outputStream
     );
+
+    promise.abort = function () {
+        if (agent._req && agent._req.xhr) {
+            var xhr = agent._req.xhr;
+            xhr.abort();
+        }
+    };
+
+    return promise;
 };
 
 BosClient.prototype._checkOptions = function (options, allowedParams) {
@@ -27773,7 +27792,7 @@ util.inherits(Document, BceBaseClient);
 // --- B E G I N ---
 
 Document.prototype._buildUrl = function () {
-    var baseUrl = '/v1/document';
+    var baseUrl = '/v2/document';
     var extraPaths = u.toArray(arguments);
 
     if (extraPaths.length) {
@@ -27801,7 +27820,7 @@ Document.prototype.setId = function (documentId) {
  * @return {Promise}
  */
 Document.prototype.create = function (data, opt_options) {
-    var options = u.extend({meta: {}}, opt_options);
+    var options = u.extend({}, opt_options);
     var dataType = -1;
     var pattern = /^bos:\/\//;
 
@@ -27826,7 +27845,6 @@ Document.prototype.create = function (data, opt_options) {
         }
 
         dataType = DATA_TYPE_FILE;
-        options.meta.sizeInBytes = fs.lstatSync(data).size;
         options.format = options.format || path.extname(data).substr(1);
         options.title = options.title || path.basename(data, path.extname(data));
     }
@@ -27835,13 +27853,9 @@ Document.prototype.create = function (data, opt_options) {
             return Q.reject(new Error('buffer type required options.format and options.title'));
         }
         dataType = DATA_TYPE_BUFFER;
-        options.meta.sizeInBytes = data.length;
-        // 同步计算 MD5
-        options.meta.md5 = options.meta.md5 || crypto.md5sum(data, null, 'hex');
     }
     else if (typeof Blob !== 'undefined' && data instanceof Blob) {
         dataType = DATA_TYPE_BLOB;
-        options.meta.sizeInBytes = data.size;
         options.format = options.format || path.extname(data.name).substr(1);
         options.title = options.title || path.basename(data.name, path.extname(data.name));
     }
@@ -27968,6 +27982,19 @@ Document.prototype.read = function (documentId) {
 };
 
 /**
+ * 通过文档的唯一标识 documentId 获取指定文档的下载链接。仅对状态为PUBLISHED/FAILED的文档有效。
+ *
+ * @param {string=} documentId 需要下载的文档id
+ * @return {Promise.<{documentId: string, downloadUrl: string}, any>}
+ */
+Document.prototype.download = function (documentId) {
+    var url = this._buildUrl(documentId || this._documentId);
+    return this.sendRequest('GET', url, {
+        params: {download: ''}
+    });
+};
+
+/**
  * Create document from bos object.
  *
  * 1. The BOS bucket must in bj-region.
@@ -28003,6 +28030,8 @@ Document.prototype.createFromBos = function (
         throw new Error('Document format parameter required');
     }
 
+    // doc, docx, ppt, pptx, xls, xlsx, vsd, pot, pps, rtf, wps, et, dps, pdf, txt, epub
+    // 默认值：BOS Object后缀名（当BOS Object有后缀时）
     body.format = format;
     if (opt_notification) {
         body.notification = opt_notification;
@@ -31783,12 +31812,18 @@ util.inherits(STS, BceBaseClient);
 
 STS.prototype.getSessionToken = function (durationSeconds, params, options) {
     options = options || {};
-    params = u.pick(params, 'id', 'accessControlList');
 
-    if (params.accessControlList) {
-        params.accessControlList = u.map(params.accessControlList, function (acl) {
-            return u.pick(acl, 'eid', 'service', 'region', 'effect', 'resource', 'permission');
-        });
+    var body = '';
+    if (params) {
+        params = u.pick(params, 'id', 'accessControlList');
+
+        if (params.accessControlList) {
+            params.accessControlList = u.map(params.accessControlList, function (acl) {
+                return u.pick(acl, 'eid', 'service', 'region', 'effect', 'resource', 'permission');
+            });
+        }
+
+        body = JSON.stringify(params);
     }
 
     var url = '/v1/sessionToken';
@@ -31798,7 +31833,7 @@ STS.prototype.getSessionToken = function (durationSeconds, params, options) {
         params: {
             durationSeconds: durationSeconds
         },
-        body: JSON.stringify(params)
+        body: body
     });
 };
 
@@ -31880,7 +31915,7 @@ VodClient.prototype.createMediaResource = function (title, description, blob, op
             return helper.upload(bosClient, res.body.sourceBucket, res.body.sourceKey, blob, options);
         })
         .then(function () {
-            return client._internalCreateMediaResource(mediaId, title, description, options);
+            return client._createMediaResource(mediaId, title, description, options);
         });
 };
 
@@ -31892,7 +31927,9 @@ VodClient.prototype.listMediaResource = function (options) {
     return this.buildRequest('GET', null, null, options);
 };
 
-VodClient.prototype.listMediaResources = VodClient.prototype.listMediaResource;
+VodClient.prototype.listMediaResources = function (options) {
+    return this.listMediaResource(options);
+};
 
 VodClient.prototype.updateMediaResource = function (mediaId, title, description, options) {
     options = options || {};
@@ -31921,38 +31958,38 @@ VodClient.prototype.rerunMediaResource = function (mediaId, options) {
 };
 
 VodClient.prototype.getPlayableUrl = function (mediaId, options) {
-    options = options || {};
-    return this._buildRequest('GET', '/v1/service/file', null, null, u.extend(options, {
-        params: {
-            media_id: mediaId
-        }
-    }));
+    var url = '/v1/media/' + mediaId + '/delivery';
+    return this._buildRequest('GET', url, null, null, options);
 };
 
 VodClient.prototype.getPlayerCode = function (mediaId, width, height, autoStart, options) {
+    var url = '/v1/media/' + mediaId + '/code';
     options = options || {};
-    return this._buildRequest('GET', '/v1/service/code', null, null, u.extend(options, {
+    return this._buildRequest('GET', url, null, null, u.extend(options, {
         params: {
-            media_id: mediaId,
             ak: this.config.credentials.ak,
             width: width,
             height: height,
-            auto_start: autoStart
+            autostart: autoStart
         }
     }));
 };
 
 VodClient.prototype._generateMediaId = function (options) {
-    return this.buildRequest('GET', 'internal', null, options);
+    return this.buildRequest('POST', null, 'apply', options);
 };
 
-VodClient.prototype._internalCreateMediaResource = function (mediaId, title, description, options) {
+VodClient.prototype._createMediaResource = function (mediaId, title, description, options) {
     var params = {title: title};
     if (description) {
         params.description = description;
     }
     options = options || {};
-    return this.buildRequest('POST', 'internal/' + mediaId, null, u.extend(options, {
+    if (options.sourceExtension) {
+        params.sourceExtension = options.sourceExtension;
+        delete options.sourceExtension;
+    }
+    return this.buildRequest('PUT', mediaId, 'process', u.extend(options, {
         body: JSON.stringify(params)
     }));
 };
@@ -31990,8 +32027,6 @@ VodClient.prototype._buildRequest = function (verb, url, mediaId, query, options
 // --- E N D ---
 
 module.exports = VodClient;
-
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{"./bce_base_client":191,"./bos_client":193,"./headers":198,"./helper":199,"underscore":187,"util":176}],212:[function(require,module,exports){
 (function (Buffer){
