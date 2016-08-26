@@ -269,9 +269,7 @@ BosClient.prototype.deleteMultipleObjects = function (bucketName, objects, optio
         bucketName: bucketName,
         params: {'delete': ''},
         body: JSON.stringify({
-            'delete': {
-                objects: body
-            }
+            objects: body
         }),
         config: options.config
     });
@@ -956,5 +954,3 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
 };
 
 module.exports = BosClient;
-
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
