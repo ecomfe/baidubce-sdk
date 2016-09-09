@@ -294,7 +294,8 @@ HttpClient.prototype._recvResponse = function (res) {
             responseBody = parseHttpResponseBody(raw);
         }
         catch (e) {
-            deferred.reject(e);
+            debug('statusCode = %s, Parse response body error = %s', statusCode, e.message);
+            deferred.reject(this.failure(statusCode, e.message));
             return;
         }
 
