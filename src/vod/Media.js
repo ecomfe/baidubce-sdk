@@ -106,10 +106,11 @@ Media.prototype.process = function (title, options) {
 /**
  * 停用指定媒资，仅对 PUBLISHED 状态的媒资有效
  *
+ * @param {string?} opt_mediaId 媒资Id.
  * @return {Promise.<Object>}
  */
-Media.prototype.disable = function () {
-    var url = this._buildUrl(this._mediaId);
+Media.prototype.disable = function (opt_mediaId) {
+    var url = this._buildUrl(opt_mediaId || this._mediaId);
     return this.sendRequest('PUT', url, {
         params: {
             disable: ''
@@ -120,10 +121,11 @@ Media.prototype.disable = function () {
 /**
  * 恢复指定媒资，仅对 DISABLED 状态的媒资有效
  *
+ * @param {string?} opt_mediaId 媒资Id.
  * @return {Promise.<Object>}
  */
-Media.prototype.resume = function () {
-    var url = this._buildUrl(this._mediaId);
+Media.prototype.resume = function (opt_mediaId) {
+    var url = this._buildUrl(opt_mediaId || this._mediaId);
     return this.sendRequest('PUT', url, {
         params: {
             publish: ''
@@ -135,20 +137,22 @@ Media.prototype.resume = function () {
 /**
  * 删除指定媒资，对 RUNNING 状态的媒资无效
  *
+ * @param {string?} opt_mediaId 媒资Id.
  * @return {Promise.<Object>}
  */
-Media.prototype.remove = function () {
-    var url = this._buildUrl(this._mediaId);
+Media.prototype.remove = function (opt_mediaId) {
+    var url = this._buildUrl(opt_mediaId || this._mediaId);
     return this.sendRequest('DELETE', url);
 };
 
 /**
  * 查询指定媒资
  *
+ * @param {string?} opt_mediaId 媒资Id.
  * @return {Promise.<Object>}
  */
-Media.prototype.get = function () {
-    var url = this._buildUrl(this._mediaId);
+Media.prototype.get = function (opt_mediaId) {
+    var url = this._buildUrl(opt_mediaId || this._mediaId);
     debug('url = %j', url);
     return this.sendRequest('GET', url);
 };
