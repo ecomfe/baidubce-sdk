@@ -39,4 +39,3 @@ exports.trim = function (string) {
     return (string || '').replace(/^\s+|\s+$/g, '');
 };
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */

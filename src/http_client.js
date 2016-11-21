@@ -16,6 +16,7 @@
 
 /* eslint-env node */
 /* eslint max-params:[0,10] */
+/* globals ArrayBuffer */
 
 var http = require('http');
 var https = require('https');
@@ -221,7 +222,7 @@ HttpClient.prototype._guessContentLength = function (data) {
         if (Buffer.isBuffer(data)) {
             return data.length;
         }
-        /*
+        /**
          if (typeof FormData !== 'undefined' && data instanceof FormData) {
          }
          */
@@ -404,4 +405,3 @@ function failure(statusCode, message, code, requestId) {
 
 module.exports = HttpClient;
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */

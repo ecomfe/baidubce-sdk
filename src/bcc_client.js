@@ -98,7 +98,7 @@ BccClient.prototype.createInstance = function (body, opt_options) {
             clientToken: clientToken
         };
 
-        /*
+        /**
         var body = {
             // MICRO,SMALL,MEDIUM,LARGE,XLARGE,XXLARGE
             instanceType: string,
@@ -218,4 +218,3 @@ BccClient.prototype._generateClientToken = function () {
 module.exports = BccClient;
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */

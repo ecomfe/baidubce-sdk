@@ -111,4 +111,3 @@ BceBaseClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, 
 
 module.exports = BceBaseClient;
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */

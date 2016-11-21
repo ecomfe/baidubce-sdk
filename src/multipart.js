@@ -22,6 +22,7 @@ var u = require('underscore');
  * Multipart Encoder
  *
  * @param {string} boundary The multipart boundary.
+ * @constructor
  */
 function Multipart(boundary) {
     this._boundary = boundary;
@@ -80,4 +81,3 @@ module.exports = Multipart;
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */

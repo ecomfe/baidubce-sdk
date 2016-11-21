@@ -68,4 +68,3 @@ STS.prototype.getSessionToken = function (durationSeconds, params, options) {
 
 module.exports = STS;
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */

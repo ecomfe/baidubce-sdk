@@ -32,6 +32,10 @@ var DATA_TYPE_BUFFER   = 2;
 var DATA_TYPE_STREAM   = 3;
 var DATA_TYPE_BLOB     = 4;
 
+exports.omitNull = function (value, key, object) {
+    return value != null;
+};
+
 /**
  * 自适应的按需上传文件
  *
@@ -188,7 +192,7 @@ function getTasks(data, uploadId, bucket, object, size, partSize) {
     var tasks = [];
     while (leftSize > 0) {
         /*eslint-disable*/
-        var _partSize = Math.min(leftSize, partSize);
+        var xPartSize = Math.min(leftSize, partSize);
         /*eslint-enable*/
         tasks.push({
             data: data,   // Buffer or Blob
@@ -196,13 +200,13 @@ function getTasks(data, uploadId, bucket, object, size, partSize) {
             bucket: bucket,
             object: object,
             partNumber: partNumber,
-            partSize: _partSize,
+            partSize: xPartSize,
             start: offset,
-            stop: offset + _partSize - 1
+            stop: offset + xPartSize - 1
         });
 
-        leftSize -= _partSize;
-        offset += _partSize;
+        leftSize -= xPartSize;
+        offset += xPartSize;
         partNumber += 1;
     }
 
@@ -219,4 +223,3 @@ function getTasks(data, uploadId, bucket, object, size, partSize) {
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */

@@ -50,9 +50,9 @@ describe('HttpClient', function() {
             );
     });
 
-    it('get', function() {
+    xit('get', function() {
         var config = {
-            'endpoint': 'https://bs.baidu.com'
+            'endpoint': 'https://bj.bcebos.com'
         };
         var client = new HttpClient(config);
 
@@ -67,7 +67,7 @@ describe('HttpClient', function() {
 
     it('invalidHttpStatus', function() {
         var config = {
-            'endpoint': 'https://bs.baidu.com'
+            'endpoint': 'https://bj.bcebos.com'
         };
         var client = new HttpClient(config);
         return client.sendRequest('GET', '/')
@@ -158,12 +158,12 @@ describe('HttpClient', function() {
         var path = '/v1/' + bucket;
 
 
-        client.sendRequest('DELETE', path, null, null, null, sign_function)
+        return client.sendRequest('DELETE', path, null, null, null, sign_function)
             .then(start, start);
 
         function start() {
             // Create the bucket
-            client.sendRequest('PUT', path, null, null, null, sign_function)
+            return client.sendRequest('PUT', path, null, null, null, sign_function)
                 .then(function(x) {
                     // Set bucket acl
                     var params = {'acl': ''};
@@ -179,9 +179,7 @@ describe('HttpClient', function() {
                 })
                 .then(function() {
                     return client.sendRequest('DELETE', path, null, null, null, sign_function);
-                })
-                .catch(fail)
-                .fin();
+                });
         }
     });
 
@@ -207,13 +205,12 @@ describe('HttpClient', function() {
         var client = new HttpClient(config);
         var path = '/v1/' + bucket;
 
-
-        client.sendRequest('DELETE', path, null, null, null, sign_function)
+        return client.sendRequest('DELETE', path, null, null, null, sign_function)
             .then(start, start);
 
         function start() {
             // Create the bucket
-            client.sendRequest('PUT', path, null, null, null, sign_function)
+            return client.sendRequest('PUT', path, null, null, null, sign_function)
                 .then(function(x) {
                     // Set bucket acl
                     var params = {'acl': ''};
@@ -230,9 +227,7 @@ describe('HttpClient', function() {
                 })
                 .then(function() {
                     return client.sendRequest('DELETE', path, null, null, null, sign_function);
-                })
-                .catch(fail)
-                .fin();
+                });
         }
     });
 
@@ -240,15 +235,13 @@ describe('HttpClient', function() {
         var client = new HttpClient(config);
 
         var output_stream = new WMStream();
-        client.sendRequest('GET', '/v1', null, null, null, sign_function, output_stream)
+        return client.sendRequest('GET', '/v1', null, null, null, sign_function, output_stream)
             .then(function(response) {
                 expect(response.body).to.eql({});
                 expect(output_stream.store.length).to.be.greaterThan(0);
                 var owner = JSON.parse(output_stream.store.toString()).owner;
                 expect(owner).to.eql(config.account);
-            })
-            .catch(fail)
-            .fin();
+            });
     });
 });
 

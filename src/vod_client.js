@@ -23,8 +23,13 @@ var u = require('underscore');
 
 var BceBaseClient = require('./bce_base_client');
 var BosClient = require('./bos_client');
-var H = require('./headers');
 var helper = require('./helper');
+var Media = require('./vod/Media');
+var Notification = require('./vod/Notification');
+var Player = require('./vod/Player');
+var PresetGroup = require('./vod/PresetGroup');
+var Statistic = require('./vod/Statistic');
+var StrategyGroup = require('./vod/StrategyGroup');
 
 /**
  * VOD音视频点播服务
@@ -37,147 +42,86 @@ var helper = require('./helper');
 function VodClient(config) {
     // Vod is a global service. It doesn't support region.
     BceBaseClient.call(this, config, 'vod', false);
-
-    var bosConfig = this.config.bos || {};
-    if (!bosConfig.credentials) {
-        bosConfig.credentials = this.config.credentials;
-    }
-    if (!bosConfig.sessionToken) {
-        bosConfig.sessionToken = this.config.sessionToken;
-    }
-
-    this._bosClient = new BosClient(bosConfig);
-
-    var client = this;
-    this._bosClient.on('progress', function (evt) {
-        client.emit('progress', evt);
-    });
 }
 util.inherits(VodClient, BceBaseClient);
 
 // --- BEGIN ---
 
 VodClient.prototype.createMediaResource = function (title, description, blob, options) {
-    options = options || {};
-
-    var mediaId;
-    var client = this;
-    var bosClient = this._bosClient;
-    return client._generateMediaId(options)
-        .then(function (res) {
-            mediaId = res.body.mediaId;
-            return helper.upload(bosClient, res.body.sourceBucket, res.body.sourceKey, blob, options);
-        })
-        .then(function () {
-            return client._createMediaResource(mediaId, title, description, options);
+    var self = this;
+    var mediaClient = new Media(this.config);
+    return mediaClient.apply().then(function (res) {
+        var bosClient = new BosClient({
+            endpoint: 'http://' + res.body.host,
+            credentials: self.config.credentials,
+            sessionToken: self.config.sessionToken
         });
+        bosClient.on('progress', function (evt) {
+            self.emit('progress', evt);
+        });
+        return helper.upload(bosClient, res.body.sourceBucket, res.body.sourceKey, blob, options);
+    }).then(function () {
+        return mediaClient.process(title, u.extend({description: description}, options));
+    });
 };
 
-VodClient.prototype.getMediaResource = function (mediaId, options) {
-    return this.buildRequest('GET', mediaId, null, options);
+VodClient.prototype.getMediaResource = function (mediaId) {
+    return new Media(this.config).setMediaId(mediaId).get();
 };
 
 VodClient.prototype.listMediaResource = function (options) {
-    return this.buildRequest('GET', null, null, options);
+    return new Media(this.config).list(options);
 };
 
 VodClient.prototype.listMediaResources = function (options) {
     return this.listMediaResource(options);
 };
 
-VodClient.prototype.updateMediaResource = function (mediaId, title, description, options) {
-    options = options || {};
-    return this.buildRequest('PUT', mediaId, 'attributes', u.extend(options, {
-        body: JSON.stringify({
-            title: title,
-            description: description
-        })
-    }));
+VodClient.prototype.updateMediaResource = function (mediaId, title, description) {
+    return new Media(this.config).setMediaId(mediaId).update(title, description);
 };
 
 VodClient.prototype.stopMediaResource = function (mediaId, options) {
-    return this.buildRequest('PUT', mediaId, 'disable', options);
+    return new Media(this.config).setMediaId(mediaId).disable();
 };
 
 VodClient.prototype.publishMediaResource = function (mediaId, options) {
-    return this.buildRequest('PUT', mediaId, 'publish', options);
+    return new Media(this.config).setMediaId(mediaId).resume();
 };
 
 VodClient.prototype.deleteMediaResource = function (mediaId, options) {
-    return this.buildRequest('DELETE', mediaId, null, options);
+    return new Media(this.config).setMediaId(mediaId).remove();
 };
 
-VodClient.prototype.rerunMediaResource = function (mediaId, options) {
-    return this.buildRequest('PUT', mediaId, 'rerun', options);
-};
-
-VodClient.prototype.getPlayableUrl = function (mediaId, options) {
-    var url = '/v1/media/' + mediaId + '/delivery';
-    return this._buildRequest('GET', url, null, null, options);
+VodClient.prototype.getPlayableUrl = function (mediaId, transcodingPresetName) {
+    return new Player(this.config).setMediaId(mediaId).delivery(transcodingPresetName);
 };
 
 VodClient.prototype.getPlayerCode = function (mediaId, width, height, autoStart, options) {
-    var url = '/v1/media/' + mediaId + '/code';
-    options = options || {};
-    return this._buildRequest('GET', url, null, null, u.extend(options, {
-        params: {
-            ak: this.config.credentials.ak,
-            width: width,
-            height: height,
-            autostart: autoStart
-        }
-    }));
+    return new Player(this.config).setMediaId(mediaId).code(u.extend({
+        ak: this.config.credentials.ak,
+        width: width,
+        height: height,
+        autostart: autoStart
+    }, options));
 };
 
-VodClient.prototype._generateMediaId = function (options) {
-    return this.buildRequest('POST', null, 'apply', options);
+VodClient.prototype._generateMediaId = function () {
+    return new Media(this.config).apply();
 };
 
 VodClient.prototype._createMediaResource = function (mediaId, title, description, options) {
-    var params = {title: title};
-    if (description) {
-        params.description = description;
-    }
-    options = options || {};
-    if (options.sourceExtension) {
-        params.sourceExtension = options.sourceExtension;
-        delete options.sourceExtension;
-    }
-    return this.buildRequest('PUT', mediaId, 'process', u.extend(options, {
-        body: JSON.stringify(params)
-    }));
+    return new Media(this.config).setMediaId(mediaId).process(title, u.extend({
+        description: description
+    }, options));
 };
-
-VodClient.prototype.buildRequest = function (verb, mediaId, query, options) {
-    return this._buildRequest(verb, '/v1/media', mediaId, query, options);
-};
-
-VodClient.prototype._buildRequest = function (verb, url, mediaId, query, options) {
-    var defaultArgs = {
-        body: null,
-        headers: {},
-        params: {},
-        config: {}
-    };
-    options = u.extend(defaultArgs, options);
-    if (mediaId) {
-        url += '/' + mediaId;
-    }
-    if (query) {
-        options.params[query] = '';
-    }
-    if (!options.headers.hasOwnProperty(H.CONTENT_TYPE)) {
-        options.headers[H.CONTENT_TYPE] = 'application/json';
-    }
-    if (!options.headers.hasOwnProperty(H.ACCEPT_ENCODING)) {
-        options.headers[H.ACCEPT_ENCODING] = 'gzip, deflate';
-    }
-    if (!options.headers.hasOwnProperty(H.ACCEPT)) {
-        options.headers[H.ACCEPT] = '*/*';
-    }
-    return this.sendRequest(verb, url, options);
-};
-
 // --- E N D ---
+
+VodClient.Media = Media;
+VodClient.Notification = Notification;
+VodClient.Player = Player;
+VodClient.PresetGroup = PresetGroup;
+VodClient.Statistic = Statistic;
+VodClient.StrategyGroup = StrategyGroup;
 
 module.exports = VodClient;

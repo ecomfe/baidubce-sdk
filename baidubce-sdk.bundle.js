@@ -44,7 +44,7 @@ exports.DocClient = require('./src/doc_client');
 
 /* vim: set ts=4 sw=4 sts=4 tw=120: */
 
-},{"./src/auth":189,"./src/bcc_client":190,"./src/bcs_client":192,"./src/bos_client":193,"./src/doc_client":196,"./src/face_client":197,"./src/http_client":200,"./src/lss_client":201,"./src/mct_client":202,"./src/media_client":203,"./src/mime.types":204,"./src/ocr_client":206,"./src/qns_client":207,"./src/ses_client":208,"./src/sts":210,"./src/vod_client":211,"q":186}],2:[function(require,module,exports){
+},{"./src/auth":189,"./src/bcc_client":190,"./src/bcs_client":192,"./src/bos_client":193,"./src/doc_client":196,"./src/face_client":197,"./src/http_client":200,"./src/lss_client":201,"./src/mct_client":202,"./src/media_client":203,"./src/mime.types":204,"./src/ocr_client":206,"./src/qns_client":207,"./src/ses_client":208,"./src/sts":210,"./src/vod_client":217,"q":186}],2:[function(require,module,exports){
 (function (process,global){
 /*!
  * async
@@ -25748,7 +25748,7 @@ return Q;
 },{}],188:[function(require,module,exports){
 module.exports={
   "name": "bce-sdk-js",
-  "version": "0.1.8",
+  "version": "0.2.1",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
@@ -25946,7 +25946,6 @@ Auth.prototype.hash = function (data, key) {
 
 module.exports = Auth;
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{"./headers":198,"./strings":209,"crypto":5,"debug":183,"underscore":187,"util":176}],190:[function(require,module,exports){
 /**
@@ -26049,7 +26048,7 @@ BccClient.prototype.createInstance = function (body, opt_options) {
             clientToken: clientToken
         };
 
-        /*
+        /**
         var body = {
             // MICRO,SMALL,MEDIUM,LARGE,XLARGE,XXLARGE
             instanceType: string,
@@ -26169,7 +26168,6 @@ BccClient.prototype._generateClientToken = function () {
 module.exports = BccClient;
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{"./bce_base_client":191,"debug":183,"underscore":187,"util":176}],191:[function(require,module,exports){
 /**
@@ -26285,7 +26283,6 @@ BceBaseClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, 
 
 module.exports = BceBaseClient;
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{"./auth":189,"./config":194,"./headers":198,"./http_client":200,"events":146,"q":186,"underscore":187,"util":176}],192:[function(require,module,exports){
 (function (Buffer){
@@ -26639,12 +26636,6 @@ module.exports = BcsClient;
 
 
 
-
-
-
-
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
-
 }).call(this,require("buffer").Buffer)
 },{"./bce_base_client":191,"./crypto":195,"./headers":198,"./http_client":200,"./mime.types":204,"buffer":179,"crypto":5,"fs":3,"path":155,"querystring":160,"underscore":187,"util":176}],193:[function(require,module,exports){
 (function (Buffer){
@@ -26919,9 +26910,7 @@ BosClient.prototype.deleteMultipleObjects = function (bucketName, objects, optio
         bucketName: bucketName,
         params: {'delete': ''},
         body: JSON.stringify({
-            'delete': {
-                objects: body
-            }
+            objects: body
         }),
         config: options.config
     });
@@ -27607,10 +27596,8 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
 
 module.exports = BosClient;
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
-
 }).call(this,require("buffer").Buffer)
-},{"./auth":189,"./bce_base_client":191,"./crypto":195,"./headers":198,"./http_client":200,"./mime.types":204,"./multipart":205,"./strings":209,"./wm_stream":212,"buffer":179,"fs":3,"path":155,"q":186,"querystring":160,"underscore":187,"url":174,"util":176}],194:[function(require,module,exports){
+},{"./auth":189,"./bce_base_client":191,"./crypto":195,"./headers":198,"./http_client":200,"./mime.types":204,"./multipart":205,"./strings":209,"./wm_stream":218,"buffer":179,"fs":3,"path":155,"q":186,"querystring":160,"underscore":187,"url":174,"util":176}],194:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -27645,7 +27632,6 @@ exports.DEFAULT_CONFIG = {
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{}],195:[function(require,module,exports){
 (function (Buffer){
@@ -27731,7 +27717,6 @@ exports.md5blob = function (blob, digest) {
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require("buffer").Buffer)
 },{"buffer":179,"crypto":5,"fs":3,"q":186}],196:[function(require,module,exports){
@@ -28371,7 +28356,6 @@ module.exports = FaceClient;
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,{"isBuffer":require("/Volumes/HDD/Users/leeight/local/case/inf/bos/bce-sdk-js/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js")})
 },{"./bce_base_client":191,"/Volumes/HDD/Users/leeight/local/case/inf/bos/bce-sdk-js/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js":153,"debug":183,"underscore":187,"util":176}],198:[function(require,module,exports){
@@ -28437,7 +28421,6 @@ exports.ACCEPT = 'accept';
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{}],199:[function(require,module,exports){
 (function (Buffer){
@@ -28474,6 +28457,10 @@ var DATA_TYPE_FILE     = 1;
 var DATA_TYPE_BUFFER   = 2;
 var DATA_TYPE_STREAM   = 3;
 var DATA_TYPE_BLOB     = 4;
+
+exports.omitNull = function (value, key, object) {
+    return value != null;
+};
 
 /**
  * 自适应的按需上传文件
@@ -28631,7 +28618,7 @@ function getTasks(data, uploadId, bucket, object, size, partSize) {
     var tasks = [];
     while (leftSize > 0) {
         /*eslint-disable*/
-        var _partSize = Math.min(leftSize, partSize);
+        var xPartSize = Math.min(leftSize, partSize);
         /*eslint-enable*/
         tasks.push({
             data: data,   // Buffer or Blob
@@ -28639,13 +28626,13 @@ function getTasks(data, uploadId, bucket, object, size, partSize) {
             bucket: bucket,
             object: object,
             partNumber: partNumber,
-            partSize: _partSize,
+            partSize: xPartSize,
             start: offset,
-            stop: offset + _partSize - 1
+            stop: offset + xPartSize - 1
         });
 
-        leftSize -= _partSize;
-        offset += _partSize;
+        leftSize -= xPartSize;
+        offset += xPartSize;
         partNumber += 1;
     }
 
@@ -28662,7 +28649,6 @@ function getTasks(data, uploadId, bucket, object, size, partSize) {
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,{"isBuffer":require("/Volumes/HDD/Users/leeight/local/case/inf/bos/bce-sdk-js/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js")})
 },{"/Volumes/HDD/Users/leeight/local/case/inf/bos/bce-sdk-js/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js":153,"async":2,"debug":183,"fs":3,"q":186,"stream":172,"underscore":187}],200:[function(require,module,exports){
@@ -28685,6 +28671,7 @@ function getTasks(data, uploadId, bucket, object, size, partSize) {
 
 /* eslint-env node */
 /* eslint max-params:[0,10] */
+/* globals ArrayBuffer */
 
 var http = require('http');
 var https = require('https');
@@ -28890,7 +28877,7 @@ HttpClient.prototype._guessContentLength = function (data) {
         if (Buffer.isBuffer(data)) {
             return data.length;
         }
-        /*
+        /**
          if (typeof FormData !== 'undefined' && data instanceof FormData) {
          }
          */
@@ -28963,7 +28950,8 @@ HttpClient.prototype._recvResponse = function (res) {
             responseBody = parseHttpResponseBody(raw);
         }
         catch (e) {
-            deferred.reject(e);
+            debug('statusCode = %s, Parse response body error = %s', statusCode, e.message);
+            deferred.reject(this.failure(statusCode, e.message));
             return;
         }
 
@@ -29072,7 +29060,6 @@ function failure(statusCode, message, code, requestId) {
 
 module.exports = HttpClient;
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require('_process'),require("buffer").Buffer)
 },{"../package.json":188,"./headers":198,"_process":156,"buffer":179,"debug":183,"events":146,"http":147,"https":151,"q":186,"querystring":160,"stream":172,"underscore":187,"url":174,"util":176}],201:[function(require,module,exports){
@@ -29360,7 +29347,6 @@ exports.Notification = Notification;
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{"./bce_base_client":191,"q":186,"util":176}],202:[function(require,module,exports){
 /**
@@ -29832,7 +29818,6 @@ exports.Preset = Preset;
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{"./bce_base_client":191,"q":186,"util":176}],203:[function(require,module,exports){
 /**
@@ -30064,7 +30049,6 @@ module.exports = MediaClient;
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{"./auth":189,"./bce_base_client":191,"./http_client":200,"underscore":187,"util":176}],204:[function(require,module,exports){
 /**
@@ -31106,6 +31090,7 @@ var u = require('underscore');
  * Multipart Encoder
  *
  * @param {string} boundary The multipart boundary.
+ * @constructor
  */
 function Multipart(boundary) {
     this._boundary = boundary;
@@ -31164,7 +31149,6 @@ module.exports = Multipart;
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require("buffer").Buffer)
 },{"buffer":179,"underscore":187,"util":176}],206:[function(require,module,exports){
@@ -31259,7 +31243,6 @@ module.exports = OCRClient;
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,{"isBuffer":require("/Volumes/HDD/Users/leeight/local/case/inf/bos/bce-sdk-js/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js")})
 },{"./bce_base_client":191,"/Volumes/HDD/Users/leeight/local/case/inf/bos/bce-sdk-js/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js":153,"debug":183,"util":176}],207:[function(require,module,exports){
@@ -31550,7 +31533,6 @@ exports.Subscription = Subscription;
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{"./bce_base_client":191,"underscore":187,"util":176}],208:[function(require,module,exports){
 /**
@@ -31722,10 +31704,6 @@ module.exports = SesClient;
 
 
 
-
-
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
-
 },{"./bce_base_client":191,"fs":3,"path":155,"util":176}],209:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -31768,7 +31746,6 @@ exports.trim = function (string) {
     return (string || '').replace(/^\s+|\s+$/g, '');
 };
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{}],210:[function(require,module,exports){
 /**
@@ -31841,9 +31818,727 @@ STS.prototype.getSessionToken = function (durationSeconds, params, options) {
 
 module.exports = STS;
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{"./bce_base_client":191,"underscore":187,"util":176}],211:[function(require,module,exports){
+/**
+ * @file src/vod/Media.js
+ * @author leeight
+ */
+
+/* eslint-env node */
+/* eslint max-params:[0,10] */
+/* eslint-disable fecs-camelcase */
+
+var util = require('util');
+var u = require('underscore');
+var debug = require('debug')('bce-sdk:VodClient.Media');
+
+var BceBaseClient = require('../bce_base_client');
+// var BosClient = require('../bos_client');
+// var H = require('../headers');
+var helper = require('../helper');
+var Statistic = require('./Statistic');
+
+/**
+ * 音视频媒资接口
+ * https://cloud.baidu.com/doc/VOD/API.html#.E9.9F.B3.E8.A7.86.E9.A2.91.E5.AA.92.E8.B5.84.E6.8E.A5.E5.8F.A3
+ *
+ * @param {Object} config The VodClient.Media Config
+ *
+ * @constructor
+ */
+function Media(config) {
+    BceBaseClient.call(this, config, 'vod', false);
+
+    this._mediaId = null;
+    this._sourceBucket = null;
+    this._sourceKey = null;
+    this._host = null;
+}
+util.inherits(Media, BceBaseClient);
+
+Media.prototype.setMediaId = function (mediaId) {
+    this._mediaId = mediaId;
+    return this;
+};
+
+Media.prototype._buildUrl = function () {
+    var baseUrl = '/v1/media';
+    var extraPaths = u.toArray(arguments);
+
+    if (extraPaths.length) {
+        baseUrl += '/' + extraPaths.join('/');
+    }
+
+    return baseUrl;
+};
+
+// --- BEGIN ---
+
+/**
+ * 申请媒资
+ *
+ * @return {Promise.<Object>}
+ */
+Media.prototype.apply = function () {
+    var url = this._buildUrl();
+    var options = {
+        params: {
+            apply: ''
+        }
+    };
+
+    var self = this;
+    return this.sendRequest('POST', url, options).then(function (response) {
+        self._mediaId = response.body.mediaId;
+        self._sourceBucket = response.body.sourceBucket;
+        self._sourceKey = response.body.sourceKey;
+        self._host = response.body.host;
+
+        return response;
+    });
+};
+
+/**
+ * 处理媒资
+ *
+ * @param {string} title The media title.
+ * @param {Object?} options The extra media attributes.
+ *
+ * @return {Promise.<Object>}
+ */
+Media.prototype.process = function (title, options) {
+    var url = this._buildUrl(this._mediaId);
+    var payload = u.extend({
+        title: title,
+        description: null,
+        sourceExtension: null,
+        transcodingPresetGroupName: null
+    }, options);
+    payload = u.pick(payload, helper.omitNull);
+
+    return this.sendRequest('PUT', url, {
+        params: {
+            process: ''
+        },
+        body: JSON.stringify(payload)
+    });
+};
+
+/**
+ * 停用指定媒资，仅对 PUBLISHED 状态的媒资有效
+ *
+ * @return {Promise.<Object>}
+ */
+Media.prototype.disable = function () {
+    var url = this._buildUrl(this._mediaId);
+    return this.sendRequest('PUT', url, {
+        params: {
+            disable: ''
+        }
+    });
+};
+
+/**
+ * 恢复指定媒资，仅对 DISABLED 状态的媒资有效
+ *
+ * @return {Promise.<Object>}
+ */
+Media.prototype.resume = function () {
+    var url = this._buildUrl(this._mediaId);
+    return this.sendRequest('PUT', url, {
+        params: {
+            publish: ''
+        }
+    });
+};
+
+
+/**
+ * 删除指定媒资，对 RUNNING 状态的媒资无效
+ *
+ * @return {Promise.<Object>}
+ */
+Media.prototype.remove = function () {
+    var url = this._buildUrl(this._mediaId);
+    return this.sendRequest('DELETE', url);
+};
+
+/**
+ * 查询指定媒资
+ *
+ * @return {Promise.<Object>}
+ */
+Media.prototype.get = function () {
+    var url = this._buildUrl(this._mediaId);
+    debug('url = %j', url);
+    return this.sendRequest('GET', url);
+};
+
+/**
+ * 更新指定媒资
+ *
+ * @param {string} title The media title.
+ * @param {string?} description The media description.
+ *
+ * @return {Promise.<Object>}
+ */
+Media.prototype.update = function (title, description) {
+    var url = this._buildUrl(this._mediaId);
+    var payload = u.pick({
+        title: title,
+        description: description
+    }, u.identity);
+
+    return this.sendRequest('PUT', url, {
+        params: {
+            attributes: ''
+        },
+        body: JSON.stringify(payload)
+    });
+};
+
+/**
+ * 查询媒资播放信息，例如：播放次数、最大并发播放次数及下行流量
+ *
+ * @param {Object?} options 过滤参数.
+ * @return {Promise.<Object>}
+ */
+Media.prototype.stat = function (options) {
+    var statClient = new Statistic(this.config);
+    return statClient.setMediaId(this._mediaId).stat(options);
+};
+
+/**
+ * 筛选媒资并分页展示
+ *
+ * 1. pageNo + pageSize
+ * 2. marker + maxSize
+ *
+ * @param {Object?} options The extra pagination and filter parameters.
+ *
+ * @return {Promise.<Object>}
+ */
+Media.prototype.list = function (options) {
+    var url = this._buildUrl();
+    var params = u.extend({
+        pageSize: 10,
+        pageNo: null,
+        marker: null,
+        maxSize: null,
+
+        status: null,
+        begin: null,
+        end: null,
+        title: null
+    }, options);
+    params = u.pick(params, helper.omitNull);
+
+    if (params.marker != null) {
+        delete params.pageNo;
+        delete params.pageSize;
+    }
+    else if (params.pageSize) {
+        delete params.marker;
+        delete params.maxSize;
+    }
+
+    debug('list params = %j', params);
+
+    return this.sendRequest('GET', url, {
+        params: params
+    });
+};
+// --- E N D ---
+
+
+module.exports = Media;
+
+
+
+
+
+
+
+},{"../bce_base_client":191,"../helper":199,"./Statistic":215,"debug":183,"underscore":187,"util":176}],212:[function(require,module,exports){
+/**
+ * @file src/vod/Notification.js
+ * @author leeight
+ */
+
+/* eslint-env node */
+/* eslint max-params:[0,10] */
+/* eslint-disable fecs-camelcase */
+
+var util = require('util');
+var u = require('underscore');
+// var debug = require('debug')('bce-sdk:VodClient.Notification');
+
+var BceBaseClient = require('../bce_base_client');
+
+
+/**
+ * 音视频通知接口
+ * https://cloud.baidu.com/doc/VOD/API.html#.E9.80.9A.E7.9F.A5.E6.8E.A5.E5.8F.A3
+ *
+ * @param {Object} config The VodClient.Media Config
+ * @constructor
+ */
+function Notification(config) {
+    BceBaseClient.call(this, config, 'vod', false);
+}
+util.inherits(Notification, BceBaseClient);
+
+Notification.prototype._buildUrl = function () {
+    var baseUrl = '/v1/notification';
+    var extraPaths = u.toArray(arguments);
+
+    if (extraPaths.length) {
+        baseUrl += '/' + extraPaths.join('/');
+    }
+
+    return baseUrl;
+};
+
+// --- BEGIN ---
+
+/**
+ * 创建通知
+ *
+ * @param {string} name The notification name.
+ * @param {string} endpoint The notification endpoint.
+ * @return {Promise.<Object>}
+ */
+Notification.prototype.create = function (name, endpoint) {
+    var url = this._buildUrl();
+    var payload = {
+        name: name,
+        endpoint: endpoint
+    };
+
+    return this.sendRequest('POST', url, {
+        body: JSON.stringify(payload)
+    });
+};
+
+/**
+ * 查询通知
+ *
+ * @param {string} name The notification name.
+ * @return {Promise.<Object>}
+ */
+Notification.prototype.get = function (name) {
+    var url = this._buildUrl(name);
+
+    return this.sendRequest('GET', url);
+};
+
+/**
+ * 通知列表
+ *
+ * @return {Promise.<Object>}
+ */
+Notification.prototype.listAll = function () {
+    var url = this._buildUrl();
+
+    return this.sendRequest('GET', url);
+};
+
+/**
+ * 删除通知
+ *
+ * @param {string} name The notification name.
+ * @return {Promise.<Object>}
+ */
+Notification.prototype.remove = function (name) {
+    var url = this._buildUrl(name);
+
+    return this.sendRequest('DELETE', url);
+};
+
+// --- E N D ---
+
+module.exports = Notification;
+
+},{"../bce_base_client":191,"underscore":187,"util":176}],213:[function(require,module,exports){
+(function (Buffer){
+/**
+ * @file src/vod/Player.js
+ * @author leeight
+ */
+
+/* eslint-env node */
+/* eslint max-params:[0,10] */
+/* eslint-disable fecs-camelcase */
+
+var util = require('util');
+var u = require('underscore');
+// var debug = require('debug')('bce-sdk:VodClient.Player');
+
+var BceBaseClient = require('../bce_base_client');
+// var BosClient = require('../bos_client');
+// var H = require('../headers');
+var helper = require('../helper');
+
+
+/**
+ * 音视频播放器服务接口
+ * https://cloud.baidu.com/doc/VOD/API.html#.E6.92.AD.E6.94.BE.E5.99.A8.E6.9C.8D.E5.8A.A1.E6.8E.A5.E5.8F.A3
+ *
+ * @param {Object} config The VodClient.Media Config
+ *
+ * @constructor
+ */
+function Player(config) {
+    BceBaseClient.call(this, config, 'vod', false);
+
+    this._mediaId = null;
+}
+util.inherits(Player, BceBaseClient);
+
+Player.prototype.setMediaId = function (mediaId) {
+    this._mediaId = mediaId;
+    return this;
+};
+
+Player.prototype._buildUrl = function () {
+    var baseUrl = '/v1/media';
+    var extraPaths = u.toArray(arguments);
+
+    if (extraPaths.length) {
+        baseUrl += '/' + extraPaths.join('/');
+    }
+
+    return baseUrl;
+};
+
+// --- BEGIN ---
+
+/**
+ * 查询媒资分发信息
+ *
+ * @param {string?} transcodingPresetName 转码模版名称.
+ * @return {Promise.<Object>}
+ */
+Player.prototype.delivery = function (transcodingPresetName) {
+    var url = this._buildUrl(this._mediaId, 'delivery');
+    var params = u.pick({
+        transcodingPresetName: transcodingPresetName
+    }, u.identity);
+
+    return this.sendRequest('GET', url, {params: params}).then(function (response) {
+        if (response.body.success === true) {
+            response.body = response.body.result;
+        }
+        return response;
+    });
+};
+
+/**
+ * 查询媒资播放代码
+ *
+ * @param {Object} options 配置参数.
+ * @return {Promise.<Object>}
+ */
+Player.prototype.code = function (options) {
+    var url = this._buildUrl(this._mediaId, 'code');
+    var params = u.extend({
+        // required
+        width: 100,
+        height: 100,
+        autostart: true,
+        ak: null,
+
+        // optional
+        transcodingPresetName: null
+    }, options);
+    params = u.pick(params, helper.omitNull);
+
+    return this.sendRequest('GET', url, {params: params}).then(function (response) {
+        var codes = response.body.codes;
+        for (var i = 0; i < codes.length; i++) {
+            var item = codes[i];
+            if (item.codeType === 'html') {
+                item.sourceCode = new Buffer(item.sourceCode, 'base64').toString('utf-8');
+                break;
+            }
+        }
+        return response;
+    });
+};
+// --- E N D ---
+
+module.exports = Player;
+
+}).call(this,require("buffer").Buffer)
+},{"../bce_base_client":191,"../helper":199,"buffer":179,"underscore":187,"util":176}],214:[function(require,module,exports){
+/**
+ * @file src/vod/PresetGroup.js
+ * @author leeight
+ */
+
+/* eslint-env node */
+/* eslint max-params:[0,10] */
+/* eslint-disable fecs-camelcase */
+
+var util = require('util');
+var u = require('underscore');
+// var debug = require('debug')('bce-sdk:VodClient.PresetGroup');
+
+var BceBaseClient = require('../bce_base_client');
+
+
+/**
+ * 转码模板组接口
+ * https://cloud.baidu.com/doc/VOD/API.html#.E8.BD.AC.E7.A0.81.E6.A8.A1.E6.9D.BF.E7.BB.84.E6.8E.A5.E5.8F.A3
+ *
+ * @param {Object} config The VodClient.Media Config
+ * @constructor
+ */
+function PresetGroup(config) {
+    BceBaseClient.call(this, config, 'vod', false);
+}
+util.inherits(PresetGroup, BceBaseClient);
+
+PresetGroup.prototype._buildUrl = function () {
+    var baseUrl = '/v1/presetgroup';
+    var extraPaths = u.toArray(arguments);
+
+    if (extraPaths.length) {
+        baseUrl += '/' + extraPaths.join('/');
+    }
+
+    return baseUrl;
+};
+
+// --- BEGIN ---
+
+/**
+ * 创建转码模板组
+ *
+ * @param {Object} config 转码模板组的配置.
+ * @return {Promise.<Object>}
+ */
+PresetGroup.prototype.create = function (config) {
+    var url = this._buildUrl();
+
+    return this.sendRequest('POST', url, {
+        body: JSON.stringify(config)
+    });
+};
+
+/**
+ * 查询指定转码模板组
+ *
+ * @param {string} presetGroupName 转码模版组的名称.
+ * @return {Promise.<Object>}
+ */
+PresetGroup.prototype.get = function (presetGroupName) {
+    var url = this._buildUrl(presetGroupName);
+
+    return this.sendRequest('GET', url);
+};
+
+/**
+ * 查询用户所有转码模板组
+ *
+ * @return {Promise.<Object>}
+ */
+PresetGroup.prototype.listAll = function () {
+    var url = this._buildUrl();
+
+    return this.sendRequest('GET', url);
+};
+
+/**
+ * 更新指定转码模板
+ *
+ * @param {string} presetGroupName 转码模版组的名称.
+ * @param {Object} config 转码模版组的配置.
+ * @return {Promise.<Object>}
+ */
+PresetGroup.prototype.update = function (presetGroupName, config) {
+    var url = this._buildUrl(presetGroupName);
+
+    return this.sendRequest('PUT', url, {
+        body: JSON.stringify(config)
+    });
+};
+
+/**
+ * 删除转码模板组
+ *
+ * @param {string} presetGroupName 转码模版组的名称.
+ * @return {Promise.<Object>}
+ */
+PresetGroup.prototype.remove = function (presetGroupName) {
+    var url = this._buildUrl(presetGroupName);
+
+    return this.sendRequest('DELETE', url);
+};
+
+// --- E N D ---
+
+module.exports = PresetGroup;
+
+},{"../bce_base_client":191,"underscore":187,"util":176}],215:[function(require,module,exports){
+/**
+ * @file src/vod/Statistic.js
+ * @author leeight
+ */
+
+/* eslint-env node */
+/* eslint max-params:[0,10] */
+/* eslint-disable fecs-camelcase */
+
+var util = require('util');
+var u = require('underscore');
+var debug = require('debug')('bce-sdk:VodClient.Statistic');
+
+var BceBaseClient = require('../bce_base_client');
+var helper = require('../helper');
+
+/**
+ * 音视频统计接口
+ * https://cloud.baidu.com/doc/VOD/API.html#.E7.BB.9F.E8.AE.A1.E6.8E.A5.E5.8F.A3
+ *
+ * @param {Object} config The VodClient.Statistic Config
+ *
+ * @constructor
+ */
+function Statistic(config) {
+    BceBaseClient.call(this, config, 'vod', false);
+
+    this._mediaId = null;
+}
+util.inherits(Statistic, BceBaseClient);
+
+Statistic.prototype.setMediaId = function (mediaId) {
+    this._mediaId = mediaId;
+    return this;
+};
+
+Statistic.prototype._buildUrl = function () {
+    var baseUrl = '/v1/statistic';
+    var extraPaths = u.toArray(arguments);
+
+    if (extraPaths.length) {
+        baseUrl += '/' + extraPaths.join('/');
+    }
+
+    return baseUrl;
+};
+
+// --- BEGIN ---
+
+/**
+ * 查询媒资播放信息
+ *
+ * @param {Object} options 过滤参数.
+ * @return {Promise.<Object>}
+ */
+Statistic.prototype.stat = function (options) {
+    var url = this._buildUrl('media', this._mediaId);
+    var params = u.pick(u.extend({
+        startTime: null,
+        endTime: null,
+        aggregate: true
+    }, options), helper.omitNull);
+
+    debug('stat.params = %j', params);
+
+    return this.sendRequest('GET', url, {params: params});
+};
+
+// --- E N D ---
+
+module.exports = Statistic;
+
+},{"../bce_base_client":191,"../helper":199,"debug":183,"underscore":187,"util":176}],216:[function(require,module,exports){
+/**
+ * @file src/vod/StrategyGroup.js
+ * @author leeight
+ */
+
+/* eslint-env node */
+/* eslint max-params:[0,10] */
+/* eslint-disable fecs-camelcase */
+
+var util = require('util');
+var u = require('underscore');
+// var debug = require('debug')('bce-sdk:VodClient.StrategyGroup');
+
+var BceBaseClient = require('../bce_base_client');
+
+
+/**
+ * 音视频策略组接口
+ * https://cloud.baidu.com/doc/VOD/API.html#.E7.AD.96.E7.95.A5.E7.BB.84.E6.8E.A5.E5.8F.A3
+ *
+ * @param {Object} config The VodClient.Media Config
+ * @constructor
+ */
+function StrategyGroup(config) {
+    BceBaseClient.call(this, config, 'vod', false);
+}
+util.inherits(StrategyGroup, BceBaseClient);
+
+StrategyGroup.prototype._buildUrl = function () {
+    var baseUrl = '/v1/strategygroup';
+    var extraPaths = u.toArray(arguments);
+
+    if (extraPaths.length) {
+        baseUrl += '/' + extraPaths.join('/');
+    }
+
+    return baseUrl;
+};
+
+// --- BEGIN ---
+
+/**
+ * 查询特定策略组
+ *
+ * @param {string} strategyGroupName 策略组名称.
+ * @return {Promise.<Object>}
+ */
+StrategyGroup.prototype.get = function (strategyGroupName) {
+    var url = this._buildUrl(strategyGroupName);
+
+    return this.sendRequest('GET', url);
+};
+
+/**
+ * 查询所有策略组
+ *
+ * @return {Promise.<Object>}
+ */
+StrategyGroup.prototype.listAll = function () {
+    var url = this._buildUrl();
+
+    return this.sendRequest('GET', url);
+};
+
+/**
+ * 更新特定策略组
+ *
+ * @param {string} strategyGroupName 策略组的名称.
+ * @param {Object} config 策略组的配置.
+ * @return {Promise.<Object>}
+ */
+StrategyGroup.prototype.update = function (strategyGroupName, config) {
+    var url = this._buildUrl(strategyGroupName);
+
+    return this.sendRequest('PUT', url, {
+        body: JSON.stringify(config)
+    });
+};
+
+// --- E N D ---
+
+module.exports = StrategyGroup;
+
+},{"../bce_base_client":191,"underscore":187,"util":176}],217:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -31869,8 +32564,13 @@ var u = require('underscore');
 
 var BceBaseClient = require('./bce_base_client');
 var BosClient = require('./bos_client');
-var H = require('./headers');
 var helper = require('./helper');
+var Media = require('./vod/Media');
+var Notification = require('./vod/Notification');
+var Player = require('./vod/Player');
+var PresetGroup = require('./vod/PresetGroup');
+var Statistic = require('./vod/Statistic');
+var StrategyGroup = require('./vod/StrategyGroup');
 
 /**
  * VOD音视频点播服务
@@ -31883,152 +32583,91 @@ var helper = require('./helper');
 function VodClient(config) {
     // Vod is a global service. It doesn't support region.
     BceBaseClient.call(this, config, 'vod', false);
-
-    var bosConfig = this.config.bos || {};
-    if (!bosConfig.credentials) {
-        bosConfig.credentials = this.config.credentials;
-    }
-    if (!bosConfig.sessionToken) {
-        bosConfig.sessionToken = this.config.sessionToken;
-    }
-
-    this._bosClient = new BosClient(bosConfig);
-
-    var client = this;
-    this._bosClient.on('progress', function (evt) {
-        client.emit('progress', evt);
-    });
 }
 util.inherits(VodClient, BceBaseClient);
 
 // --- BEGIN ---
 
 VodClient.prototype.createMediaResource = function (title, description, blob, options) {
-    options = options || {};
-
-    var mediaId;
-    var client = this;
-    var bosClient = this._bosClient;
-    return client._generateMediaId(options)
-        .then(function (res) {
-            mediaId = res.body.mediaId;
-            return helper.upload(bosClient, res.body.sourceBucket, res.body.sourceKey, blob, options);
-        })
-        .then(function () {
-            return client._createMediaResource(mediaId, title, description, options);
+    var self = this;
+    var mediaClient = new Media(this.config);
+    return mediaClient.apply().then(function (res) {
+        var bosClient = new BosClient({
+            endpoint: 'http://' + res.body.host,
+            credentials: self.config.credentials,
+            sessionToken: self.config.sessionToken
         });
+        bosClient.on('progress', function (evt) {
+            self.emit('progress', evt);
+        });
+        return helper.upload(bosClient, res.body.sourceBucket, res.body.sourceKey, blob, options);
+    }).then(function () {
+        return mediaClient.process(title, u.extend({description: description}, options));
+    });
 };
 
-VodClient.prototype.getMediaResource = function (mediaId, options) {
-    return this.buildRequest('GET', mediaId, null, options);
+VodClient.prototype.getMediaResource = function (mediaId) {
+    return new Media(this.config).setMediaId(mediaId).get();
 };
 
 VodClient.prototype.listMediaResource = function (options) {
-    return this.buildRequest('GET', null, null, options);
+    return new Media(this.config).list(options);
 };
 
 VodClient.prototype.listMediaResources = function (options) {
     return this.listMediaResource(options);
 };
 
-VodClient.prototype.updateMediaResource = function (mediaId, title, description, options) {
-    options = options || {};
-    return this.buildRequest('PUT', mediaId, 'attributes', u.extend(options, {
-        body: JSON.stringify({
-            title: title,
-            description: description
-        })
-    }));
+VodClient.prototype.updateMediaResource = function (mediaId, title, description) {
+    return new Media(this.config).setMediaId(mediaId).update(title, description);
 };
 
 VodClient.prototype.stopMediaResource = function (mediaId, options) {
-    return this.buildRequest('PUT', mediaId, 'disable', options);
+    return new Media(this.config).setMediaId(mediaId).disable();
 };
 
 VodClient.prototype.publishMediaResource = function (mediaId, options) {
-    return this.buildRequest('PUT', mediaId, 'publish', options);
+    return new Media(this.config).setMediaId(mediaId).resume();
 };
 
 VodClient.prototype.deleteMediaResource = function (mediaId, options) {
-    return this.buildRequest('DELETE', mediaId, null, options);
+    return new Media(this.config).setMediaId(mediaId).remove();
 };
 
-VodClient.prototype.rerunMediaResource = function (mediaId, options) {
-    return this.buildRequest('PUT', mediaId, 'rerun', options);
-};
-
-VodClient.prototype.getPlayableUrl = function (mediaId, options) {
-    var url = '/v1/media/' + mediaId + '/delivery';
-    return this._buildRequest('GET', url, null, null, options);
+VodClient.prototype.getPlayableUrl = function (mediaId, transcodingPresetName) {
+    return new Player(this.config).setMediaId(mediaId).delivery(transcodingPresetName);
 };
 
 VodClient.prototype.getPlayerCode = function (mediaId, width, height, autoStart, options) {
-    var url = '/v1/media/' + mediaId + '/code';
-    options = options || {};
-    return this._buildRequest('GET', url, null, null, u.extend(options, {
-        params: {
-            ak: this.config.credentials.ak,
-            width: width,
-            height: height,
-            autostart: autoStart
-        }
-    }));
+    return new Player(this.config).setMediaId(mediaId).code(u.extend({
+        ak: this.config.credentials.ak,
+        width: width,
+        height: height,
+        autostart: autoStart
+    }, options));
 };
 
-VodClient.prototype._generateMediaId = function (options) {
-    return this.buildRequest('POST', null, 'apply', options);
+VodClient.prototype._generateMediaId = function () {
+    return new Media(this.config).apply();
 };
 
 VodClient.prototype._createMediaResource = function (mediaId, title, description, options) {
-    var params = {title: title};
-    if (description) {
-        params.description = description;
-    }
-    options = options || {};
-    if (options.sourceExtension) {
-        params.sourceExtension = options.sourceExtension;
-        delete options.sourceExtension;
-    }
-    return this.buildRequest('PUT', mediaId, 'process', u.extend(options, {
-        body: JSON.stringify(params)
-    }));
+    return new Media(this.config).setMediaId(mediaId).process(title, u.extend({
+        description: description
+    }, options));
 };
-
-VodClient.prototype.buildRequest = function (verb, mediaId, query, options) {
-    return this._buildRequest(verb, '/v1/media', mediaId, query, options);
-};
-
-VodClient.prototype._buildRequest = function (verb, url, mediaId, query, options) {
-    var defaultArgs = {
-        body: null,
-        headers: {},
-        params: {},
-        config: {}
-    };
-    options = u.extend(defaultArgs, options);
-    if (mediaId) {
-        url += '/' + mediaId;
-    }
-    if (query) {
-        options.params[query] = '';
-    }
-    if (!options.headers.hasOwnProperty(H.CONTENT_TYPE)) {
-        options.headers[H.CONTENT_TYPE] = 'application/json';
-    }
-    if (!options.headers.hasOwnProperty(H.ACCEPT_ENCODING)) {
-        options.headers[H.ACCEPT_ENCODING] = 'gzip, deflate';
-    }
-    if (!options.headers.hasOwnProperty(H.ACCEPT)) {
-        options.headers[H.ACCEPT] = '*/*';
-    }
-    return this.sendRequest(verb, url, options);
-};
-
 // --- E N D ---
+
+VodClient.Media = Media;
+VodClient.Notification = Notification;
+VodClient.Player = Player;
+VodClient.PresetGroup = PresetGroup;
+VodClient.Statistic = Statistic;
+VodClient.StrategyGroup = StrategyGroup;
 
 module.exports = VodClient;
 
-},{"./bce_base_client":191,"./bos_client":193,"./headers":198,"./helper":199,"underscore":187,"util":176}],212:[function(require,module,exports){
+},{"./bce_base_client":191,"./bos_client":193,"./helper":199,"./vod/Media":211,"./vod/Notification":212,"./vod/Player":213,"./vod/PresetGroup":214,"./vod/Statistic":215,"./vod/StrategyGroup":216,"underscore":187,"util":176}],218:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -32073,15 +32712,6 @@ WMStream.prototype._write = function (chunk, enc, cb) {
 
 module.exports = WMStream;
 
-
-
-
-
-
-
-
-
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 }).call(this,require("buffer").Buffer)
 },{"buffer":179,"stream":172,"util":176}]},{},[1])(1)
