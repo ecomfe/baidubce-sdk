@@ -23,6 +23,7 @@ var expect = require('expect.js');
 
 var config = require('../config');
 var helper = require('./helper');
+var STS = require('../../').STS;
 var Media = require('../../src/vod/Media');
 var Player = require('../../src/vod/Player');
 var PresetGroup = require('../../src/vod/PresetGroup');
@@ -396,6 +397,24 @@ describe('Notification', function () {
             expect(response.body.endpoint).to.eql('http://www.baidu.com');
             expect(response.body.createTime).to.be.a('string');
             return client.remove('default');
+        });
+    });
+});
+
+xdescribe('STS access', function () {
+    it('Media.list', function () {
+        var sts = new STS(config.sts);
+        return sts.getSessionToken(6000, {
+            accessControlList: [
+                {
+                    service: 'bce:vod',
+                    region: '*',
+                    effect: 'Allow',
+                    permission: ['WRITE', 'READ']
+                }
+            ]
+        }).then(function (response) {
+            debug(response);
         });
     });
 });
