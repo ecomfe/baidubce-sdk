@@ -95,7 +95,7 @@ Media.prototype.process = function (title, options) {
     }, options);
     payload = u.pick(payload, helper.omitNull);
 
-    return this.sendRequest('PUT', url, {
+    return this.sendRequest('POST', url, {
         params: {
             process: ''
         },
