@@ -20,6 +20,7 @@
 
 var util = require('util');
 var u = require('underscore');
+var url = require('url');
 
 var BceBaseClient = require('./bce_base_client');
 var BosClient = require('./bos_client');
@@ -48,10 +49,12 @@ util.inherits(VodClient, BceBaseClient);
 
 VodClient.prototype.createMediaResource = function (title, description, blob, options) {
     var self = this;
+    var protocol = url.parse(this.config.endpoint).protocol || 'https:';
     var mediaClient = new Media(this.config);
     return mediaClient.apply().then(function (res) {
+        // bos endpoint 的协议跟随 this.config.endpoint
         var bosClient = new BosClient({
-            endpoint: 'http://' + res.body.host,
+            endpoint: protocol + '//' + res.body.host,
             credentials: self.config.credentials,
             sessionToken: self.config.sessionToken
         });

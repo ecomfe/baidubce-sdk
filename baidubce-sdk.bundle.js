@@ -32569,6 +32569,7 @@ module.exports = StrategyGroup;
 
 var util = require('util');
 var u = require('underscore');
+var url = require('url');
 
 var BceBaseClient = require('./bce_base_client');
 var BosClient = require('./bos_client');
@@ -32597,10 +32598,12 @@ util.inherits(VodClient, BceBaseClient);
 
 VodClient.prototype.createMediaResource = function (title, description, blob, options) {
     var self = this;
+    var protocol = url.parse(this.config.endpoint).protocol || 'https:';
     var mediaClient = new Media(this.config);
     return mediaClient.apply().then(function (res) {
+        // bos endpoint 的协议跟随 this.config.endpoint
         var bosClient = new BosClient({
-            endpoint: 'http://' + res.body.host,
+            endpoint: protocol + '//' + res.body.host,
             credentials: self.config.credentials,
             sessionToken: self.config.sessionToken
         });
@@ -32674,7 +32677,7 @@ VodClient.StrategyGroup = StrategyGroup;
 
 module.exports = VodClient;
 
-},{"./bce_base_client":191,"./bos_client":193,"./helper":199,"./vod/Media":211,"./vod/Notification":212,"./vod/Player":213,"./vod/PresetGroup":214,"./vod/Statistic":215,"./vod/StrategyGroup":216,"underscore":187,"util":176}],218:[function(require,module,exports){
+},{"./bce_base_client":191,"./bos_client":193,"./helper":199,"./vod/Media":211,"./vod/Notification":212,"./vod/Player":213,"./vod/PresetGroup":214,"./vod/Statistic":215,"./vod/StrategyGroup":216,"underscore":187,"url":174,"util":176}],218:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
