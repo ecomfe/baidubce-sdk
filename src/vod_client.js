@@ -40,8 +40,7 @@ var StrategyGroup = require('./vod/StrategyGroup');
  * @extends {BceBaseClient}
  */
 function VodClient(config) {
-    // Vod is a global service. It doesn't support region.
-    BceBaseClient.call(this, config, 'vod', false);
+    BceBaseClient.call(this, config, 'vod', true);
 }
 util.inherits(VodClient, BceBaseClient);
 

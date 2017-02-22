@@ -182,6 +182,11 @@ MediaClient.prototype.getMediainfo = function (bucket, key, opt_options) {
     });
 };
 
+MediaClient.prototype.getProgress = function () {
+    var url = '/v3/statistic/job/realtime';
+    return this.sendRequest('GET', url);
+};
+
 MediaClient.prototype.createSignature = function (credentials, httpMethod, path, params, headers) {
     var auth = new Auth(credentials.ak, credentials.sk);
     // 不能对content-type,content-length,content-md5进行签名
