@@ -42,7 +42,6 @@ exports.DocClient = require('./src/doc_client');
 
 
 
-/* vim: set ts=4 sw=4 sts=4 tw=120: */
 
 },{"./src/auth":189,"./src/bcc_client":190,"./src/bcs_client":192,"./src/bos_client":193,"./src/doc_client":196,"./src/face_client":197,"./src/http_client":200,"./src/lss_client":201,"./src/mct_client":202,"./src/media_client":203,"./src/mime.types":204,"./src/ocr_client":206,"./src/qns_client":207,"./src/ses_client":208,"./src/sts":210,"./src/vod_client":217,"q":186}],2:[function(require,module,exports){
 (function (process,global){
@@ -25748,7 +25747,7 @@ return Q;
 },{}],188:[function(require,module,exports){
 module.exports={
   "name": "bce-sdk-js",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
@@ -30004,6 +30003,11 @@ MediaClient.prototype.getMediainfo = function (bucket, key, opt_options) {
     });
 };
 
+MediaClient.prototype.getProgress = function () {
+    var url = '/v3/statistic/job/realtime';
+    return this.sendRequest('GET', url);
+};
+
 MediaClient.prototype.createSignature = function (credentials, httpMethod, path, params, headers) {
     var auth = new Auth(credentials.ak, credentials.sk);
     // 不能对content-type,content-length,content-md5进行签名
@@ -31917,7 +31921,7 @@ Media.prototype.process = function (title, options) {
     }, options);
     payload = u.pick(payload, helper.omitNull);
 
-    return this.sendRequest('PUT', url, {
+    return this.sendRequest('POST', url, {
         params: {
             process: ''
         },
@@ -31928,10 +31932,11 @@ Media.prototype.process = function (title, options) {
 /**
  * 停用指定媒资，仅对 PUBLISHED 状态的媒资有效
  *
+ * @param {string?} opt_mediaId 媒资Id.
  * @return {Promise.<Object>}
  */
-Media.prototype.disable = function () {
-    var url = this._buildUrl(this._mediaId);
+Media.prototype.disable = function (opt_mediaId) {
+    var url = this._buildUrl(opt_mediaId || this._mediaId);
     return this.sendRequest('PUT', url, {
         params: {
             disable: ''
@@ -31942,10 +31947,11 @@ Media.prototype.disable = function () {
 /**
  * 恢复指定媒资，仅对 DISABLED 状态的媒资有效
  *
+ * @param {string?} opt_mediaId 媒资Id.
  * @return {Promise.<Object>}
  */
-Media.prototype.resume = function () {
-    var url = this._buildUrl(this._mediaId);
+Media.prototype.resume = function (opt_mediaId) {
+    var url = this._buildUrl(opt_mediaId || this._mediaId);
     return this.sendRequest('PUT', url, {
         params: {
             publish: ''
@@ -31957,20 +31963,22 @@ Media.prototype.resume = function () {
 /**
  * 删除指定媒资，对 RUNNING 状态的媒资无效
  *
+ * @param {string?} opt_mediaId 媒资Id.
  * @return {Promise.<Object>}
  */
-Media.prototype.remove = function () {
-    var url = this._buildUrl(this._mediaId);
+Media.prototype.remove = function (opt_mediaId) {
+    var url = this._buildUrl(opt_mediaId || this._mediaId);
     return this.sendRequest('DELETE', url);
 };
 
 /**
  * 查询指定媒资
  *
+ * @param {string?} opt_mediaId 媒资Id.
  * @return {Promise.<Object>}
  */
-Media.prototype.get = function () {
-    var url = this._buildUrl(this._mediaId);
+Media.prototype.get = function (opt_mediaId) {
+    var url = this._buildUrl(opt_mediaId || this._mediaId);
     debug('url = %j', url);
     return this.sendRequest('GET', url);
 };
@@ -32581,8 +32589,7 @@ var StrategyGroup = require('./vod/StrategyGroup');
  * @extends {BceBaseClient}
  */
 function VodClient(config) {
-    // Vod is a global service. It doesn't support region.
-    BceBaseClient.call(this, config, 'vod', false);
+    BceBaseClient.call(this, config, 'vod', true);
 }
 util.inherits(VodClient, BceBaseClient);
 
