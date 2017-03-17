@@ -366,7 +366,11 @@ HttpClient.prototype._sendRequest = function (req, data) {
 };
 
 HttpClient.prototype.buildQueryString = function (params) {
-    return require('querystring').stringify(params);
+    var urlEncodeStr = require('querystring').stringify(params);
+    // https://en.wikipedia.org/wiki/Percent-encoding
+    return urlEncodeStr.replace(/[()'!~.*\-_]/g, function (char) {
+        return '%' + char.charCodeAt().toString(16);
+    });
 };
 
 HttpClient.prototype._getRequestUrl = function (path, params) {

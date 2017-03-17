@@ -243,6 +243,23 @@ describe('HttpClient', function() {
                 expect(owner).to.eql(config.account);
             });
     });
+
+    it('buildQueryString', function() {
+        var client = new HttpClient(config);
+        var ret = client.buildQueryString({
+            key1: '~!@#$%^&*()_+`123456790-=',
+            key2: '<>?,./',
+            key3: ':";\'',
+            key4: '{}|[]\\'
+        });
+
+        expect(ret.toUpperCase()).to.eql(
+            'KEY1=%7E%21%40%23%24%25%5E%26%2A%28%29%5F%2B%60123456790%2D%3D'
+                + '&KEY2=%3C%3E%3F%2C%2E%2F'
+                + '&KEY3=%3A%22%3B%27'
+                + '&KEY4=%7B%7D%7C%5B%5D%5C'
+        );
+    });
 });
 
 
