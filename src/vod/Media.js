@@ -158,6 +158,25 @@ Media.prototype.get = function (opt_mediaId) {
 };
 
 /**
+ * 获取音视频媒资的源文件下载地址
+ *
+ * @param {string?} opt_mediaId 媒资Id.
+ * @param {number?} opt_expiredInSeconds 过期时间，单位(s)
+ *
+ * @return {Promise.<Object>}
+ */
+Media.prototype.getDownloadUrl = function (opt_mediaId, opt_expiredInSeconds) {
+    var expiredInSeconds = opt_expiredInSeconds || 60 * 60 * 24;   // 默认1天
+    var url = this._buildUrl(opt_mediaId || this._mediaId);
+    return this.sendRequest('GET', url, {
+        params: {
+            sourcedownload: '',
+            expiredInSeconds: expiredInSeconds
+        }
+    });
+};
+
+/**
  * 更新指定媒资
  *
  * @param {string} title The media title.

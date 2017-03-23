@@ -99,6 +99,10 @@ VodClient.prototype.getPlayableUrl = function (mediaId, transcodingPresetName) {
     return new Player(this.config).setMediaId(mediaId).delivery(transcodingPresetName);
 };
 
+VodClient.prototype.getDownloadUrl = function (mediaId, expiredInSeconds) {
+    return new Media(this.config).getDownloadUrl(mediaId, expiredInSeconds);
+};
+
 VodClient.prototype.getPlayerCode = function (mediaId, width, height, autoStart, options) {
     return new Player(this.config).setMediaId(mediaId).code(u.extend({
         ak: this.config.credentials.ak,

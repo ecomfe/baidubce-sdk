@@ -102,6 +102,13 @@ describe('VodClient', function () {
                 expect(uploadMedia.length).to.eql(1);
                 expect(uploadMedia[0].attributes.title).to.eql(title);
                 expect(uploadMedia[0].attributes.description).to.eql(description);
+            })
+            .then(function () {
+                return vod.getDownloadUrl(mediaId, 1000);
+            })
+            .then(function (response) {
+                debug(response.body.sourceUrl);
+                expect(response.body.sourceUrl).not.to.be(undefined);
             });
     });
 
