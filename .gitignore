@@ -1,5 +1,9 @@
 node_modules
+bower_components
 .idea
 512M.bin
 coverage
 .env
+index.html
+test.js
+test/sdk/BigBuckBunny_320x180.mp4

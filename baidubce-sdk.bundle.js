@@ -25747,7 +25747,7 @@ return Q;
 },{}],188:[function(require,module,exports){
 module.exports={
   "name": "bce-sdk-js",
-  "version": "0.2.3",
+  "version": "0.2.7",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
@@ -29020,7 +29020,11 @@ HttpClient.prototype._sendRequest = function (req, data) {
 };
 
 HttpClient.prototype.buildQueryString = function (params) {
-    return require('querystring').stringify(params);
+    var urlEncodeStr = require('querystring').stringify(params);
+    // https://en.wikipedia.org/wiki/Percent-encoding
+    return urlEncodeStr.replace(/[()'!~.*\-_]/g, function (char) {
+        return '%' + char.charCodeAt().toString(16);
+    });
 };
 
 HttpClient.prototype._getRequestUrl = function (path, params) {
@@ -31984,6 +31988,25 @@ Media.prototype.get = function (opt_mediaId) {
 };
 
 /**
+ * 获取音视频媒资的源文件下载地址
+ *
+ * @param {string?} opt_mediaId 媒资Id.
+ * @param {number?} opt_expiredInSeconds 过期时间，单位(s)
+ *
+ * @return {Promise.<Object>}
+ */
+Media.prototype.getDownloadUrl = function (opt_mediaId, opt_expiredInSeconds) {
+    var expiredInSeconds = opt_expiredInSeconds || 60 * 60 * 24;   // 默认1天
+    var url = this._buildUrl(opt_mediaId || this._mediaId);
+    return this.sendRequest('GET', url, {
+        params: {
+            sourcedownload: '',
+            expiredInSeconds: expiredInSeconds
+        }
+    });
+};
+
+/**
  * 更新指定媒资
  *
  * @param {string} title The media title.
@@ -32646,6 +32669,10 @@ VodClient.prototype.deleteMediaResource = function (mediaId, options) {
 
 VodClient.prototype.getPlayableUrl = function (mediaId, transcodingPresetName) {
     return new Player(this.config).setMediaId(mediaId).delivery(transcodingPresetName);
+};
+
+VodClient.prototype.getDownloadUrl = function (mediaId, expiredInSeconds) {
+    return new Media(this.config).getDownloadUrl(mediaId, expiredInSeconds);
 };
 
 VodClient.prototype.getPlayerCode = function (mediaId, width, height, autoStart, options) {
