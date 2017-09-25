@@ -39,3 +39,5 @@ crypto:
 
 vod:
 	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/vod_client.spec.js
+tsdb:
+	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/tsdb_client.spec.js

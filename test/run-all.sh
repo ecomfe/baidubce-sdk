@@ -33,6 +33,10 @@ export OCR_ENDPOINT=http://ocr.bj.baidubce.com
 export OCR_AK=${ONLINE_AK}
 export OCR_SK=${ONLINE_SK}
 
+export TSDB_ENDPOINT=http://10.107.40.57:8012
+export TSDB_AK=${ONLINE_AK}
+export TSDB_SK=${ONLINE_SK}
+
 # QNS问题多多
 # env QNS_ENDPOINT=http://qns.bj.baidubce.com QNS_AK=${ONLINE_AK} QNS_SK=${ONLINE_SK} make qns
 
