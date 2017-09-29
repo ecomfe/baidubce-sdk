@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * @file src/tsdb_client.js
+ * @file src/tsdbAdmin_client.js
  * @author lidandan
  */
 
@@ -25,14 +25,14 @@ var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
 
 /**
- *TSDB service api
+ *TSDB_Admin service api
  *
  * @constructor
  * @param {Object} config The tsdb client configuration.
  * @extends {BceBaseClient}
  */
 
-function TsdbClient(config) {
+function TsdbAdminClient(config) {
     BceBaseClient.call(this, config, 'tsdb', true);
 
     /**
@@ -40,59 +40,49 @@ function TsdbClient(config) {
      */
     this._httpAgent = null;
 }
-util.inherits(TsdbClient, BceBaseClient);
+util.inherits(TsdbAdminClient, BceBaseClient);
 
 // --- B E G I N ---
 
-TsdbClient.prototype.writeDatapoints = function (database, datapoints, options) {
+TsdbAdminClient.prototype.createDatabase = function (clientToken, databaseName,
+    ingestDataPointsMonthly, purchaseLength, description, options) {
     var options = options || {};
+    var url = '/v1/database';
     var params = {
-        database: database,
-        query: ''
+        clientToken: clientToken
     };
-    var url = '/v1/datapoint';
 
     return this.sendRequest('POST', url, {
-        body: JSON.stringify({datapoints: datapoints}),
         params: params,
+        body: JSON.stringify({
+            databaseName: databaseName,
+            ingestDataPointsMonthly: ingestDataPointsMonthly,
+            purchaseLength: purchaseLength,
+            description: description
+        }),
         config: options.config
     });
 };
 
-TsdbClient.prototype.getMetrics = function (database, options) {
+TsdbAdminClient.prototype.deleteDatabase = function (databaseId, options) {
     var options = options || {};
+    var url = '/v1/database/' + databaseId;
     var params = {
-        database: database,
+        databaseId: databaseId,
         query: ''
     };
 
-    return this.sendRequest('GET', '/v1/metric', {
+    return this.sendRequest('DELETE', url, {
         params: params,
         config: options.config
     });
 };
 
-TsdbClient.prototype.getTags = function (database, metricName, options) {
+TsdbAdminClient.prototype.getDatabaseInfo = function (databaseId, options) {
     var options = options || {};
-    var url = '/v1/metric/' + metricName + '/tag';
+    var url = '/v1/database/' + databaseId;
     var params = {
-        database: database,
-        metricName: metricName,
-        query: ''
-    };
-
-    return this.sendRequest('GET', url, {
-        params: params,
-        config: options.config
-    });
-};
-
-TsdbClient.prototype.getFields = function (database, metricName, options) {
-    var options = options || {};
-    var url = '/v1/metric/' + metricName + '/field';
-    var params = {
-        database: database,
-        metricName: metricName,
+        databaseId: databaseId,
         query: ''
     };
 
@@ -102,42 +92,14 @@ TsdbClient.prototype.getFields = function (database, metricName, options) {
     });
 };
 
-TsdbClient.prototype.getDatapoints = function (database, queryList, options) {
+TsdbAdminClient.prototype.listDatabase = function (options) {
     var options = options || {};
-    var url = '/v1/datapoint';
-    var params = u.extend({
-            database: database,
-            query: '',
-            disablePresampling: false
-        },
-        u.pick(options, 'disablePresampling')
-    );
-    var headers = {};
-    headers[H.CONTENT_TYPE] = 'application/json; charset=UTF-8';
-
-    return this.sendRequest('PUT', url, {
-        headers: headers,
-        body: JSON.stringify({queries: queryList}),
-        params: params,
-        config: options.config
-    });
-};
-
-TsdbClient.prototype.getDatapoints = function (database, queryList, options) {
-    var options = options || {};
-    var url = '/v1/datapoint';
-    var params = u.extend({
-            database: database,
-            query: JSON.stringify({queries: queryList}),
-            disablePresampling: false
-        },
-        u.pick(options, 'disablePresampling')
-    );
-    var headers = {};
-    headers[H.CONTENT_TYPE] = 'application/json; charset=UTF-8';
+    var url = '/v1/database';
+    var params = {
+        query: ''
+    };
 
     return this.sendRequest('GET', url, {
-        headers: headers,
         params: params,
         config: options.config
     });
@@ -145,7 +107,7 @@ TsdbClient.prototype.getDatapoints = function (database, queryList, options) {
 
 // --- E N D ---
 
-TsdbClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
+TsdbAdminClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
     var defaultArgs = {
         metricName: null,
         database: null,
@@ -177,5 +139,4 @@ TsdbClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
         args.outputStream
     );
 };
-module.exports = TsdbClient;
-
+module.exports = TsdbAdminClient;

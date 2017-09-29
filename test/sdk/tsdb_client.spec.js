@@ -11,10 +11,8 @@
  * specific language governing permissions and limitations under the License.
  *
  * @file test/sdk/tsdb_client.spec.js
- * @author dan
+ * @author lidandan
  */
-
-var Q = require('q');
 
 var expect = require('expect.js');
 var debug = require('debug')('tsdb_client.spec');
@@ -25,6 +23,7 @@ var TsdbClient = require('../../src/tsdb_client');
 describe('TsdbClient', function () {
     var client;
     var fail;
+
     this.timeout(10 * 60 * 1000);
 
     beforeEach(function () {
@@ -36,28 +35,27 @@ describe('TsdbClient', function () {
         // nothing
     });
 
-    function delay(ms) {
-        var deferred = Q.defer();
-        setTimeout(deferred.resolve, ms);
-        return deferred.promise;
-    }
-
     it('ok', function () {});
 
     it('getMetrics', function () {
         const database = 'testgetmetriclists2';
-        return client.getMetrics(database)
+
+        return client.getMetrics(database, {
+            config: {
+                endpoint: 'http://10.107.40.57:8012'
+            }
+        })
             .then(function (response) {
                 debug('%j', response);
                 var metrics = response.body.metrics;
                 expect(metrics).not.to.be(undefined);
                 console.log(metrics[0]);
-                expect(metrics[0]).to.eql('cpu_idle');
-                expect(metrics[1]).to.eql('humidity');
-                expect(metrics[2]).to.eql('pm25');
-                expect(metrics[3]).to.eql('precipitation');
-                expect(metrics[4]).to.eql('temperature');
-                expect(metrics[5]).to.eql('wind');
+                expect(metrics[1]).to.eql('cpu_idle1');
+                expect(metrics[2]).to.eql('humidity');
+                expect(metrics[3]).to.eql('pm25');
+                expect(metrics[4]).to.eql('precipitation');
+                expect(metrics[5]).to.eql('temperature');
+                expect(metrics[6]).to.eql('wind');
             }).catch(function (error) {
                 if (error.code === 'AccessDenied') {
                     expect(error.status_code).to.eql(403);
@@ -73,46 +71,57 @@ describe('TsdbClient', function () {
     it('getTags', function () {
         const database = 'testgetmetriclists2';
         const metricName = 'humidity';
-        return client.getTags(database, metricName)
-            .then(function (response) {
-                debug('%j', response);
-                var tags = response.body.tags;
-                expect(tags).not.to.be(undefined);
-                console.log(tags[0]);
-                expect(tags.city[0]).to.eql('上海');
-                expect(tags.city[1]).to.eql('北京');
-                expect(tags.city[2]).to.eql('广州');
-            }).catch(function (error) {
-                if (error.code === 'AccessDenied') {
-                    expect(error.status_code).to.eql(403);
-                    expect(error.message).to.eql('Database does not exist');
-                    expect(error.code).to.eql('AccessDenied');
-                }
-                else {
-                    fail(error);
-                }
-            });
+
+        return client.getTags(database, metricName, {
+            config: {
+                endpoint: 'http://10.107.40.57:8012'
+            }
+        })
+        .then(function (response) {
+            debug('%j', response);
+            var tags = response.body.tags;
+            expect(tags).not.to.be(undefined);
+            console.log(tags[0]);
+            expect(tags.city[0]).to.eql('上海');
+            expect(tags.city[1]).to.eql('北京');
+            expect(tags.city[2]).to.eql('广州');
+        }).catch(function (error) {
+            if (error.code === 'AccessDenied') {
+                expect(error.status_code).to.eql(403);
+                expect(error.message).to.eql('Database does not exist');
+                expect(error.code).to.eql('AccessDenied');
+            }
+            else {
+                fail(error);
+            }
+        });
     });
 
     it('getFields', function () {
         const database = 'testgetmetriclists2';
         const metricName = 'humidity';
-        return client.getFields(database, metricName)
-            .then(function (response) {
-                var fields = response.body.fields;
-                expect(fields).not.to.be(undefined);
-                console.log(fields);
-                expect(fields).to.eql({value: {type: 'Number'}});
-            }).catch(function (error) {
-                if (error.code === 'AccessDenied') {
-                    expect(error.status_code).to.eql(403);
-                    expect(error.message).to.eql('Database does not exist');
-                    expect(error.code).to.eql('AccessDenied');
+
+        return client.getFields(database, metricName, {
+            config: {
+                    endpoint: 'http://10.107.40.57:8012'
                 }
-                else {
-                    fail(error);
-                }
-            });
+        })
+        .then(function (response) {
+            debug('%j', response);
+            var fields = response.body.fields;
+            expect(fields).not.to.be(undefined);
+            console.log(fields);
+            expect(fields).to.eql({value: {type: 'Number'}});
+        }).catch(function (error) {
+            if (error.code === 'AccessDenied') {
+                expect(error.status_code).to.eql(403);
+                expect(error.message).to.eql('Database does not exist');
+                expect(error.code).to.eql('AccessDenied');
+            }
+            else {
+                fail(error);
+            }
+        });
     });
 
     it('getDatapoints', function () {
@@ -141,28 +150,34 @@ describe('TsdbClient', function () {
                 }]
             }
         ];
-        return client.getDatapoints(database, queryList)
-            .then(function (response) {
-                expect(response.body).to.eql({
-                    "results": [
-                        {
-                            "metric": 'humidity',
-                            "field": 'value',
-                            "groups": [],
-                            "rawCount": 0
-                        }
-                    ]
-                });
-            }).catch(function (error) {
-                if (!queries[0].filters.start) {
-                    expect(error.status_code).to.eql(400);
-                    expect(error.message).to.eql('queries[0].filters.start should not be null');
-                    expect(error.code).to.eql('InvalidArgument');
-                }
-                else {
-                    fail(error);
-                }
+
+        return client.getDatapoints(database, queryList, {
+            config: {
+                endpoint: 'http://10.107.40.57:8012'
+            }
+        })
+        .then(function (response) {
+            debug('%j', response);
+            expect(response.body).to.eql({
+                "results": [
+                    {
+                        "metric": 'humidity',
+                        "field": 'value',
+                        "groups": [],
+                        "rawCount": 0
+                    }
+                ]
             });
+        }).catch(function (error) {
+            if (!queries[0].filters.start) {
+                expect(error.status_code).to.eql(400);
+                expect(error.message).to.eql('queries[0].filters.start should not be null');
+                expect(error.code).to.eql('InvalidArgument');
+            }
+            else {
+                fail(error);
+            }
+        });
     });
 
     it('writeDatapoints', function () {
@@ -186,43 +201,64 @@ describe('TsdbClient', function () {
                     [1465376325057, 60]
                 ]
             }];
-        return client.writeDatapoints(database, datapoints)
-            .then(function (response) {
-                return client.getMetrics(database);
-            })
-            .then(function (response) {
-                var metrics = response.body.metrics;
-                expect(metrics).not.to.be(undefined);
-                expect(metrics[0]).to.eql("cpu_idle");
-            })
-            .then(function () {
-                const metricName = "cpu_idle";
-                return client.getTags(database, metricName);
-            })
-            .then(function (response) {
-                debug('%j', response);
-                var tags = response.body.tags;
-                expect(tags).not.to.be(undefined);
-                expect(tags).to.eql({
-                    "rack": [ 
-                        'rack1',
-                        'rack2'
-                    ],
-                    "host": [
-                        'server1',
-                        'server2'
-                    ]
-                });
-            })
-            .then(function () {
-                const metricName = "cpu_idle";
-                return client.getFields(database, metricName);
-            })
-            .then(function (response) {
-                var fields = response.body.fields;
-                expect(fields).not.to.be(undefined);
-                console.log(fields);
-                expect(fields).to.eql({value: {type: 'Number'}});
+
+        return client.writeDatapoints(database, datapoints, {
+            config: {
+                endpoint: 'http://10.107.40.57:8012'
+            }
+        })
+        .then(function (response) {
+
+            return client.getMetrics(database, {
+                config: {
+                    endpoint: 'http://10.107.40.57:8012'
+                }
             });
+        })
+        .then(function (response) {
+            debug('%j', response);
+            var metrics = response.body.metrics;
+            expect(metrics).not.to.be(undefined);
+            expect(metrics[0]).to.eql("cpu_idle");
+        })
+        .then(function () {
+            const metricName = "cpu_idle";
+
+            return client.getTags(database, metricName, {
+                config: {
+                    endpoint: 'http://10.107.40.57:8012'
+                }
+            });
+        })
+        .then(function (response) {
+            debug('%j', response);
+            var tags = response.body.tags;
+            expect(tags).not.to.be(undefined);
+            expect(tags).to.eql({
+                "rack": [
+                    'rack1',
+                    'rack2'
+                ],
+                "host": [
+                    'server1',
+                    'server2'
+                ]
+            });
+        })
+        .then(function () {
+            const metricName = "cpu_idle";
+            
+            return client.getFields(database, metricName, {
+                config: {
+                    endpoint: 'http://10.107.40.57:8012'
+                }
+            });
+        })
+        .then(function (response) {
+            debug('%j', response);
+            var fields = response.body.fields;
+            expect(fields).not.to.be(undefined);
+            expect(fields).to.eql({value: {type: 'Number'}});
+        });
     });
 });
