@@ -38,11 +38,11 @@ describe('TsdbClient', function () {
     it('ok', function () {});
 
     it('getMetrics', function () {
-        const database = 'testgetmetriclists2';
+        const database = 'deededde';
 
         return client.getMetrics(database, {
             config: {
-                endpoint: 'http://10.107.40.57:8012'
+                endpoint: 'http://testdb.tsdb.iot.bj.baidubce.com'
             }
         })
             .then(function (response) {
@@ -51,11 +51,8 @@ describe('TsdbClient', function () {
                 expect(metrics).not.to.be(undefined);
                 console.log(metrics[0]);
                 expect(metrics[1]).to.eql('cpu_idle1');
-                expect(metrics[2]).to.eql('humidity');
-                expect(metrics[3]).to.eql('pm25');
-                expect(metrics[4]).to.eql('precipitation');
-                expect(metrics[5]).to.eql('temperature');
-                expect(metrics[6]).to.eql('wind');
+                expect(metrics[2]).to.eql('cpu_idle2');
+                expect(metrics[3]).to.eql('cpu_idle3');
             }).catch(function (error) {
                 if (error.code === 'AccessDenied') {
                     expect(error.status_code).to.eql(403);
@@ -69,12 +66,12 @@ describe('TsdbClient', function () {
     });
 
     it('getTags', function () {
-        const database = 'testgetmetriclists2';
+        const database = 'deededde';
         const metricName = 'humidity';
 
         return client.getTags(database, metricName, {
             config: {
-                endpoint: 'http://10.107.40.57:8012'
+                endpoint: 'http://testdb.tsdb.iot.bj.baidubce.com'
             }
         })
         .then(function (response) {
@@ -98,12 +95,12 @@ describe('TsdbClient', function () {
     });
 
     it('getFields', function () {
-        const database = 'testgetmetriclists2';
+        const database = 'deededde';
         const metricName = 'humidity';
 
         return client.getFields(database, metricName, {
             config: {
-                    endpoint: 'http://10.107.40.57:8012'
+                    endpoint: 'http://testdb.tsdb.iot.bj.baidubce.com'
                 }
         })
         .then(function (response) {
@@ -125,7 +122,7 @@ describe('TsdbClient', function () {
     });
 
     it('getDatapoints', function () {
-        const database = 'testgetmetriclists2';
+        const database = 'deededde';
         var queryList = [
             {
                 "metric": "humidity",
@@ -153,7 +150,7 @@ describe('TsdbClient', function () {
 
         return client.getDatapoints(database, queryList, {
             config: {
-                endpoint: 'http://10.107.40.57:8012'
+                endpoint: 'http://testdb.tsdb.iot.bj.baidubce.com'
             }
         })
         .then(function (response) {
@@ -163,11 +160,27 @@ describe('TsdbClient', function () {
                     {
                         "metric": 'humidity',
                         "field": 'value',
-                        "groups": [],
+                        "groups": [{
+                            "groupInfos": [],
+                            "values": []
+                        }],
                         "rawCount": 0
                     }
                 ]
             });
+
+            return client.generatePresignedUrl(database, queryList, 0, 1800, null, {});
+        })
+        .then(function (url) {
+            debug('url = %s', url);
+            // 浏览器输入url可查看datapoint
+            console.log(url);
+
+            return helper.get(url);
+        })
+        .then(function (body) {
+            // body.toString()的结果与getDatapoints的返回结果一致
+            console.log(body.toString());
         }).catch(function (error) {
             if (!queries[0].filters.start) {
                 expect(error.status_code).to.eql(400);
@@ -181,7 +194,7 @@ describe('TsdbClient', function () {
     });
 
     it('writeDatapoints', function () {
-        const database = 'testgetmetriclists2';
+        const database = 'deededde';
         var datapoints = [{
                 "metric": "cpu_idle",
                 "tags": {
@@ -204,14 +217,14 @@ describe('TsdbClient', function () {
 
         return client.writeDatapoints(database, datapoints, {
             config: {
-                endpoint: 'http://10.107.40.57:8012'
+                endpoint: 'http://testdb.tsdb.iot.bj.baidubce.com'
             }
         })
         .then(function (response) {
 
             return client.getMetrics(database, {
                 config: {
-                    endpoint: 'http://10.107.40.57:8012'
+                    endpoint: 'http://testdb.tsdb.iot.bj.baidubce.com'
                 }
             });
         })
@@ -226,7 +239,7 @@ describe('TsdbClient', function () {
 
             return client.getTags(database, metricName, {
                 config: {
-                    endpoint: 'http://10.107.40.57:8012'
+                    endpoint: 'http://testdb.tsdb.iot.bj.baidubce.com'
                 }
             });
         })
@@ -250,7 +263,7 @@ describe('TsdbClient', function () {
             
             return client.getFields(database, metricName, {
                 config: {
-                    endpoint: 'http://10.107.40.57:8012'
+                    endpoint: 'http://testdb.tsdb.iot.bj.baidubce.com'
                 }
             });
         })

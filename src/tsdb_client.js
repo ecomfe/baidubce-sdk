@@ -18,9 +18,13 @@
 /* eslint max-params:[0,10] */
 
 var util = require('util');
+var path = require('path');
 var u = require('underscore');
-var H = require('./headers');
+var qs = require('querystring');
 
+var strings = require('./strings');
+var H = require('./headers');
+var Auth = require('./auth.js');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
 
@@ -44,8 +48,9 @@ util.inherits(TsdbClient, BceBaseClient);
 
 // --- B E G I N ---
 
-TsdbClient.prototype.writeDatapoints = function (database, datapoints, options) {
+TsdbClient.prototype.writeDatapoints = function (database, datapoints, useGzip, options) {
     var options = options || {};
+    var useGzip = true;
     var params = {
         database: database,
         query: ''
@@ -141,6 +146,41 @@ TsdbClient.prototype.getDatapoints = function (database, queryList, options) {
         params: params,
         config: options.config
     });
+};
+
+
+TsdbClient.prototype.generatePresignedUrl = function (database, queryList, timestamp,
+                                                     expirationInSeconds, headers, params, headersToSign, config) {
+    var options = options || {};
+    var config = u.extend({}, this.config, config);
+    var resource = '/v1/datapoint';
+    var params = u.extend({
+            database: database,
+            query: JSON.stringify({queries: queryList}),
+            disablePresampling: false
+        },
+        u.pick(options, 'disablePresampling')
+    );
+    headers = headers || {};
+    headers.Host = require('url').parse(config.endpoint).host;
+
+    var credentials = config.credentials;
+    var auth = new Auth(credentials.ak, credentials.sk);
+    var authorization = auth.generateAuthorization(
+        'GET', resource, params, headers, timestamp, expirationInSeconds,
+        headersToSign);
+    params.authorization = authorization;
+    
+    return util.format('%s%s?%s', config.endpoint, resource, qs.encode(params));
+};
+
+TsdbClient.prototype.createSignature = function (credentials, httpMethod, path, params, headers) {
+    var auth = new Auth(credentials.ak, credentials.sk);
+    // 不能对content-type,content-length,content-md5进行签名
+    // 不能对x-bce-request-id进行签名
+    var headersToSign = ['host'];
+
+    return auth.generateAuthorization(httpMethod, path, params, headers, 0, 0, headersToSign);
 };
 
 // --- E N D ---

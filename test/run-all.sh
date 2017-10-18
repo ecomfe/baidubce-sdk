@@ -71,7 +71,7 @@ SPECS=(
   test/sdk/vod_client.spec.js
   test/sdk/vod_client_media.spec.js
   test/sdk/tsdb_client.spec.js
-  test/sdk/tsdbAdmin_client.spec.js
+  test/sdk/tsdb_admin_client.spec.js
 )
 
 # SPECS=(

@@ -10,17 +10,17 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * @file test/sdk/tsdbAdmin_client.spec.js
+ * @file test/sdk/tsdb_admin_client.spec.js
  * @author lidandan
  */
 
 var UUID = require('uuid');
 
 var expect = require('expect.js');
-var debug = require('debug')('tsdbAdmin_client.spec');
+var debug = require('debug')('tsdb_admin_client.spec');
 var config = require('../config');
 var helper = require('./helper');
-var TsdbAdminClient = require('../../src/tsdbAdmin_client');
+var TsdbAdminClient = require('../../src/tsdb_admin_client');
 
 describe('TsdbAdminClient', function () {
     var client;
@@ -41,52 +41,77 @@ describe('TsdbAdminClient', function () {
 
     it('listDatabase', function () {
 
-        return client.listDatabase()
-            .then(function (response) {
-                expect(response.body.databases[0].databaseId).to.eql('tsdb-dvb9we5yfkcc');
-            });
+        return client.listDatabase({
+            config: {
+                endpoint: 'http://tsdb.bj.baidubce.com'
+            }
+        })
+        .then(function (response) {
+            expect(response.body.databases[0].databaseId).to.eql('tsdb-bijp4a929tcr');
+        });
     });
 
     it('createDatabase', function () {
         var clientToken = UUID.v4();
         var ingestDataPointsMonthly = 1;
         var purchaseLength = 1;
-        var databaseName = 'testcrdbdan';
-        var description = 'This is just a test for TSDB.';
+        var databaseName = 'testcrdb';
+        var description = 'This is a test for TSDB.';
 
         return client.createDatabase(clientToken, databaseName,
-            ingestDataPointsMonthly, purchaseLength, description)
+            ingestDataPointsMonthly, purchaseLength, description, {
+                    config: {
+                        endpoint: 'http://tsdb.bj.baidubce.com'
+                    }
+                })
             .then(function () {
-                return client.listDatabase();
+                return client.listDatabase({
+                    config: {
+                        endpoint: 'http://tsdb.bj.baidubce.com'
+                    }
+                });
             })
             .then(function (response) {
                 debug('%j', response);
                 var length = response.body.databases.length;
                 console.log(length);
-                expect(response.body.databases[length - 1].databaseName).to.eql('testcrdbdan');
+                expect(response.body.databases[length - 1].databaseName).to.eql('testcrdb');
                 var databaseId = response.body.databases[length - 1].databaseId;
-                return client.getDatabaseInfo(databaseId);
+                return client.getDatabaseInfo(databaseId, {
+                    config: {
+                        endpoint: 'http://tsdb.bj.baidubce.com'
+                    }
+                });
             })
             .then(function (response) {
                 debug('%j', response);
-                expect(response.body.databaseName).to.eql('testcrdbdan');
-                expect(response.body.description).to.eql('This is just a test for TSDB.');
+                expect(response.body.databaseName).to.eql('testcrdb');
+                expect(response.body.description).to.eql('This is a test for TSDB.');
                 expect(response.body.endpoint).to.eql(databaseName + '.tsdb.iot.gz.baidubce.com');
                 expect(response.body.quota).to.eql('ingestDataPointsMonthly:' + ingestDataPointsMonthly);
                 expect(response.body.status).to.eql('Active');
                     // 重复创建
                 return client.createDatabase(clientToken, databaseName,
-                ingestDataPointsMonthly, purchaseLength, description);
+                ingestDataPointsMonthly, purchaseLength, description, {
+                    config: {
+                        endpoint: 'http://tsdb.bj.baidubce.com'
+                    }
+                });
+                // 账户余额不足，则创建失败
             }).catch(function (error) {
                 expect(error.status_code).to.eql(400);
-                expect(error.code).to.eql('DatabaseNameNotAvailable');
-                expect(error.message).to.eql('Database name already exists');
+                expect(error.code).to.eql('AccountMoneyNotEnough');
+                expect(error.message).to.eql('The account balance does not have enough money');
             });
     });
 
     it('deleteDatabase', function () {
-        var databaseId = 'tsdb-dvb9we5yfkcc';
-        client.deleteDatabase(databaseId)
+        var databaseId = 'tsdb-hecpr3dvuezd';
+        client.deleteDatabase(databaseId, {
+            config: {
+                endpoint: 'http://tsdb.bj.baidubce.com'
+            }
+        })
         .then(function (response) {
             debug('%j', response);
             expect(response.body).to.eql({});
