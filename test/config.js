@@ -103,19 +103,17 @@ module.exports = {
         }
     },
     'tsdbData': {
-        // 'endpoint': 'http://testdb.tsdb.iot.bj.baidubce.com',
-        'endpoint': process.env.TSDB_DATA_ENDPOINT,
+        'endpoint': 'http://10.107.40.57:8012',
         'credentials': {
-            'ak': process.env.TSDB_AK,
-            'sk': process.env.TSDB_SK
+            'ak': 'fc375540f44e4728884a4b86dc50340b',
+            'sk': '9db8de13f5d141b5a3d38f6dd937fba2'
         }
     },
     'tsdbAdmin': {
-        // 'endpoint': 'http://tsdb.bj.baidubce.com',
-        'endpoint': process.env.TSDB_ADMIN_ENDPOINT,
+        'endpoint': 'http://10.107.40.57:8689',
         'credentials': {
-            'ak': process.env.TSDB_AK,
-            'sk': process.env.TSDB_SK
+            'ak': 'fc375540f44e4728884a4b86dc50340b',
+            'sk': '9db8de13f5d141b5a3d38f6dd937fba2'
         }
     }
 };
