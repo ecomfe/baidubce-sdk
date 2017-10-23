@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  *
- * @file src/tsdb_client.js
+ * @file src/tsdb_data_client.js
  * @author lidandan
  */
 
@@ -29,26 +29,26 @@ var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
 
 /**
- *TSDB service api
+ *TSDB_Data service api
  *
  * @constructor
- * @param {Object} config The tsdb client configuration.
+ * @param {Object} config The tsdb_data client configuration.
  * @extends {BceBaseClient}
  */
 
-function TsdbClient(config) {
-    BceBaseClient.call(this, config, 'tsdb', true);
+function TsdbDataClient(config) {
+    BceBaseClient.call(this, config, 'tsdbData', true);
 
     /**
      * @type {HttpClient}
      */
     this._httpAgent = null;
 }
-util.inherits(TsdbClient, BceBaseClient);
+util.inherits(TsdbDataClient, BceBaseClient);
 
 // --- B E G I N ---
 
-TsdbClient.prototype.writeDatapoints = function (database, datapoints, useGzip, options) {
+TsdbDataClient.prototype.writeDatapoints = function (database, datapoints, useGzip, options) {
     var options = options || {};
     var useGzip = true;
     var params = {
@@ -64,7 +64,7 @@ TsdbClient.prototype.writeDatapoints = function (database, datapoints, useGzip, 
     });
 };
 
-TsdbClient.prototype.getMetrics = function (database, options) {
+TsdbDataClient.prototype.getMetrics = function (database, options) {
     var options = options || {};
     var params = {
         database: database,
@@ -77,7 +77,7 @@ TsdbClient.prototype.getMetrics = function (database, options) {
     });
 };
 
-TsdbClient.prototype.getTags = function (database, metricName, options) {
+TsdbDataClient.prototype.getTags = function (database, metricName, options) {
     var options = options || {};
     var url = '/v1/metric/' + metricName + '/tag';
     var params = {
@@ -92,7 +92,7 @@ TsdbClient.prototype.getTags = function (database, metricName, options) {
     });
 };
 
-TsdbClient.prototype.getFields = function (database, metricName, options) {
+TsdbDataClient.prototype.getFields = function (database, metricName, options) {
     var options = options || {};
     var url = '/v1/metric/' + metricName + '/field';
     var params = {
@@ -107,7 +107,7 @@ TsdbClient.prototype.getFields = function (database, metricName, options) {
     });
 };
 
-TsdbClient.prototype.getDatapoints = function (database, queryList, options) {
+TsdbDataClient.prototype.getDatapoints = function (database, queryList, options) {
     var options = options || {};
     var url = '/v1/datapoint';
     var params = u.extend({
@@ -128,7 +128,7 @@ TsdbClient.prototype.getDatapoints = function (database, queryList, options) {
     });
 };
 
-TsdbClient.prototype.getDatapoints = function (database, queryList, options) {
+TsdbDataClient.prototype.getDatapoints = function (database, queryList, options) {
     var options = options || {};
     var url = '/v1/datapoint';
     var params = u.extend({
@@ -149,7 +149,7 @@ TsdbClient.prototype.getDatapoints = function (database, queryList, options) {
 };
 
 
-TsdbClient.prototype.generatePresignedUrl = function (database, queryList, timestamp,
+TsdbDataClient.prototype.generatePresignedUrl = function (database, queryList, timestamp,
                                                      expirationInSeconds, headers, params, headersToSign, config) {
     var options = options || {};
     var config = u.extend({}, this.config, config);
@@ -174,7 +174,7 @@ TsdbClient.prototype.generatePresignedUrl = function (database, queryList, times
     return util.format('%s%s?%s', config.endpoint, resource, qs.encode(params));
 };
 
-TsdbClient.prototype.createSignature = function (credentials, httpMethod, path, params, headers) {
+TsdbDataClient.prototype.createSignature = function (credentials, httpMethod, path, params, headers) {
     var auth = new Auth(credentials.ak, credentials.sk);
     // 不能对content-type,content-length,content-md5进行签名
     // 不能对x-bce-request-id进行签名
@@ -185,7 +185,7 @@ TsdbClient.prototype.createSignature = function (credentials, httpMethod, path, 
 
 // --- E N D ---
 
-TsdbClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
+TsdbDataClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
     var defaultArgs = {
         metricName: null,
         database: null,
@@ -217,5 +217,5 @@ TsdbClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
         args.outputStream
     );
 };
-module.exports = TsdbClient;
+module.exports = TsdbDataClient;
 

@@ -28,12 +28,12 @@ var BceBaseClient = require('./bce_base_client');
  *TSDB_Admin service api
  *
  * @constructor
- * @param {Object} config The tsdb client configuration.
+ * @param {Object} config The tsdb_ADMIN client configuration.
  * @extends {BceBaseClient}
  */
 
 function TsdbAdminClient(config) {
-    BceBaseClient.call(this, config, 'tsdb', true);
+    BceBaseClient.call(this, config, 'tsdbAdmin', true);
 
     /**
      * @type {HttpClient}
