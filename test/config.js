@@ -103,19 +103,17 @@ module.exports = {
         }
     },
     'tsdbData': {
-        // 'endpoint': 'http://testdb.tsdb.iot.bj.baidubce.com',
         'endpoint': process.env.TSDB_DATA_ENDPOINT,
         'credentials': {
             'ak': process.env.TSDB_AK,
-            'sk': process.env.TSDB_SK
+            'sk': process.env.TSDB_AK
         }
     },
     'tsdbAdmin': {
-        // 'endpoint': 'http://tsdb.bj.baidubce.com',
         'endpoint': process.env.TSDB_ADMIN_ENDPOINT,
         'credentials': {
             'ak': process.env.TSDB_AK,
-            'sk': process.env.TSDB_SK
+            'sk': process.env.TSDB_AK
         }
     }
 };

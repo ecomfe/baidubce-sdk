@@ -33,7 +33,7 @@ var BceBaseClient = require('./bce_base_client');
  */
 
 function TsdbAdminClient(config) {
-    BceBaseClient.call(this, config, 'tsdbAdmin', true);
+    BceBaseClient.call(this, config, 'tsdb', true);
 
     /**
      * @type {HttpClient}
