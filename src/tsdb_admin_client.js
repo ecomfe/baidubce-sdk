@@ -58,7 +58,7 @@ TsdbAdminClient.prototype.createDatabase = function (clientToken, databaseName,
             databaseName: databaseName,
             ingestDataPointsMonthly: ingestDataPointsMonthly,
             purchaseLength: purchaseLength,
-            couponName: couponName
+            couponName: couponName,
             description: description
         }),
         config: options.config
