@@ -45,7 +45,7 @@ util.inherits(TsdbAdminClient, BceBaseClient);
 // --- B E G I N ---
 
 TsdbAdminClient.prototype.createDatabase = function (clientToken, databaseName,
-    ingestDataPointsMonthly, purchaseLength, description, options) {
+    ingestDataPointsMonthly, purchaseLength, description, couponName, options) {
     var options = options || {};
     var url = '/v1/database';
     var params = {
@@ -58,6 +58,7 @@ TsdbAdminClient.prototype.createDatabase = function (clientToken, databaseName,
             databaseName: databaseName,
             ingestDataPointsMonthly: ingestDataPointsMonthly,
             purchaseLength: purchaseLength,
+            couponName: couponName,
             description: description
         }),
         config: options.config

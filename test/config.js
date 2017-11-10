@@ -103,17 +103,17 @@ module.exports = {
         }
     },
     'tsdbData': {
-        'endpoint': 'http://10.107.40.57:8012',
+        'endpoint': process.env.TSDB_DATA_ENDPOINT,
         'credentials': {
-            'ak': 'fc375540f44e4728884a4b86dc50340b',
-            'sk': '9db8de13f5d141b5a3d38f6dd937fba2'
+            'ak': process.env.TSDB_AK,
+            'sk': process.env.TSDB_AK
         }
     },
     'tsdbAdmin': {
-        'endpoint': 'http://10.107.40.57:8689',
+        'endpoint': process.env.TSDB_ADMIN_ENDPOINT,
         'credentials': {
-            'ak': 'fc375540f44e4728884a4b86dc50340b',
-            'sk': '9db8de13f5d141b5a3d38f6dd937fba2'
+            'ak': process.env.TSDB_AK,
+            'sk': process.env.TSDB_AK
         }
     }
 };
