@@ -123,13 +123,13 @@ describe('TsdbDataClient', function () {
                 purchaseLength, description)
             .then(function () {
 
-                return clientData.writeDatapoints(databaseName, datapoints);
+                return clientData.writeDatapoints(datapoints);
             })
             .then(function (response) {
 
                 return delay(4000).then(function () {
 
-                    return clientData.getMetrics(databaseName);
+                    return clientData.getMetrics();
                 });
             })
             .then(function (response) {
@@ -140,7 +140,7 @@ describe('TsdbDataClient', function () {
                 var metricName = metrics[0];
                 console.log(metricName);
 
-                return clientData.getTags(databaseName, metricName);
+                return clientData.getTags(metricName);
             })
             .then(function (response) {
                 debug('%j', response);
@@ -154,14 +154,14 @@ describe('TsdbDataClient', function () {
             .then(function () {
                 var metricName = 'cpu_idle';
 
-                return clientData.getFields(databaseName, metricName);
+                return clientData.getFields(metricName);
             })
             .then(function (response) {
                 debug('%j', response);
                 var fields = response.body.fields;
                 expect(fields).to.eql({value: {type: 'Number'}});
             
-                return clientData.getDatapoints(databaseName, queryList);
+                return clientData.getDatapoints(queryList);
             })
             .then(function (response) {
                 debug('%j', response);
@@ -169,7 +169,7 @@ describe('TsdbDataClient', function () {
                 expect(response.body.results[0].field).to.be.eql('value');
                 expect(response.body.results[0].rawCount).to.be.eql('2');
 
-                return clientData.generatePresignedUrl(databaseName, queryList, 0, 1800, null, {});
+                return clientData.generatePresignedUrl(queryList, 0, 1800, null, {});
             })
             .then(function (url) {
                 debug('url = %s', url);
