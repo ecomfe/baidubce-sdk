@@ -48,11 +48,10 @@ util.inherits(TsdbDataClient, BceBaseClient);
 
 // --- B E G I N ---
 
-TsdbDataClient.prototype.writeDatapoints = function (database, datapoints, useGzip, options) {
+TsdbDataClient.prototype.writeDatapoints = function (datapoints, useGzip, options) {
     var options = options || {};
     var useGzip = true;
     var params = {
-        database: database,
         query: ''
     };
     var url = '/v1/datapoint';
@@ -64,10 +63,9 @@ TsdbDataClient.prototype.writeDatapoints = function (database, datapoints, useGz
     });
 };
 
-TsdbDataClient.prototype.getMetrics = function (database, options) {
+TsdbDataClient.prototype.getMetrics = function (options) {
     var options = options || {};
     var params = {
-        database: database,
         query: ''
     };
 
@@ -77,11 +75,10 @@ TsdbDataClient.prototype.getMetrics = function (database, options) {
     });
 };
 
-TsdbDataClient.prototype.getTags = function (database, metricName, options) {
+TsdbDataClient.prototype.getTags = function (metricName, options) {
     var options = options || {};
     var url = '/v1/metric/' + metricName + '/tag';
     var params = {
-        database: database,
         metricName: metricName,
         query: ''
     };
@@ -92,11 +89,10 @@ TsdbDataClient.prototype.getTags = function (database, metricName, options) {
     });
 };
 
-TsdbDataClient.prototype.getFields = function (database, metricName, options) {
+TsdbDataClient.prototype.getFields = function (metricName, options) {
     var options = options || {};
     var url = '/v1/metric/' + metricName + '/field';
     var params = {
-        database: database,
         metricName: metricName,
         query: ''
     };
@@ -107,11 +103,10 @@ TsdbDataClient.prototype.getFields = function (database, metricName, options) {
     });
 };
 
-TsdbDataClient.prototype.getDatapoints = function (database, queryList, options) {
+TsdbDataClient.prototype.getDatapoints = function (queryList, options) {
     var options = options || {};
     var url = '/v1/datapoint';
     var params = u.extend({
-            database: database,
             query: '',
             disablePresampling: false
         },
@@ -128,11 +123,10 @@ TsdbDataClient.prototype.getDatapoints = function (database, queryList, options)
     });
 };
 
-TsdbDataClient.prototype.getDatapoints = function (database, queryList, options) {
+TsdbDataClient.prototype.getDatapoints = function (queryList, options) {
     var options = options || {};
     var url = '/v1/datapoint';
     var params = u.extend({
-            database: database,
             query: JSON.stringify({queries: queryList}),
             disablePresampling: false
         },
@@ -149,13 +143,12 @@ TsdbDataClient.prototype.getDatapoints = function (database, queryList, options)
 };
 
 
-TsdbDataClient.prototype.generatePresignedUrl = function (database, queryList, timestamp,
+TsdbDataClient.prototype.generatePresignedUrl = function (queryList, timestamp,
                                                      expirationInSeconds, headers, params, headersToSign, config) {
     var options = options || {};
     var config = u.extend({}, this.config, config);
     var resource = '/v1/datapoint';
     var params = u.extend({
-            database: database,
             query: JSON.stringify({queries: queryList}),
             disablePresampling: false
         },
@@ -188,7 +181,6 @@ TsdbDataClient.prototype.createSignature = function (credentials, httpMethod, pa
 TsdbDataClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
     var defaultArgs = {
         metricName: null,
-        database: null,
         key: null,
         body: null,
         headers: {},
