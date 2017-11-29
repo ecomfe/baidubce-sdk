@@ -31,6 +31,8 @@ exports.MimeType = require('./src/mime.types');
 exports.STS = require('./src/sts');
 exports.VodClient = require('./src/vod_client');
 exports.DocClient = require('./src/doc_client');
+exports.TsdbDataClient = require('./src/tsdb_data_client');
+exports.TsdbAdminClient = require('./src/tsdb_admin_client');
 
 
 
