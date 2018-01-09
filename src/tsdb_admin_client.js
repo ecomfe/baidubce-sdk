@@ -19,7 +19,6 @@
 
 var util = require('util');
 var u = require('underscore');
-var H = require('./headers');
 
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
@@ -27,11 +26,10 @@ var BceBaseClient = require('./bce_base_client');
 /**
  *TSDB_Admin service api
  *
- * @constructor
+ * @class
  * @param {Object} config The tsdb_admin client configuration.
  * @extends {BceBaseClient}
  */
-
 function TsdbAdminClient(config) {
     BceBaseClient.call(this, config, 'tsdb', true);
 
@@ -46,7 +44,7 @@ util.inherits(TsdbAdminClient, BceBaseClient);
 
 TsdbAdminClient.prototype.createDatabase = function (clientToken, databaseName,
     ingestDataPointsMonthly, purchaseLength, description, couponName, options) {
-    var options = options || {};
+    options = options || {};
     var url = '/v1/database';
     var params = {
         clientToken: clientToken
@@ -66,7 +64,7 @@ TsdbAdminClient.prototype.createDatabase = function (clientToken, databaseName,
 };
 
 TsdbAdminClient.prototype.deleteDatabase = function (databaseId, options) {
-    var options = options || {};
+    options = options || {};
     var url = '/v1/database/' + databaseId;
     var params = {
         databaseId: databaseId,
@@ -80,7 +78,7 @@ TsdbAdminClient.prototype.deleteDatabase = function (databaseId, options) {
 };
 
 TsdbAdminClient.prototype.getDatabaseInfo = function (databaseId, options) {
-    var options = options || {};
+    options = options || {};
     var url = '/v1/database/' + databaseId;
     var params = {
         databaseId: databaseId,
@@ -94,7 +92,7 @@ TsdbAdminClient.prototype.getDatabaseInfo = function (databaseId, options) {
 };
 
 TsdbAdminClient.prototype.listDatabase = function (options) {
-    var options = options || {};
+    options = options || {};
     var url = '/v1/database';
     var params = {
         query: ''

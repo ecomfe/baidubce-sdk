@@ -273,7 +273,7 @@ HttpClient.prototype._recvResponse = function (res) {
     var deferred = Q.defer();
 
     var payload = [];
-    /*eslint-disable*/
+    /* eslint-disable */
     res.on('data', function (chunk) {
         if (Buffer.isBuffer(chunk)) {
             payload.push(chunk);
@@ -286,7 +286,7 @@ HttpClient.prototype._recvResponse = function (res) {
     res.on('error', function (e) {
         deferred.reject(e);
     });
-    /*eslint-enable*/
+    /* eslint-enable */
     res.on('end', function () {
         var raw = Buffer.concat(payload);
         var responseBody = null;
@@ -319,7 +319,7 @@ HttpClient.prototype._recvResponse = function (res) {
     return deferred.promise;
 };
 
-/*eslint-disable*/
+/* eslint-disable */
 function isXHR2Compatible(obj) {
     if (typeof Blob !== 'undefined' && obj instanceof Blob) {
         return true;
@@ -331,10 +331,10 @@ function isXHR2Compatible(obj) {
         return true;
     }
 }
-/*eslint-enable*/
+/* eslint-enable */
 
 HttpClient.prototype._sendRequest = function (req, data) {
-    /*eslint-disable*/
+    /* eslint-disable */
     if (!data) {
         req.end();
         return;
@@ -342,7 +342,7 @@ HttpClient.prototype._sendRequest = function (req, data) {
     if (typeof data === 'string') {
         data = new Buffer(data);
     }
-    /*eslint-enable*/
+    /* eslint-enable */
 
     if (Buffer.isBuffer(data) || isXHR2Compatible(data)) {
         req.write(data);

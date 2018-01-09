@@ -166,7 +166,7 @@ Media.prototype.get = function (opt_mediaId) {
  * @return {Promise.<Object>}
  */
 Media.prototype.getDownloadUrl = function (opt_mediaId, opt_expiredInSeconds) {
-    var expiredInSeconds = opt_expiredInSeconds || 60 * 60 * 24;   // 默认1天
+    var expiredInSeconds = opt_expiredInSeconds || 60 * 60 * 24; // 默认1天
     var url = this._buildUrl(opt_mediaId || this._mediaId);
     return this.sendRequest('GET', url, {
         params: {

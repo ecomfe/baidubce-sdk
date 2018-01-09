@@ -37,8 +37,8 @@ var Multipart = require('./multipart');
 
 // var MIN_PART_SIZE = 1048576;                // 1M
 // var THREAD = 2;
-var MAX_PUT_OBJECT_LENGTH = 5368709120;     // 5G
-var MAX_USER_METADATA_SIZE = 2048;          // 2 * 1024
+var MAX_PUT_OBJECT_LENGTH = 5368709120; // 5G
+var MAX_USER_METADATA_SIZE = 2048; // 2 * 1024
 var MIN_PART_NUMBER = 1;
 var MAX_PART_NUMBER = 10000;
 var COMMAND_MAP = {
@@ -185,7 +185,7 @@ BosClient.prototype.doesBucketExist = function (bucketName, options) {
         bucketName: bucketName,
         config: options.config
     }).then(
-        /*eslint-disable*/
+        /* eslint-disable */
         function () {
             return Q(true);
         },
@@ -198,7 +198,7 @@ BosClient.prototype.doesBucketExist = function (bucketName, options) {
             }
             return Q.reject(e);
         }
-        /*eslint-enable*/
+        /* eslint-enable */
     );
 };
 
@@ -420,7 +420,7 @@ BosClient.prototype.getObjectToFile = function (bucketName, key, filename, range
 };
 
 BosClient.prototype.copyObject = function (sourceBucketName, sourceKey, targetBucketName, targetKey, options) {
-    /*eslint-disable*/
+    /* eslint-disable */
     if (!sourceBucketName) {
         throw new TypeError('sourceBucketName should not be empty');
     }
@@ -433,7 +433,7 @@ BosClient.prototype.copyObject = function (sourceBucketName, sourceKey, targetBu
     if (!targetKey) {
         throw new TypeError('targetKey should not be empty');
     }
-    /*eslint-enable*/
+    /* eslint-enable */
 
     options = this._checkOptions(options || {});
     var hasUserMetadata = false;
@@ -570,14 +570,14 @@ BosClient.prototype.uploadPartFromDataUrl = function (bucketName, key, uploadId,
 BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber,
                                            partSize, partFp, options) {
 
-    /*eslint-disable*/
+    /* eslint-disable */
     if (!bucketName) {
         throw new TypeError('bucketName should not be empty');
     }
     if (!key) {
         throw new TypeError('key should not be empty');
     }
-    /*eslint-enable*/
+    /* eslint-enable */
     if (partNumber < MIN_PART_NUMBER || partNumber > MAX_PART_NUMBER) {
         throw new TypeError(util.format('Invalid partNumber %d. The valid range is from %d to %d.',
             partNumber, MIN_PART_NUMBER, MAX_PART_NUMBER));
@@ -624,11 +624,11 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
 };
 
 BosClient.prototype.listParts = function (bucketName, key, uploadId, options) {
-    /*eslint-disable*/
+    /* eslint-disable */
     if (!uploadId) {
         throw new TypeError('uploadId should not empty');
     }
-    /*eslint-enable*/
+    /* eslint-enable */
 
     var allowedParams = ['maxParts', 'partNumberMarker', 'uploadId'];
     options = this._checkOptions(options || {}, allowedParams);

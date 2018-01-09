@@ -29,8 +29,8 @@ var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
 var MimeType = require('./mime.types');
 
-var MAX_PUT_OBJECT_LENGTH = 5368709120;     // 5G
-var MAX_USER_METADATA_SIZE = 2048;          // 2 * 1024
+var MAX_PUT_OBJECT_LENGTH = 5368709120; // 5G
+var MAX_USER_METADATA_SIZE = 2048; // 2 * 1024
 // var MIN_PART_NUMBER = 1;
 // var MAX_PART_NUMBER = 10000;
 

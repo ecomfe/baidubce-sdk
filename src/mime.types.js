@@ -210,9 +210,9 @@ var mimeTypes = {
     'uvvx': 'application/vnd.dece.unspecified',
     'uvz': 'application/vnd.dece.zip',
     'uvvz': 'application/vnd.dece.zip',
-    /*eslint-disable*/
+    /* eslint-disable */
     'fe_launch': 'application/vnd.denovo.fcselayout-link',
-    /*eslint-enable*/
+    /* eslint-enable */
     'dna': 'application/vnd.dna',
     'mlp': 'application/vnd.dolby.mlp',
     'dpg': 'application/vnd.dpgraph',
@@ -284,9 +284,9 @@ var mimeTypes = {
     'jlt': 'application/vnd.hp-jlyt',
     'pcl': 'application/vnd.hp-pcl',
     'pclxl': 'application/vnd.hp-pclxl',
-    /*eslint-disable*/
+    /* eslint-disable */
     'sfd-hdstx': 'application/vnd.hydrostatix.sof-data',
-    /*eslint-enable*/
+    /* eslint-enable */
     'mpy': 'application/vnd.ibm.minipay',
     'afp': 'application/vnd.ibm.modcap',
     'listafp': 'application/vnd.ibm.modcap',
@@ -410,9 +410,9 @@ var mimeTypes = {
     'nns': 'application/vnd.noblenet-sealer',
     'nnw': 'application/vnd.noblenet-web',
     'ngdat': 'application/vnd.nokia.n-gage.data',
-    /*eslint-disable*/
+    /* eslint-disable */
     'n-gage': 'application/vnd.nokia.n-gage.symbian.install',
-    /*eslint-enable*/
+    /* eslint-enable */
     'rpst': 'application/vnd.nokia.radio-preset',
     'rpss': 'application/vnd.nokia.radio-presets',
     'edm': 'application/vnd.novadigm.edm',

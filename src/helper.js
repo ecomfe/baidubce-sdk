@@ -22,10 +22,10 @@ var Q = require('q');
 var debug = require('debug')('bce-sdk:helper');
 
 // 超过这个限制就开始分片上传
-var MIN_MULTIPART_SIZE = 5 * 1024 * 1024;   // 5M
+var MIN_MULTIPART_SIZE = 5 * 1024 * 1024; // 5M
 
 // 分片上传的时候，每个分片的大小
-var PART_SIZE          = 1 * 1024 * 1024;   // 1M
+var PART_SIZE          = 1 * 1024 * 1024; // 1M
 
 var DATA_TYPE_FILE     = 1;
 var DATA_TYPE_BUFFER   = 2;
@@ -97,7 +97,7 @@ exports.upload = function (client, bucket, object, data, options) {
     }
 };
 
-/*eslint-disable*/
+/* eslint-disable */
 /**
  * 自适应的按需上传文件
  *
@@ -147,7 +147,7 @@ function uploadViaMultipart(client, data, dataType, bucket, object, size, partSi
             return client.completeMultipartUpload(bucket, object, uploadId, parts);
         });
 }
-/*eslint-enable*/
+/* eslint-enable */
 
 function uploadPart(client, dataType, state) {
     return function (task, callback) {
@@ -191,11 +191,11 @@ function getTasks(data, uploadId, bucket, object, size, partSize) {
 
     var tasks = [];
     while (leftSize > 0) {
-        /*eslint-disable*/
+        /* eslint-disable */
         var xPartSize = Math.min(leftSize, partSize);
-        /*eslint-enable*/
+        /* eslint-enable */
         tasks.push({
-            data: data,   // Buffer or Blob
+            data: data, // Buffer or Blob
             uploadId: uploadId,
             bucket: bucket,
             object: object,

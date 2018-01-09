@@ -18,24 +18,21 @@
 /* eslint max-params:[0,10] */
 
 var util = require('util');
-var path = require('path');
 var u = require('underscore');
 var qs = require('querystring');
 
-var strings = require('./strings');
 var H = require('./headers');
 var Auth = require('./auth.js');
 var HttpClient = require('./http_client');
 var BceBaseClient = require('./bce_base_client');
 
 /**
- *TSDB_Data service api
+ * TSDB_Data service api
  *
- * @constructor
+ * @class
  * @param {Object} config The tsdb_data client configuration.
  * @extends {BceBaseClient}
  */
-
 function TsdbDataClient(config) {
     BceBaseClient.call(this, config, 'tsdb', true);
 
@@ -49,8 +46,7 @@ util.inherits(TsdbDataClient, BceBaseClient);
 // --- B E G I N ---
 
 TsdbDataClient.prototype.writeDatapoints = function (datapoints, useGzip, options) {
-    var options = options || {};
-    var useGzip = true;
+    options = options || {};
     var params = {
         query: ''
     };
@@ -64,7 +60,7 @@ TsdbDataClient.prototype.writeDatapoints = function (datapoints, useGzip, option
 };
 
 TsdbDataClient.prototype.getMetrics = function (options) {
-    var options = options || {};
+    options = options || {};
     var params = {
         query: ''
     };
@@ -76,7 +72,7 @@ TsdbDataClient.prototype.getMetrics = function (options) {
 };
 
 TsdbDataClient.prototype.getTags = function (metricName, options) {
-    var options = options || {};
+    options = options || {};
     var url = '/v1/metric/' + metricName + '/tag';
     var params = {
         metricName: metricName,
@@ -90,7 +86,7 @@ TsdbDataClient.prototype.getTags = function (metricName, options) {
 };
 
 TsdbDataClient.prototype.getFields = function (metricName, options) {
-    var options = options || {};
+    options = options || {};
     var url = '/v1/metric/' + metricName + '/field';
     var params = {
         metricName: metricName,
@@ -104,7 +100,7 @@ TsdbDataClient.prototype.getFields = function (metricName, options) {
 };
 
 TsdbDataClient.prototype.getDatapoints = function (queryList, options) {
-    var options = options || {};
+    options = options || {};
     var url = '/v1/datapoint';
     var params = u.extend({
             query: '',
@@ -124,7 +120,7 @@ TsdbDataClient.prototype.getDatapoints = function (queryList, options) {
 };
 
 TsdbDataClient.prototype.getDatapoints = function (queryList, options) {
-    var options = options || {};
+    options = options || {};
     var url = '/v1/datapoint';
     var params = u.extend({
             query: JSON.stringify({queries: queryList}),
@@ -145,15 +141,12 @@ TsdbDataClient.prototype.getDatapoints = function (queryList, options) {
 
 TsdbDataClient.prototype.generatePresignedUrl = function (queryList, timestamp,
                                                      expirationInSeconds, headers, params, headersToSign, config) {
-    var options = options || {};
-    var config = u.extend({}, this.config, config);
     var resource = '/v1/datapoint';
-    var params = u.extend({
-            query: JSON.stringify({queries: queryList}),
-            disablePresampling: false
-        },
-        u.pick(options, 'disablePresampling')
-    );
+    config = u.extend({}, this.config, config);
+    params = u.extend({
+        query: JSON.stringify({queries: queryList}),
+        disablePresampling: false
+    }, u.pick(params, 'disablePresampling'));
     headers = headers || {};
     headers.Host = require('url').parse(config.endpoint).host;
 
@@ -163,7 +156,7 @@ TsdbDataClient.prototype.generatePresignedUrl = function (queryList, timestamp,
         'GET', resource, params, headers, timestamp, expirationInSeconds,
         headersToSign);
     params.authorization = authorization;
-    
+
     return util.format('%s%s?%s', config.endpoint, resource, qs.encode(params));
 };
 
