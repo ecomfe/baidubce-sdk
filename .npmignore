@@ -2,11 +2,7 @@ test
 demo
 docs
 website
-TODO
 node_modules
 bower_components
-.idea/vcs.xml
 .travis.yml
-index.html
-test.js
 appveyor.yml
