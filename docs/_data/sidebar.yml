@@ -1,0 +1,71 @@
+-
+    title: BCE-SDK-JS
+    url: ~
+    children:
+        -
+            title: 安装SDK
+            url: sdk/setup/
+        -
+            title: BosClient
+            url: sdk/bos_client/
+        -
+            title: VodClient
+            url: sdk/vod_client/
+        -
+            title: BccClient
+            url: sdk/bcc_client/
+        -
+            title: BcsClient
+            url: sdk/bcs_client/
+        -
+            title: CfcClient
+            url: sdk/cfc_client/
+        -
+            title: DocClient
+            url: sdk/doc_client/
+        -
+            title: FaceClient
+            url: sdk/face_client/
+        -
+            title: MctClient
+            url: sdk/mct_client/
+        -
+            title: MediaClient
+            url: sdk/media_client/
+        -
+            title: CorClient
+            url: sdk/cor_client/
+        -
+            title: QnsClient
+            url: sdk/qns_client/
+        -
+            title: SesClient
+            url: sdk/ses_client/
+        -
+            title: TsdbAdminClient
+            url: sdk/tsdb_admin_client/
+        -
+            title: TsdbDataClient
+            url: sdk/tsdb_data_client/
+
+-
+    title: BOS Uploader
+    url: ~
+    children:
+        -
+            title: 介绍
+            url: uploader/introduce/
+        -
+            title: Bos Uploader Lite
+            url: uploader/lite/
+        -
+            title: 3in1
+            url: uploader/3in1/
+
+-
+    title: 播放器
+    url: ~
+    children:
+        -
+            title: 介绍
+            url: player/introduce/
