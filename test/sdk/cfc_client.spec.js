@@ -58,11 +58,11 @@ describe('CfcClient', function () {
         a: 'hello'
     };
     var invokeOptions = {
-        logToBody: 'false',
         invocationType: 'RequestResponse',
         logType: 'Tail',
         Qualifier: '$LATEST'
     };
+
     var brn;
     debug('name ', 'bce_sdk_test' + Date.now());
     it('createFunction', function () {
@@ -70,13 +70,13 @@ describe('CfcClient', function () {
             .then(function (response) {
                 debug('createFunction response (%j)', response.body);
                 brn = response.body.FunctionBrn;
-                return client.getFunction(response.body.FunctionName);
+                return client.getFunction(brn);
             }).then(function (response) {
-                debug('createFunction response (%j)', response.body);
-                return client.invocations(body.FunctionName, invokeBody, invokeOptions);
+                debug('getFunction response (%j)', response.body);
+                return client.invocations(response.body.Configuration.FunctionBrn, invokeBody, invokeOptions);
             }).then(function (response) {
-                debug('invocations response (%s)', response.body);
-                invokeOptions.logToBody = 'false';
+                debug('invocations response (%s) ', response.body);
+                debug('invocations response header log when logType=Tail (%s)', Buffer.from(response.http_headers['x-bce-log-result'], 'base64').toString());
                 invokeOptions.logType = 'None';
                 return client.invocations(body.FunctionName, invokeBody, invokeOptions);
             }).then(function (response) {
@@ -98,7 +98,7 @@ describe('CfcClient', function () {
                 return client.listVersionsByFunction(response.body.FunctionName, {Marker: 0, MaxItems: 10});
             }).then(function (response) {
                 debug('listVersionsByFunction response (%j)', response.body);
-                return client.publishVersion(brn, 'publish version');
+                return client.publishVersion(body.FunctionName, 'publish version');
             }).then(function (response) {
                 debug('publishVersion response (%j)', response.body);
                 return client.invocations(brn, invokeBody, invokeOptions);
