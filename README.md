@@ -9,3 +9,13 @@ Baidu Cloud Engine JavaScript SDK
 
 
 文档地址：<https://baidubce.github.io/bce-sdk-js/>
+
+## 通过NPM安装
+```shell
+    npm install @baiducloud/sdk
+```
+
+## 通过CDN引用
+```html
+    <script src="https://bce.bdstatic.com/lib/@baiducloud/sdk/1.0.0-rc.1/baidubce-sdk.bundle.min.js" ></script>
+```
