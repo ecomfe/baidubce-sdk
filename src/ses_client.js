@@ -74,7 +74,17 @@ SesClient.prototype.setQuota = function (quota) {
 };
 
 SesClient.prototype.sendMail = function (mailOptions) {
-    var from = mailOptions.from || '';
+    var source = { from: '', name: '' };
+
+    if (typeof mailOptions.from === 'string') {
+      source.from = mailOptions.from;
+      source.name = mailOptions.from.indexOf('@') !== -1 ? mailOptions.from.split('@')[0] : '';
+    } else if (mailOptions.from && mailOptions.from.addr) {
+      source.from = mailOptions.from.addr;
+      source.name = mailOptions.from.name ?
+        mailOptions.from.name :
+        mailOptions.from.addr.indexOf('@') !== -1 ? mailOptions.from.addr.split('@')[0] : '';
+    }
 
     var to = mailOptions.to || [];
     if (typeof to === 'string') {
@@ -114,9 +124,7 @@ SesClient.prototype.sendMail = function (mailOptions) {
     var url = '/v1/email';
     var body = JSON.stringify({
         mail: {
-            source: {
-                from: from
-            },
+            source: source,
             destination: {
                 /* eslint-disable */
                 to_addr: to.map(function (item) {
