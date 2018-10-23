@@ -126,6 +126,7 @@ CfcClient.prototype.invocations = function (functionName, body, opt_options) {
     });
 };
 
+CfcClient.prototype.invoke = CfcClient.prototype.invocations;
 
 CfcClient.prototype.updateFunctionCode = function (functionName, body) {
     /**
