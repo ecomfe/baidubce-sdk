@@ -306,7 +306,7 @@ HttpClient.prototype._recvResponse = function (res) {
         }
         catch (e) {
             debug('statusCode = %s, Parse response body error = %s', statusCode, e.message);
-            deferred.reject(this.failure(statusCode, e.message));
+            deferred.reject(failure(statusCode, e.message));
             return;
         }
 
