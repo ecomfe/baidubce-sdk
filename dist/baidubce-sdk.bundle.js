@@ -40835,9 +40835,9 @@ exports.createContext = Script.createContext = function (context) {
 },{"indexof":116}],188:[function(require,module,exports){
 module.exports={
   "name": "@baiducloud/sdk",
-  "version": "1.0.0-rc.0",
+  "version": "1.0.0-rc.2",
   "description": "Baidu Cloud Engine JavaScript SDK",
-  "main": "index.js",
+  "main": "dist/baidubce-sdk.bundle.js",
   "directories": {
     "test": "test"
   },
@@ -42194,12 +42194,15 @@ BosClient.prototype.initiateMultipartUpload = function (bucketName, key, options
     options = options || {};
 
     var headers = {};
-    headers[H.CONTENT_TYPE] = options[H.CONTENT_TYPE] || MimeType.guess(path.extname(key));
+    headers[H.CONTENT_TYPE] = MimeType.guess(path.extname(key));
+
+    options = this._checkOptions(u.extend(headers, options));
+
     return this.sendRequest('POST', {
         bucketName: bucketName,
         key: key,
         params: {uploads: ''},
-        headers: headers,
+        headers: options.headers,
         config: options.config
     });
 };
@@ -42710,6 +42713,7 @@ module.exports = BosClient;
 /* eslint fecs-camelcase:[2,{"ignore":["/opt_/"]}] */
 
 var util = require('util');
+var strings = require('./strings');
 
 var u = require('underscore');
 var debug = require('debug')('bce-sdk:CfcClient');
@@ -42731,49 +42735,6 @@ function CfcClient(config) {
 }
 
 util.inherits(CfcClient, BceBaseClient);
-
-// BRN BEGIN
-var exp1 = /^([a-zA-Z0-9-_\.]+)$/;
-var exp2 = /^(brn:(.*))$/;
-var exp3 = /^([a-zA-Z0-9]+:[a-zA-Z0-9-_\.]+)$/;
-
-function dealFunctionName(fname) {
-    var data = {
-        thumbnailName: fname,
-        version: '',
-        uid: ''
-    };
-    if (exp1.test(fname)) {
-        data.thumbnailName = fname;
-        return data;
-    }
-    else if (exp2.test(fname)) {
-        var brn = fname.split(':');
-        if (brn.length < 6) {
-            return data;
-        }
-        data.uid = brn[4];
-        if (brn.length === 7) {
-            data.thumbnailName = brn[6];
-        }
-        else if (brn.length === 8) {
-            data.thumbnailName = brn[6];
-            data.version = brn[7];
-        }
-        return data;
-    }
-    else if (exp3.test(fname)) {
-        var resource = fname.split(':');
-        if (resource.length === 2) {
-            data.thumbnailName = resource[1];
-            data.uid = resource[0];
-        }
-        return data;
-    }
-    return data;
-}
-
-// BRN END
 
 // --- BEGIN ---
 
@@ -42799,7 +42760,6 @@ CfcClient.prototype.createFunction = function (body) {
          'DryRun': true
        },
        'Description': 'string',
-       'Region': 'string',
        'Timeout': 0,
        'FunctionName': 'string',
        'Handler': 'string',
@@ -42827,19 +42787,25 @@ CfcClient.prototype.getFunction = function (functionName, opt_options) {
     var params = u.extend(
         u.pick(options, 'Qualifier')
     );
-    return this.sendRequest('GET', '/v1/functions/' + functionName, {
+    return this.sendRequest('GET', '/v1/functions/' +  strings.normalize(functionName), {
         params: params
     });
 };
 
-CfcClient.prototype.deleteFunction = function (functionName) {
-    return this.sendRequest('DELETE', '/v1/functions/' + functionName, {});
+CfcClient.prototype.deleteFunction = function (functionName, opt_options) {
+    var options = opt_options || {};
+    var params = u.extend(
+        u.pick(options, 'Qualifier')
+    );
+    return this.sendRequest('DELETE', '/v1/functions/' + functionName, {
+        params: params
+    });
 };
 
 CfcClient.prototype.invocations = function (functionName, body, opt_options) {
     var options = opt_options || {};
     var params = u.extend(
-        u.pick(options, 'Qualifier', 'logToBody', 'invocationType', 'logType')
+        u.pick(options, 'Qualifier', 'invocationType', 'logType')
     );
     /**
      var body =  {
@@ -42848,13 +42814,13 @@ CfcClient.prototype.invocations = function (functionName, body, opt_options) {
         'key1': 'value1'
     }
      */
-    var data = dealFunctionName(functionName);
-    return this.sendRequest('POST', '/v1/functions/' + data.thumbnailName + '/invocations', {
+    return this.sendRequest('POST', '/v1/functions/' + strings.normalize(functionName) + '/invocations', {
         params: params,
         body: JSON.stringify(body)
     });
 };
 
+CfcClient.prototype.invoke = CfcClient.prototype.invocations;
 
 CfcClient.prototype.updateFunctionCode = function (functionName, body) {
     /**
@@ -42905,8 +42871,7 @@ CfcClient.prototype.listVersionsByFunction = function (functionName, opt_options
     var params = u.extend(
         u.pick(options, 'Marker', 'MaxItems')
     );
-    var data = dealFunctionName(functionName);
-    return this.sendRequest('GET', '/v1/functions/' + data.thumbnailName + '/versions', {
+    return this.sendRequest('GET', '/v1/functions/' + functionName + '/versions', {
         params: params
     });
 };
@@ -42915,8 +42880,7 @@ CfcClient.prototype.publishVersion = function (functionName, description) {
     if (description != null) {
         body.Description = description;
     }
-    var data = dealFunctionName(functionName);
-    return this.sendRequest('POST', '/v1/functions/' + data.thumbnailName + '/versions', {
+    return this.sendRequest('POST', '/v1/functions/' + functionName + '/versions', {
         body: JSON.stringify(body)
     });
 };
@@ -42966,7 +42930,7 @@ module.exports = CfcClient;
 
 
 
-},{"./bce_base_client":191,"debug":67,"underscore":183,"util":186}],195:[function(require,module,exports){
+},{"./bce_base_client":191,"./strings":210,"debug":67,"underscore":183,"util":186}],195:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -44330,7 +44294,7 @@ HttpClient.prototype._recvResponse = function (res) {
         }
         catch (e) {
             debug('statusCode = %s, Parse response body error = %s', statusCode, e.message);
-            deferred.reject(this.failure(statusCode, e.message));
+            deferred.reject(failure(statusCode, e.message));
             return;
         }
 
@@ -46999,7 +46963,17 @@ SesClient.prototype.setQuota = function (quota) {
 };
 
 SesClient.prototype.sendMail = function (mailOptions) {
-    var from = mailOptions.from || '';
+    var source = { from: '', name: '' };
+
+    if (typeof mailOptions.from === 'string') {
+      source.from = mailOptions.from;
+      source.name = mailOptions.from.indexOf('@') !== -1 ? mailOptions.from.split('@')[0] : '';
+    } else if (mailOptions.from && mailOptions.from.addr) {
+      source.from = mailOptions.from.addr;
+      source.name = mailOptions.from.name ?
+        mailOptions.from.name :
+        mailOptions.from.addr.indexOf('@') !== -1 ? mailOptions.from.addr.split('@')[0] : '';
+    }
 
     var to = mailOptions.to || [];
     if (typeof to === 'string') {
@@ -47039,9 +47013,7 @@ SesClient.prototype.sendMail = function (mailOptions) {
     var url = '/v1/email';
     var body = JSON.stringify({
         mail: {
-            source: {
-                from: from
-            },
+            source: source,
             destination: {
                 /* eslint-disable */
                 to_addr: to.map(function (item) {

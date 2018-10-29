@@ -461,15 +461,16 @@ BosClient.prototype.copyObject = function (sourceBucketName, sourceKey, targetBu
 BosClient.prototype.initiateMultipartUpload = function (bucketName, key, options) {
     options = options || {};
 
-    var headers = u.defaults({}, options.headers, {
-        [H.CONTENT_TYPE]: MimeType.guess(path.extname(key))
-    });
+    var headers = {};
+    headers[H.CONTENT_TYPE] = MimeType.guess(path.extname(key));
+
+    options = this._checkOptions(u.extend(headers, options));
 
     return this.sendRequest('POST', {
         bucketName: bucketName,
         key: key,
         params: {uploads: ''},
-        headers: headers,
+        headers: options.headers,
         config: options.config
     });
 };
