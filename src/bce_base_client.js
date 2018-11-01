@@ -70,9 +70,13 @@ BceBaseClient.prototype._computeEndpoint = function () {
 };
 
 BceBaseClient.prototype.createSignature = function (credentials, httpMethod, path, params, headers) {
+    var revisionTimestamp = Date.now() + (this.timeOffset || 0);
+
+    headers[H.X_BCE_DATE] = new Date(revisionTimestamp).toISOString().replace(/\.\d+Z$/, 'Z');
+
     return Q.fcall(function () {
         var auth = new Auth(credentials.ak, credentials.sk);
-        return auth.generateAuthorization(httpMethod, path, params, headers);
+        return auth.generateAuthorization(httpMethod, path, params, headers, revisionTimestamp / 1000);
     });
 };
 
@@ -96,17 +100,32 @@ BceBaseClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
 
 BceBaseClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, config) {
     var client = this;
-    var agent = this._httpAgent = new HttpClient(config);
-    u.each(['progress', 'error', 'abort'], function (eventName) {
-        agent.on(eventName, function (evt) {
-            client.emit(eventName, evt);
-        });
-    });
 
-    return this._httpAgent.sendRequest(httpMethod, resource, args.body,
-        args.headers, args.params, u.bind(this.createSignature, this),
-        args.outputStream
-    );
+    function doRequest() {
+        var agent = this._httpAgent = new HttpClient(config);
+        u.each(['progress', 'error', 'abort'], function (eventName) {
+            agent.on(eventName, function (evt) {
+                client.emit(eventName, evt);
+            });
+        });
+
+        return this._httpAgent.sendRequest(httpMethod, resource, args.body,
+            args.headers, args.params, u.bind(this.createSignature, this),
+            args.outputStream
+        );
+    }
+
+    return doRequest.call(client).catch(function(err) {
+        var serverTimestamp = new Date(err[H.X_BCE_DATE]).getTime();
+
+        client.timeOffset = serverTimestamp - Date.now();
+
+        if (err[H.X_STATUS_CODE] === 403 && err[H.X_CODE] === 'RequestTimeTooSkewed') {
+            return doRequest.call(client);
+        }
+
+        return Q.reject(err);
+    });
 };
 
 module.exports = BceBaseClient;

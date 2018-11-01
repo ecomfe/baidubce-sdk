@@ -316,7 +316,7 @@ HttpClient.prototype._recvResponse = function (res) {
         else if (statusCode < 100 || statusCode >= 300) {
             if (responseBody.requestId) {
                 deferred.reject(failure(statusCode, responseBody.message,
-                    responseBody.code, responseBody.requestId));
+                    responseBody.code, responseBody.requestId, responseHeaders.date));
             }
             else {
                 deferred.reject(failure(statusCode, responseBody));
@@ -402,7 +402,7 @@ function success(httpHeaders, body) {
     return response;
 }
 
-function failure(statusCode, message, code, requestId) {
+function failure(statusCode, message, code, requestId, xBceDate) {
     var response = {};
 
     response[H.X_STATUS_CODE] = statusCode;
@@ -412,6 +412,9 @@ function failure(statusCode, message, code, requestId) {
     }
     if (requestId) {
         response[H.X_REQUEST_ID] = requestId;
+    }
+    if (xBceDate) {
+        response[H.X_BCE_DATE] = xBceDate;
     }
 
     return response;
