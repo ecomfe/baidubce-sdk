@@ -906,7 +906,7 @@ BosClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, conf
     return doRequest.call(client).catch(function(err) {
         var serverTimestamp = new Date(err[H.X_BCE_DATE]).getTime();
 
-        client.timeOffset = serverTimestamp - Date.now();
+        BceBaseClient.prototype.timeOffset = serverTimestamp - Date.now();
 
         if (err[H.X_STATUS_CODE] === 403 && err[H.X_CODE] === 'RequestTimeTooSkewed') {
             return doRequest.call(client);
