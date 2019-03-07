@@ -17,6 +17,8 @@
 exports.Q = require('q');
 
 exports.version = require('./package.json').version;
+exports.crypto = require('./src/crypto');
+exports.strings = require('./src/strings');
 exports.STS = require('./src/sts');
 exports.Auth = require('./src/auth');
 exports.MimeType = require('./src/mime.types');
@@ -39,13 +41,3 @@ exports.DocClient = require('./src/doc_client');
 exports.TsdbDataClient = require('./src/tsdb_data_client');
 exports.TsdbAdminClient = require('./src/tsdb_admin_client');
 exports.CfcClient = require('./src/cfc_client');
-
-
-
-
-
-
-
-
-
-

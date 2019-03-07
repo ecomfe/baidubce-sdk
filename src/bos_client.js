@@ -626,6 +626,38 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
     return newPromise();
 };
 
+BosClient.prototype.uploadPartCopy = function (sourceBucket, sourceKey, targetBucket, targetKey,
+                                            uploadId, partNumber, range, options) {
+    if (!sourceBucket) {
+        throw new TypeError('sourceBucket should not be empty');
+    }
+    if (!sourceKey) {
+        throw new TypeError('sourceKey should not be empty');
+    }
+    if (!targetBucket) {
+        throw new TypeError('targetBucket should not be empty');
+    }
+    if (!targetKey) {
+        throw new TypeError('targetKey should not be empty');
+    }
+    if (partNumber < MIN_PART_NUMBER || partNumber > MAX_PART_NUMBER) {
+        throw new TypeError(util.format('Invalid partNumber %d. The valid range is from %d to %d.',
+            partNumber, MIN_PART_NUMBER, MAX_PART_NUMBER));
+    }
+
+    options = this._checkOptions(options || {});
+    options.headers['x-bce-copy-source'] = strings.normalize(util.format('/%s/%s', sourceBucket, sourceKey), false);
+    options.headers['x-bce-copy-source-range'] = range ? util.format('bytes=%s', range) : '';
+
+    return this.sendRequest('PUT', {
+        bucketName: targetBucket,
+        key: targetKey,
+        headers: options.headers,
+        config: options.config,
+        params: {partNumber: partNumber, uploadId: uploadId}
+    });
+}
+
 BosClient.prototype.listParts = function (bucketName, key, uploadId, options) {
     /* eslint-disable */
     if (!uploadId) {

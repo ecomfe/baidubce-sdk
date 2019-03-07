@@ -18,6 +18,8 @@
 exports.Q = require('q');
 
 exports.version = require('./package.json').version;
+exports.crypto = require('./src/crypto');
+exports.strings = require('./src/strings');
 exports.STS = require('./src/sts');
 exports.Auth = require('./src/auth');
 exports.MimeType = require('./src/mime.types');
@@ -41,17 +43,7 @@ exports.TsdbDataClient = require('./src/tsdb_data_client');
 exports.TsdbAdminClient = require('./src/tsdb_admin_client');
 exports.CfcClient = require('./src/cfc_client');
 
-
-
-
-
-
-
-
-
-
-
-},{"./package.json":188,"./src/auth":189,"./src/bcc_client":190,"./src/bce_base_client":191,"./src/bcs_client":192,"./src/bos_client":193,"./src/cfc_client":194,"./src/doc_client":197,"./src/face_client":198,"./src/http_client":201,"./src/lss_client":202,"./src/mct_client":203,"./src/media_client":204,"./src/mime.types":205,"./src/ocr_client":207,"./src/qns_client":208,"./src/ses_client":209,"./src/sts":211,"./src/tsdb_admin_client":212,"./src/tsdb_data_client":213,"./src/vod_client":220,"q":155}],2:[function(require,module,exports){
+},{"./package.json":188,"./src/auth":189,"./src/bcc_client":190,"./src/bce_base_client":191,"./src/bcs_client":192,"./src/bos_client":193,"./src/cfc_client":194,"./src/crypto":196,"./src/doc_client":197,"./src/face_client":198,"./src/http_client":201,"./src/lss_client":202,"./src/mct_client":203,"./src/media_client":204,"./src/mime.types":205,"./src/ocr_client":207,"./src/qns_client":208,"./src/ses_client":209,"./src/strings":210,"./src/sts":211,"./src/tsdb_admin_client":212,"./src/tsdb_data_client":213,"./src/vod_client":220,"q":155}],2:[function(require,module,exports){
 ;(function () {
 
   var object = typeof exports != 'undefined' ? exports : this; // #8: web workers
@@ -40835,7 +40827,7 @@ exports.createContext = Script.createContext = function (context) {
 },{"indexof":116}],188:[function(require,module,exports){
 module.exports={
   "name": "@baiducloud/sdk",
-  "version": "1.0.0-rc.4",
+  "version": "1.0.0-rc.6",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
@@ -42376,6 +42368,38 @@ BosClient.prototype.uploadPart = function (bucketName, key, uploadId, partNumber
 
     return newPromise();
 };
+
+BosClient.prototype.uploadPartCopy = function (sourceBucket, sourceKey, targetBucket, targetKey,
+                                            uploadId, partNumber, range, options) {
+    if (!sourceBucket) {
+        throw new TypeError('sourceBucket should not be empty');
+    }
+    if (!sourceKey) {
+        throw new TypeError('sourceKey should not be empty');
+    }
+    if (!targetBucket) {
+        throw new TypeError('targetBucket should not be empty');
+    }
+    if (!targetKey) {
+        throw new TypeError('targetKey should not be empty');
+    }
+    if (partNumber < MIN_PART_NUMBER || partNumber > MAX_PART_NUMBER) {
+        throw new TypeError(util.format('Invalid partNumber %d. The valid range is from %d to %d.',
+            partNumber, MIN_PART_NUMBER, MAX_PART_NUMBER));
+    }
+
+    options = this._checkOptions(options || {});
+    options.headers['x-bce-copy-source'] = strings.normalize(util.format('/%s/%s', sourceBucket, sourceKey), false);
+    options.headers['x-bce-copy-source-range'] = range ? util.format('bytes=%s', range) : '';
+
+    return this.sendRequest('PUT', {
+        bucketName: targetBucket,
+        key: targetKey,
+        headers: options.headers,
+        config: options.config,
+        params: {partNumber: partNumber, uploadId: uploadId}
+    });
+}
 
 BosClient.prototype.listParts = function (bucketName, key, uploadId, options) {
     /* eslint-disable */
