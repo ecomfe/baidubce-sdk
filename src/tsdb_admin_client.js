@@ -132,7 +132,7 @@ TsdbAdminClient.prototype.sendRequest = function (httpMethod, resource, varArgs)
         args: args,
         config: config
     };
-    u.each(['progress', 'error', 'abort'], function (eventName) {
+    u.each(['progress', 'error', 'abort', 'timeout'], function (eventName) {
         agent.on(eventName, function (evt) {
             client.emit(eventName, evt, httpContext);
         });

@@ -179,8 +179,21 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
         deferred.resolve(client._recvResponse(res));
     });
 
+    // 设置超时10s
+    if (typeof req.setTimeout === 'function') {
+        req.setTimeout(10e3);
+
+        req.on('timeout', function() {
+            deferred.reject(new Error('socket Timeout!'));
+
+            req.destroy();
+        });
+    } else if (req.xhr) {
+        req.xhr.timeout = 10e3;
+    }
+
     if (req.xhr && typeof req.xhr.upload === 'object') {
-        u.each(['progress', 'error', 'abort'], function (eventName) {
+        u.each(['progress', 'error', 'abort', 'timeout'], function (eventName) {
             req.xhr.upload.addEventListener(eventName, function (evt) {
                 client.emit(eventName, evt);
             }, false);

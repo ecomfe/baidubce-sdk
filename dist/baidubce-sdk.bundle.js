@@ -40827,7 +40827,7 @@ exports.createContext = Script.createContext = function (context) {
 },{"indexof":116}],188:[function(require,module,exports){
 module.exports={
   "name": "@baiducloud/sdk",
-  "version": "1.0.0-rc.6",
+  "version": "1.0.0-rc.7",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
@@ -41358,7 +41358,7 @@ BceBaseClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, 
 
     function doRequest() {
         var agent = this._httpAgent = new HttpClient(config);
-        u.each(['progress', 'error', 'abort'], function (eventName) {
+        u.each(['progress', 'error', 'abort', 'timeout'], function (eventName) {
             agent.on(eventName, function (evt) {
                 client.emit(eventName, evt);
             });
@@ -41652,7 +41652,7 @@ BcsClient.prototype.sendRequest = function (httpMethod, varArgs) {
 
     var client = this;
     var agent = this._httpAgent = new HttpClient(config);
-    u.each(['progress', 'error', 'abort'], function (eventName) {
+    u.each(['progress', 'error', 'abort', 'timeout'], function (eventName) {
         agent.on(eventName, function (evt) {
             client.emit(eventName, evt);
         });
@@ -42656,7 +42656,7 @@ BosClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, conf
             args: args,
             config: config
         };
-        u.each(['progress', 'error', 'abort'], function (eventName) {
+        u.each(['progress', 'error', 'abort', 'timeout'], function (eventName) {
             agent.on(eventName, function (evt) {
                 client.emit(eventName, evt, httpContext);
             });
@@ -44235,8 +44235,21 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
         deferred.resolve(client._recvResponse(res));
     });
 
+    // 设置超时10s
+    if (typeof req.setTimeout === 'function') {
+        req.setTimeout(10e3);
+
+        req.on('timeout', function() {
+            deferred.reject(new Error('socket Timeout!'));
+
+            req.destroy();
+        });
+    } else if (req.xhr) {
+        req.xhr.timeout = 10e3;
+    }
+
     if (req.xhr && typeof req.xhr.upload === 'object') {
-        u.each(['progress', 'error', 'abort'], function (eventName) {
+        u.each(['progress', 'error', 'abort', 'timeout'], function (eventName) {
             req.xhr.upload.addEventListener(eventName, function (evt) {
                 client.emit(eventName, evt);
             }, false);
@@ -45453,7 +45466,7 @@ MediaClient.prototype.sendRequest = function (httpMethod, resource, varArgs) {
 
     var client = this;
     var agent = this._httpAgent = new HttpClient(config);
-    u.each(['progress', 'error', 'abort'], function (eventName) {
+    u.each(['progress', 'error', 'abort', 'timeout'], function (eventName) {
         agent.on(eventName, function (evt) {
             client.emit(eventName, evt);
         });
@@ -47385,7 +47398,7 @@ TsdbAdminClient.prototype.sendRequest = function (httpMethod, resource, varArgs)
         args: args,
         config: config
     };
-    u.each(['progress', 'error', 'abort'], function (eventName) {
+    u.each(['progress', 'error', 'abort', 'timeout'], function (eventName) {
         agent.on(eventName, function (evt) {
             client.emit(eventName, evt, httpContext);
         });
@@ -47612,7 +47625,7 @@ TsdbDataClient.prototype.sendRequest = function (httpMethod, resource, varArgs) 
         args: args,
         config: config
     };
-    u.each(['progress', 'error', 'abort'], function (eventName) {
+    u.each(['progress', 'error', 'abort', 'timeout'], function (eventName) {
         agent.on(eventName, function (evt) {
             client.emit(eventName, evt, httpContext);
         });

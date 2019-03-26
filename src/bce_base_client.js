@@ -103,7 +103,7 @@ BceBaseClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, 
 
     function doRequest() {
         var agent = this._httpAgent = new HttpClient(config);
-        u.each(['progress', 'error', 'abort'], function (eventName) {
+        u.each(['progress', 'error', 'abort', 'timeout'], function (eventName) {
             agent.on(eventName, function (evt) {
                 client.emit(eventName, evt);
             });

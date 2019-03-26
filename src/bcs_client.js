@@ -262,7 +262,7 @@ BcsClient.prototype.sendRequest = function (httpMethod, varArgs) {
 
     var client = this;
     var agent = this._httpAgent = new HttpClient(config);
-    u.each(['progress', 'error', 'abort'], function (eventName) {
+    u.each(['progress', 'error', 'abort', 'timeout'], function (eventName) {
         agent.on(eventName, function (evt) {
             client.emit(eventName, evt);
         });
