@@ -40827,7 +40827,7 @@ exports.createContext = Script.createContext = function (context) {
 },{"indexof":116}],188:[function(require,module,exports){
 module.exports={
   "name": "@baiducloud/sdk",
-  "version": "1.0.0-rc.7",
+  "version": "1.0.0-rc.8",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
@@ -47698,13 +47698,15 @@ Media.prototype._buildUrl = function () {
 /**
  * 申请媒资
  *
+ * @param {string} mode 提供"no_transcoding"说明要申请一个不转码的媒资；提供NULL/""/其他值说明申请一个普通的转码媒资
  * @return {Promise.<Object>}
  */
-Media.prototype.apply = function () {
+Media.prototype.apply = function (mode) {
     var url = this._buildUrl();
     var options = {
         params: {
-            apply: ''
+            apply: '',
+            mode: mode
         }
     };
 
@@ -47797,6 +47799,25 @@ Media.prototype.get = function (opt_mediaId) {
     var url = this._buildUrl(opt_mediaId || this._mediaId);
     debug('url = %j', url);
     return this.sendRequest('GET', url);
+};
+
+/**
+ * 查询指定媒资的部分信息
+ *
+ * @param {string?} opt_mediaId 媒资Id.
+ * @param {string?} scope 查询范围，目前仅支持thumbnail
+ * @param {string?} taskId 不同scope下的某个任务标识，目前当scope=thumbnail时，taskId分别可取default、second、wonderful
+ * @return {Promise.<Object>}
+ */
+Media.prototype.getPartInfo = function (opt_mediaId, scope, taskId) {
+    var url = this._buildUrl(opt_mediaId || this._mediaId);
+    debug('url = %j', url);
+    return this.sendRequest('GET', url, {
+        params: {
+            scope: scope,
+            taskId: taskId
+        }
+    });
 };
 
 /**
