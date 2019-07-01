@@ -45,3 +45,5 @@ tsdbAdmin:
 	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/tsdb_admin_client.spec.js
 cfc:
 	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/cfc_client.spec.js
+bts:
+	DEBUG=* ../node_modules/.bin/jasmine-node --verbose --growl --captureExceptions sdk/bts_client.spec.js
