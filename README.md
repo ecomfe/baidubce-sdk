@@ -17,5 +17,5 @@ Baidu Cloud Engine JavaScript SDK
 
 ## 通过CDN引用
 ```html
-    <script src="https://bce.bdstatic.com/lib/@baiducloud/sdk/1.0.0-rc.8/baidubce-sdk.bundle.min.js" ></script>
+    <script src="https://bce.bdstatic.com/lib/@baiducloud/sdk/1.0.0-rc.9/baidubce-sdk.bundle.min.js" ></script>
 ```

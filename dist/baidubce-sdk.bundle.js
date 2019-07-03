@@ -42,8 +42,8 @@ exports.DocClient = require('./src/doc_client');
 exports.TsdbDataClient = require('./src/tsdb_data_client');
 exports.TsdbAdminClient = require('./src/tsdb_admin_client');
 exports.CfcClient = require('./src/cfc_client');
-
-},{"./package.json":188,"./src/auth":189,"./src/bcc_client":190,"./src/bce_base_client":191,"./src/bcs_client":192,"./src/bos_client":193,"./src/cfc_client":194,"./src/crypto":196,"./src/doc_client":197,"./src/face_client":198,"./src/http_client":201,"./src/lss_client":202,"./src/mct_client":203,"./src/media_client":204,"./src/mime.types":205,"./src/ocr_client":207,"./src/qns_client":208,"./src/ses_client":209,"./src/strings":210,"./src/sts":211,"./src/tsdb_admin_client":212,"./src/tsdb_data_client":213,"./src/vod_client":220,"q":155}],2:[function(require,module,exports){
+exports.BtsClient = require('./src/bts_client');
+},{"./package.json":188,"./src/auth":189,"./src/bcc_client":190,"./src/bce_base_client":191,"./src/bcs_client":192,"./src/bos_client":193,"./src/bts_client":194,"./src/cfc_client":195,"./src/crypto":197,"./src/doc_client":198,"./src/face_client":199,"./src/http_client":202,"./src/lss_client":203,"./src/mct_client":204,"./src/media_client":205,"./src/mime.types":206,"./src/ocr_client":208,"./src/qns_client":209,"./src/ses_client":210,"./src/strings":211,"./src/sts":212,"./src/tsdb_admin_client":213,"./src/tsdb_data_client":214,"./src/vod_client":221,"q":155}],2:[function(require,module,exports){
 ;(function () {
 
   var object = typeof exports != 'undefined' ? exports : this; // #8: web workers
@@ -40827,7 +40827,7 @@ exports.createContext = Script.createContext = function (context) {
 },{"indexof":116}],188:[function(require,module,exports){
 module.exports={
   "name": "@baiducloud/sdk",
-  "version": "1.0.0-rc.8",
+  "version": "1.0.0-rc.9",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
@@ -41030,7 +41030,7 @@ Auth.prototype.hash = function (data, key) {
 module.exports = Auth;
 
 
-},{"./headers":199,"./strings":210,"crypto":66,"debug":67,"underscore":183,"util":186}],190:[function(require,module,exports){
+},{"./headers":200,"./strings":211,"crypto":66,"debug":67,"underscore":183,"util":186}],190:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -41386,7 +41386,7 @@ BceBaseClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, 
 module.exports = BceBaseClient;
 
 
-},{"./auth":189,"./config":195,"./headers":199,"./http_client":201,"events":95,"q":155,"underscore":183,"util":186}],192:[function(require,module,exports){
+},{"./auth":189,"./config":196,"./headers":200,"./http_client":202,"events":95,"q":155,"underscore":183,"util":186}],192:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -41739,7 +41739,7 @@ module.exports = BcsClient;
 
 
 }).call(this,require("buffer").Buffer)
-},{"./bce_base_client":191,"./crypto":196,"./headers":199,"./http_client":201,"./mime.types":205,"buffer":57,"crypto":66,"fs":55,"path":141,"querystring":158,"underscore":183,"util":186}],193:[function(require,module,exports){
+},{"./bce_base_client":191,"./crypto":197,"./headers":200,"./http_client":202,"./mime.types":206,"buffer":57,"crypto":66,"fs":55,"path":141,"querystring":158,"underscore":183,"util":186}],193:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -42759,7 +42759,100 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
 module.exports = BosClient;
 
 }).call(this,require("buffer").Buffer)
-},{"./auth":189,"./bce_base_client":191,"./crypto":196,"./headers":199,"./http_client":201,"./mime.types":205,"./multipart":206,"./strings":210,"./wm_stream":221,"buffer":57,"fs":55,"path":141,"q":155,"querystring":158,"underscore":183,"url":184,"util":186}],194:[function(require,module,exports){
+},{"./auth":189,"./bce_base_client":191,"./crypto":197,"./headers":200,"./http_client":202,"./mime.types":206,"./multipart":207,"./strings":211,"./wm_stream":222,"buffer":57,"fs":55,"path":141,"q":155,"querystring":158,"underscore":183,"url":184,"util":186}],194:[function(require,module,exports){
+/*
+ * Copyright (c) 2019 Baidu.com, Inc. All Rights Reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+var util = require('util');
+var debug = require('debug')('bce-sdk:BtsClient');
+
+var BceBaseClient = require('./bce_base_client');
+
+/**
+ * Bts service api
+ *
+ *
+ * @see https://cloud.baidu.com/doc/BTS/s/Ljwvydqd9
+ *
+ * @constructor
+ * @param {Object} config The bts client configuration.
+ * @extends {BceBaseClient}
+ */
+
+function BtsClient(config) {
+    BceBaseClient.call(this, config, 'bts', true);
+}
+
+util.inherits(BtsClient, BceBaseClient);
+
+BtsClient.prototype.putRow = function (body) {
+    debug('putRow, body = %j', body);
+    return this.sendRequest('PUT', '/v1/instance/test_whx/table/table1/row', {
+        params: {},
+        body: JSON.stringify(body)
+    });
+};
+
+BtsClient.prototype.batchPutRow = function (body) {
+    debug('batchPutRow, body = %j', body);
+    return this.sendRequest('PUT', '/v1/instance/test_whx/table/table1/rows', {
+        params: {},
+        body: JSON.stringify(body)
+    });
+};
+
+BtsClient.prototype.deleteRow = function (body) {
+    debug('deleteRow, body = %j', body);
+    return this.sendRequest('DELETE', '/v1/instance/test_whx/table/table1/row', {
+        params: {},
+        body: JSON.stringify(body)
+    });
+};
+
+BtsClient.prototype.batchDeleteRow = function (body) {
+    debug('batchDeleteRow, body = %j', body);
+    return this.sendRequest('DELETE', '/v1/instance/test_whx/table/table1/rows', {
+        params: {},
+        body: JSON.stringify(body)
+    })
+};
+
+BtsClient.prototype.getRow = function (body) {
+    debug('putRow, body = %j', body);
+    return this.sendRequest('GET', '/v1/instance/test_whx/table/table1/row', {
+        params: {},
+        body: JSON.stringify(body)
+    });
+};
+
+BtsClient.prototype.batchGetRow = function (body) {
+    debug('batchGetRow, body = %j', body);
+    return this.sendRequest('GET', '/v1/instance/test_whx/table/table1/rows', {
+        params: {},
+        body: JSON.stringify(body)
+    });
+};
+
+BtsClient.prototype.scan = function (body) {
+    debug('scan, body = %j', body);
+    return this.sendRequest('GET', '/v1/instance/test_whx/table/table1/rows', {
+        params: {},
+        body: JSON.stringify(body)
+    });
+};
+
+module.exports = BtsClient;
+},{"./bce_base_client":191,"debug":67,"util":186}],195:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -42998,7 +43091,7 @@ module.exports = CfcClient;
 
 
 
-},{"./bce_base_client":191,"./strings":210,"debug":67,"underscore":183,"util":186}],195:[function(require,module,exports){
+},{"./bce_base_client":191,"./strings":211,"debug":67,"underscore":183,"util":186}],196:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -43034,7 +43127,7 @@ exports.DEFAULT_CONFIG = {
 
 
 
-},{}],196:[function(require,module,exports){
+},{}],197:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -43120,7 +43213,7 @@ exports.md5blob = function (blob, digest) {
 
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":57,"crypto":66,"fs":55,"q":155}],197:[function(require,module,exports){
+},{"buffer":57,"crypto":66,"fs":55,"q":155}],198:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -43532,7 +43625,7 @@ exports.Document = Document;
 exports.Notification = Notification;
 
 }).call(this,{"isBuffer":require("../node_modules/is-buffer/index.js")})
-},{"../node_modules/is-buffer/index.js":118,"./bce_base_client":191,"./bos_client":193,"./crypto":196,"./helper":200,"debug":67,"fs":55,"path":141,"q":155,"underscore":183,"url":184,"util":186}],198:[function(require,module,exports){
+},{"../node_modules/is-buffer/index.js":118,"./bce_base_client":191,"./bos_client":193,"./crypto":197,"./helper":201,"debug":67,"fs":55,"path":141,"q":155,"underscore":183,"url":184,"util":186}],199:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -43759,7 +43852,7 @@ module.exports = FaceClient;
 
 
 }).call(this,{"isBuffer":require("../node_modules/is-buffer/index.js")})
-},{"../node_modules/is-buffer/index.js":118,"./bce_base_client":191,"debug":67,"underscore":183,"util":186}],199:[function(require,module,exports){
+},{"../node_modules/is-buffer/index.js":118,"./bce_base_client":191,"debug":67,"underscore":183,"util":186}],200:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -43823,7 +43916,7 @@ exports.ACCEPT = 'accept';
 
 
 
-},{}],200:[function(require,module,exports){
+},{}],201:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -44052,7 +44145,7 @@ function getTasks(data, uploadId, bucket, object, size, partSize) {
 
 
 }).call(this,{"isBuffer":require("../node_modules/is-buffer/index.js")})
-},{"../node_modules/is-buffer/index.js":118,"async":21,"debug":67,"fs":55,"q":155,"stream":181,"underscore":183}],201:[function(require,module,exports){
+},{"../node_modules/is-buffer/index.js":118,"async":21,"debug":67,"fs":55,"q":155,"stream":181,"underscore":183}],202:[function(require,module,exports){
 (function (process,Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -44493,7 +44586,7 @@ module.exports = HttpClient;
 
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"../package.json":188,"./auth":189,"./headers":199,"_process":147,"buffer":57,"debug":67,"events":95,"http":111,"https":114,"q":155,"querystring":158,"stream":181,"underscore":183,"url":184,"util":186}],202:[function(require,module,exports){
+},{"../package.json":188,"./auth":189,"./headers":200,"_process":147,"buffer":57,"debug":67,"events":95,"http":111,"https":114,"q":155,"querystring":158,"stream":181,"underscore":183,"url":184,"util":186}],203:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -44779,7 +44872,7 @@ exports.Notification = Notification;
 
 
 
-},{"./bce_base_client":191,"q":155,"util":186}],203:[function(require,module,exports){
+},{"./bce_base_client":191,"q":155,"util":186}],204:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -45250,7 +45343,7 @@ exports.Preset = Preset;
 
 
 
-},{"./bce_base_client":191,"q":155,"util":186}],204:[function(require,module,exports){
+},{"./bce_base_client":191,"q":155,"util":186}],205:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -45486,7 +45579,7 @@ module.exports = MediaClient;
 
 
 
-},{"./auth":189,"./bce_base_client":191,"./http_client":201,"underscore":183,"util":186}],205:[function(require,module,exports){
+},{"./auth":189,"./bce_base_client":191,"./http_client":202,"underscore":183,"util":186}],206:[function(require,module,exports){
 /**
  * @file src/mime.types.js
  * @author leeight
@@ -46500,7 +46593,7 @@ exports.guess = function (ext) {
     return mimeTypes[ext.toLowerCase()] || 'application/octet-stream';
 };
 
-},{}],206:[function(require,module,exports){
+},{}],207:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -46587,7 +46680,7 @@ module.exports = Multipart;
 
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":57,"underscore":183,"util":186}],207:[function(require,module,exports){
+},{"buffer":57,"underscore":183,"util":186}],208:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
@@ -46681,7 +46774,7 @@ module.exports = OCRClient;
 
 
 }).call(this,{"isBuffer":require("../node_modules/is-buffer/index.js")})
-},{"../node_modules/is-buffer/index.js":118,"./bce_base_client":191,"debug":67,"util":186}],208:[function(require,module,exports){
+},{"../node_modules/is-buffer/index.js":118,"./bce_base_client":191,"debug":67,"util":186}],209:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -46970,7 +47063,7 @@ exports.Subscription = Subscription;
 
 
 
-},{"./bce_base_client":191,"underscore":183,"util":186}],209:[function(require,module,exports){
+},{"./bce_base_client":191,"underscore":183,"util":186}],210:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -47148,7 +47241,7 @@ module.exports = SesClient;
 
 
 
-},{"./bce_base_client":191,"fs":55,"path":141,"util":186}],210:[function(require,module,exports){
+},{"./bce_base_client":191,"fs":55,"path":141,"util":186}],211:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -47191,7 +47284,7 @@ exports.trim = function (string) {
 };
 
 
-},{}],211:[function(require,module,exports){
+},{}],212:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -47263,7 +47356,7 @@ STS.prototype.getSessionToken = function (durationSeconds, params, options) {
 module.exports = STS;
 
 
-},{"./bce_base_client":191,"underscore":183,"util":186}],212:[function(require,module,exports){
+},{"./bce_base_client":191,"underscore":183,"util":186}],213:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -47411,7 +47504,7 @@ TsdbAdminClient.prototype.sendRequest = function (httpMethod, resource, varArgs)
 };
 module.exports = TsdbAdminClient;
 
-},{"./bce_base_client":191,"./http_client":201,"underscore":183,"util":186}],213:[function(require,module,exports){
+},{"./bce_base_client":191,"./http_client":202,"underscore":183,"util":186}],214:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -47639,7 +47732,7 @@ TsdbDataClient.prototype.sendRequest = function (httpMethod, resource, varArgs) 
 module.exports = TsdbDataClient;
 
 
-},{"./auth.js":189,"./bce_base_client":191,"./headers":199,"./http_client":201,"querystring":158,"underscore":183,"url":184,"util":186,"zlib":54}],214:[function(require,module,exports){
+},{"./auth.js":189,"./bce_base_client":191,"./headers":200,"./http_client":202,"querystring":158,"underscore":183,"url":184,"util":186,"zlib":54}],215:[function(require,module,exports){
 /**
  * @file src/vod/Media.js
  * @author leeight
@@ -47924,7 +48017,7 @@ module.exports = Media;
 
 
 
-},{"../bce_base_client":191,"../helper":200,"./Statistic":218,"debug":67,"underscore":183,"util":186}],215:[function(require,module,exports){
+},{"../bce_base_client":191,"../helper":201,"./Statistic":219,"debug":67,"underscore":183,"util":186}],216:[function(require,module,exports){
 /**
  * @file src/vod/Notification.js
  * @author leeight
@@ -48024,7 +48117,7 @@ Notification.prototype.remove = function (name) {
 
 module.exports = Notification;
 
-},{"../bce_base_client":191,"underscore":183,"util":186}],216:[function(require,module,exports){
+},{"../bce_base_client":191,"underscore":183,"util":186}],217:[function(require,module,exports){
 (function (Buffer){
 /**
  * @file src/vod/Player.js
@@ -48135,7 +48228,7 @@ Player.prototype.code = function (options) {
 module.exports = Player;
 
 }).call(this,require("buffer").Buffer)
-},{"../bce_base_client":191,"../helper":200,"buffer":57,"underscore":183,"util":186}],217:[function(require,module,exports){
+},{"../bce_base_client":191,"../helper":201,"buffer":57,"underscore":183,"util":186}],218:[function(require,module,exports){
 /**
  * @file src/vod/PresetGroup.js
  * @author leeight
@@ -48245,7 +48338,7 @@ PresetGroup.prototype.remove = function (presetGroupName) {
 
 module.exports = PresetGroup;
 
-},{"../bce_base_client":191,"underscore":183,"util":186}],218:[function(require,module,exports){
+},{"../bce_base_client":191,"underscore":183,"util":186}],219:[function(require,module,exports){
 /**
  * @file src/vod/Statistic.js
  * @author leeight
@@ -48318,7 +48411,7 @@ Statistic.prototype.stat = function (options) {
 
 module.exports = Statistic;
 
-},{"../bce_base_client":191,"../helper":200,"debug":67,"underscore":183,"util":186}],219:[function(require,module,exports){
+},{"../bce_base_client":191,"../helper":201,"debug":67,"underscore":183,"util":186}],220:[function(require,module,exports){
 /**
  * @file src/vod/StrategyGroup.js
  * @author leeight
@@ -48402,7 +48495,7 @@ StrategyGroup.prototype.update = function (strategyGroupName, config) {
 
 module.exports = StrategyGroup;
 
-},{"../bce_base_client":191,"underscore":183,"util":186}],220:[function(require,module,exports){
+},{"../bce_base_client":191,"underscore":183,"util":186}],221:[function(require,module,exports){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  *
@@ -48537,7 +48630,7 @@ VodClient.StrategyGroup = StrategyGroup;
 
 module.exports = VodClient;
 
-},{"./bce_base_client":191,"./bos_client":193,"./helper":200,"./vod/Media":214,"./vod/Notification":215,"./vod/Player":216,"./vod/PresetGroup":217,"./vod/Statistic":218,"./vod/StrategyGroup":219,"underscore":183,"url":184,"util":186}],221:[function(require,module,exports){
+},{"./bce_base_client":191,"./bos_client":193,"./helper":201,"./vod/Media":215,"./vod/Notification":216,"./vod/Player":217,"./vod/PresetGroup":218,"./vod/Statistic":219,"./vod/StrategyGroup":220,"underscore":183,"url":184,"util":186}],222:[function(require,module,exports){
 (function (Buffer){
 /**
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
