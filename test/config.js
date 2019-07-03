@@ -122,6 +122,13 @@ module.exports = {
             'ak': process.env.CFC_AK,
             'sk': process.env.CFC_SK
         }
+    },
+    'bts': {
+        'endpoint': "http://bts.gz.baidubce.com",
+        'credentials': {
+            'ak': process.env.BTS_AK,
+            'sk': process.env.BTS_SK
+        }
     }
 };
 
