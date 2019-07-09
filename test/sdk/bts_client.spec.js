@@ -20,128 +20,72 @@ describe('BtsClient', function () {
     beforeEach(function () {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = 10 * 1000;
 
-        client = new BtsClient(config.bts);
+        client = new BtsClient.BtsClient(config.bts);
     });
-    var putRow_body = {
-        'rowkey': 'a',
-        'cells': [
-            {
-                'column': 'c1',
-                'value': 'v1'
-            },
-            {
-                'column': 'c2',
-                'value': 'v2'
-            }
-        ]
-    };
-    var getAndDel_body = {
-        'rowkey': 'a',
-        'cells': [
-            {
-                'column': 'c1',
-            },
-            {
-                'column': 'c2',
-            }
-        ]
-    };
 
-    var batchPutRow_body = {
-        'rows': [
-            {
-                'rowkey': 'a1',
-                'cells': [
-                    {
-                        'column': 'c1',
-                        'value': 'v11'
-                    },
-                    {
-                        'column': 'c2',
-                        'value': 'v12'
-                    }
-                ]
-            },
-            {
-                'rowkey': 'a2',
-                'cells': [
-                    {
-                        'column': 'c1',
-                        'value': 'v21'
-                    },
-                    {
-                        'column': 'c2',
-                        'value': 'v22'
-                    }
-                ]
-            }
-        ]
-    };
-
-    var batchGetAndDel_body = {
-        'rows': [
-            {
-                'rowkey': 'a1',
-                'cells': [
-                    {
-                        'column': 'c1'
-                    },
-                    {
-                        'column': 'c2'
-                    }
-                ]
-            },
-            {
-                'rowkey': 'a2',
-                'cells': [
-                    {
-                        'column': 'c1'
-                    },
-                    {
-                        'column': 'c2'
-                    }
-                ]
-            }
-        ]
-    };
-
-    var scan_body = {
-        'startRowkey': 'a1',
-        'includeStart': true,
-        'stopRowkey': 'a2',
-        'includeStop': false,
-        'selector': [
-            {
-                'column': 'c1'
-            },
-            {
-                'column': 'c2'
-            }
-        ],
-        'limit': 1000
-    };
-
+    var instanceName = 'test_whx';
+    var tableName = 'table1';
     debug('name ', 'bce_sdk_test' + Date.now());
+
+    // 单行写入 PutRow
+    var putRowRequest = new BtsClient.PutRowRequest();
+    putRowRequest.rowkey = "a";
+    putRowRequest.addCells("c1","v1");
+    putRowRequest.addCells("c2","v2");
+
+    // 批量写入 BatchPutRow
+    var batchPutRowRequest = new BtsClient.BatchPutRowRequest();
+    batchPutRowRequest.addRows('a1', 'c1', 'v1');
+    batchPutRowRequest.addRows('a2', 'c1', 'v1');
+
+    // 单条随机读 GetRow
+    var getRowRequest = new BtsClient.GetRowRequest();
+    getRowRequest.rowkey = 'a';
+    getRowRequest.addCells('c1');
+    getRowRequest.addCells('c2');
+
+    // 批量读 BatchGetRow
+    var batchGetRowRequest = new BtsClient.BatchGetRowRequest();
+    batchGetRowRequest.addRows('a1', 'c1');
+    batchGetRowRequest.addRows('a2', 'c1');
+
+    // 区间读 ScanRow
+    var scanRowRequest = new BtsClient.ScanRequest();
+    scanRowRequest.startRowkey =  'a1';
+    scanRowRequest.stopRowkey = 'a2';
+    scanRowRequest.includeStart = true;
+    scanRowRequest.includeStop = false;
+
+    // 单条删除 DeleteRow
+    var deleteRowRequest = new BtsClient.DeleteRowRequest();
+    deleteRowRequest.rowkey = 'a1';
+    deleteRowRequest.addCells('c1');
+
+    // 批量删除 BatchDeleteRow
+    var batchDeleteRowRequest = new BtsClient.BatchDeleteRowRequest();
+    batchDeleteRowRequest.addRows('a1', 'c1');
+    batchDeleteRowRequest.addRows('a2', 'c1');
+
     it('putRow', function () {
-        return client.putRow(putRow_body)
+        return client.putRow(instanceName, tableName, putRowRequest)
             .then(function (response) {
                 debug('putRow response (%j)', response);
-                return client.getRow(getAndDel_body)
+                return client.batchPutRow(instanceName, tableName, batchPutRowRequest)
+            }).then(function (response){
+                debug('batchPutRow response (%j)', response);
+                return client.getRow(instanceName, tableName, getRowRequest)
             }).then(function (response) {
                 debug('getRow response (%j)', response);
-                return client.batchPutRow(batchPutRow_body)
-            }).then(function (response) {
-                debug('batchPutRow response (%j)', response);
-                return client.deleteRow(getAndDel_body)
-            }).then(function (response) {
-                debug('deleteRow response (%j)', response);
-                return client.batchGetRow(batchGetAndDel_body)
+                return client.batchGetRow(instanceName, tableName, batchGetRowRequest)
             }).then(function (response) {
                 debug('batchGetRow response (%j)', response);
-                return client.scan(scan_body)
+                return client.scan(instanceName, tableName, scanRowRequest)
             }).then(function (response) {
                 debug('scan response (%j)', response);
-                return client.batchDeleteRow(batchGetAndDel_body)
+                return client.deleteRow(instanceName, tableName, deleteRowRequest)
+            }).then(function (response) {
+                debug('deleteRow response (%j)', response);
+                return client.batchDeleteRow(instanceName, tableName, batchDeleteRowRequest)
             }).then(function (response) {
                 debug('batchDeleteRow response (%j)', response);
             }).catch(function (reason) {
