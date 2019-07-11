@@ -12,9 +12,16 @@
  */
 
 var util = require('util');
-var debug = require('debug')('bce-sdk:BtsClient');
 
 var BceBaseClient = require('./bce_base_client');
+const models = require('./bts/models');
+const PutRowRequest = models.PutRowRequest;
+const BatchPutRowRequest = models.BatchPutRowRequest;
+const DeleteRowRequest = models.DeleteRowRequest;
+const BatchDeleteRowRequest = models.BatchDeleteRowRequest;
+const GetRowRequest = models.GetRowRequest;
+const BatchGetRowRequest = models.BatchGetRowRequest;
+const ScanRequest = models.ScanRequest;
 
 /**
  * Bts service api
@@ -33,60 +40,114 @@ function BtsClient(config) {
 
 util.inherits(BtsClient, BceBaseClient);
 
-BtsClient.prototype.putRow = function (body) {
-    debug('putRow, body = %j', body);
-    return this.sendRequest('PUT', '/v1/instance/test_whx/table/table1/row', {
-        params: {},
-        body: JSON.stringify(body)
+/**
+ * 单条写入 PutRow
+ * @param instanceName 实例名
+ * @param tableName 表名
+ * @param putRowRequest PutRow请求体
+ * @returns {*}
+ */
+BtsClient.prototype.putRow = function (instanceName, tableName, putRowRequest) {
+    putRowRequest.rowkey = putRowRequest.encode(putRowRequest.rowkey);
+    return this.sendRequest('PUT', '/v1/instance/' + instanceName + '/table/' + tableName + '/row', {
+        body: JSON.stringify(putRowRequest)
     });
 };
 
-BtsClient.prototype.batchPutRow = function (body) {
-    debug('batchPutRow, body = %j', body);
-    return this.sendRequest('PUT', '/v1/instance/test_whx/table/table1/rows', {
-        params: {},
-        body: JSON.stringify(body)
+/**
+ * 批量写入 BatchPutRow
+ * @param instanceName 实例名
+ * @param tableName 表名
+ * @param batchPutRowRequest batchPutRow 请求体
+ * @returns {*}
+ */
+BtsClient.prototype.batchPutRow = function(instanceName, tableName, batchPutRowRequest) {
+    return this.sendRequest('PUT', '/v1/instance/' + instanceName + '/table/' + tableName + '/rows', {
+        body: JSON.stringify(batchPutRowRequest)
     });
 };
 
-BtsClient.prototype.deleteRow = function (body) {
-    debug('deleteRow, body = %j', body);
-    return this.sendRequest('DELETE', '/v1/instance/test_whx/table/table1/row', {
-        params: {},
-        body: JSON.stringify(body)
+/**
+ * 单条删除 DeleteRow
+ * @param instanceName 实例名
+ * @param tableName 表名
+ * @param deleteRowRequest deleteRow 请求体
+ * @returns {*}
+ */
+BtsClient.prototype.deleteRow = function(instanceName, tableName, deleteRowRequest) {
+    deleteRowRequest.rowkey = deleteRowRequest.encode(deleteRowRequest.rowkey);
+    return this.sendRequest('DELETE', '/v1/instance/' + instanceName + '/table/' + tableName + '/row', {
+        body: JSON.stringify(deleteRowRequest)
     });
 };
 
-BtsClient.prototype.batchDeleteRow = function (body) {
-    debug('batchDeleteRow, body = %j', body);
-    return this.sendRequest('DELETE', '/v1/instance/test_whx/table/table1/rows', {
-        params: {},
-        body: JSON.stringify(body)
-    })
-};
-
-BtsClient.prototype.getRow = function (body) {
-    debug('putRow, body = %j', body);
-    return this.sendRequest('GET', '/v1/instance/test_whx/table/table1/row', {
-        params: {},
-        body: JSON.stringify(body)
+/**
+ * 批量删除 BatchDeleteRow
+ * @param instanceName 实例名
+ * @param tableName 表名
+ * @param batchDeleteRowRequest BatchDeleteRow 请求体
+ * @returns {*}
+ */
+BtsClient.prototype.batchDeleteRow = function(instanceName, tableName, batchDeleteRowRequest) {
+    return this.sendRequest('DELETE', '/v1/instance/' + instanceName + '/table/' + tableName + '/rows', {
+        body: JSON.stringify(batchDeleteRowRequest)
     });
 };
 
-BtsClient.prototype.batchGetRow = function (body) {
-    debug('batchGetRow, body = %j', body);
-    return this.sendRequest('GET', '/v1/instance/test_whx/table/table1/rows', {
-        params: {},
-        body: JSON.stringify(body)
+/**
+ * 单条随机读 GetRow
+ * @param instanceName 实例名
+ * @param tableName 表名
+ * @param getRowRequest GetRow 请求体
+ * @returns {*}
+ */
+BtsClient.prototype.getRow = function(instanceName, tableName, getRowRequest) {
+    getRowRequest.rowkey = getRowRequest.encode(getRowRequest.rowkey);
+    return this.sendRequest('GET', '/v1/instance/' + instanceName + '/table/' + tableName + '/row', {
+        body: JSON.stringify(getRowRequest)
     });
 };
 
-BtsClient.prototype.scan = function (body) {
-    debug('scan, body = %j', body);
-    return this.sendRequest('GET', '/v1/instance/test_whx/table/table1/rows', {
-        params: {},
-        body: JSON.stringify(body)
+/**
+ * 批量读 BatchGetRow
+ * @param instanceName 实例名
+ * @param tableName 表名
+ * @param batchGetRowRequest BatchGetRow 请求体
+ * @returns {*}
+ */
+BtsClient.prototype.batchGetRow = function(instanceName, tableName, batchGetRowRequest) {
+    return this.sendRequest('GET', '/v1/instance/' + instanceName + '/table/' + tableName + '/rows', {
+        body: JSON.stringify(batchGetRowRequest)
     });
 };
 
-module.exports = BtsClient;
+/**
+ * 区间读 Scan
+ * @param instanceName 实例名
+ * @param tableName 表名
+ * @param scanRowRequest Scan 请求体
+ * @returns {*}
+ */
+BtsClient.prototype.scan = function(instanceName, tableName, scanRowRequest) {
+    if (scanRowRequest.startRowkey !== null) {
+        scanRowRequest.startRowkey = scanRowRequest.encode(scanRowRequest.startRowkey);
+    }
+
+    if (scanRowRequest.stopRowkey !== null) {
+        scanRowRequest.stopRowkey = scanRowRequest.encode(scanRowRequest.stopRowkey);
+    }
+    return this.sendRequest('GET', '/v1/instance/' + instanceName + '/table/' + tableName + '/rows', {
+        body: JSON.stringify(scanRowRequest)
+    });
+};
+
+module.exports = {
+    BtsClient:BtsClient,
+    PutRowRequest:PutRowRequest,
+    BatchPutRowRequest: BatchPutRowRequest,
+    DeleteRowRequest: DeleteRowRequest,
+    BatchDeleteRowRequest: BatchDeleteRowRequest,
+    GetRowRequest: GetRowRequest,
+    BatchGetRowRequest: BatchGetRowRequest,
+    ScanRequest: ScanRequest,
+};
