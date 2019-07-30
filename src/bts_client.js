@@ -13,15 +13,16 @@
 
 var util = require('util');
 
+var models = require('./bts/models');
 var BceBaseClient = require('./bce_base_client');
-const models = require('./bts/models');
-const PutRowRequest = models.PutRowRequest;
-const BatchPutRowRequest = models.BatchPutRowRequest;
-const DeleteRowRequest = models.DeleteRowRequest;
-const BatchDeleteRowRequest = models.BatchDeleteRowRequest;
-const GetRowRequest = models.GetRowRequest;
-const BatchGetRowRequest = models.BatchGetRowRequest;
-const ScanRequest = models.ScanRequest;
+
+var PutRowRequest = models.PutRowRequest;
+var BatchPutRowRequest = models.BatchPutRowRequest;
+var DeleteRowRequest = models.DeleteRowRequest;
+var BatchDeleteRowRequest = models.BatchDeleteRowRequest;
+var GetRowRequest = models.GetRowRequest;
+var BatchGetRowRequest = models.BatchGetRowRequest;
+var ScanRequest = models.ScanRequest;
 
 /**
  * Bts service api
@@ -37,7 +38,6 @@ const ScanRequest = models.ScanRequest;
 function BtsClient(config) {
     BceBaseClient.call(this, config, 'bts', true);
 }
-
 util.inherits(BtsClient, BceBaseClient);
 
 /**
@@ -61,7 +61,7 @@ BtsClient.prototype.putRow = function (instanceName, tableName, putRowRequest) {
  * @param batchPutRowRequest batchPutRow 请求体
  * @returns {*}
  */
-BtsClient.prototype.batchPutRow = function(instanceName, tableName, batchPutRowRequest) {
+BtsClient.prototype.batchPutRow = function (instanceName, tableName, batchPutRowRequest) {
     return this.sendRequest('PUT', '/v1/instance/' + instanceName + '/table/' + tableName + '/rows', {
         body: JSON.stringify(batchPutRowRequest)
     });
@@ -74,7 +74,7 @@ BtsClient.prototype.batchPutRow = function(instanceName, tableName, batchPutRowR
  * @param deleteRowRequest deleteRow 请求体
  * @returns {*}
  */
-BtsClient.prototype.deleteRow = function(instanceName, tableName, deleteRowRequest) {
+BtsClient.prototype.deleteRow = function (instanceName, tableName, deleteRowRequest) {
     deleteRowRequest.rowkey = deleteRowRequest.encode(deleteRowRequest.rowkey);
     return this.sendRequest('DELETE', '/v1/instance/' + instanceName + '/table/' + tableName + '/row', {
         body: JSON.stringify(deleteRowRequest)
@@ -88,7 +88,7 @@ BtsClient.prototype.deleteRow = function(instanceName, tableName, deleteRowReque
  * @param batchDeleteRowRequest BatchDeleteRow 请求体
  * @returns {*}
  */
-BtsClient.prototype.batchDeleteRow = function(instanceName, tableName, batchDeleteRowRequest) {
+BtsClient.prototype.batchDeleteRow = function (instanceName, tableName, batchDeleteRowRequest) {
     return this.sendRequest('DELETE', '/v1/instance/' + instanceName + '/table/' + tableName + '/rows', {
         body: JSON.stringify(batchDeleteRowRequest)
     });
@@ -101,7 +101,7 @@ BtsClient.prototype.batchDeleteRow = function(instanceName, tableName, batchDele
  * @param getRowRequest GetRow 请求体
  * @returns {*}
  */
-BtsClient.prototype.getRow = function(instanceName, tableName, getRowRequest) {
+BtsClient.prototype.getRow = function (instanceName, tableName, getRowRequest) {
     getRowRequest.rowkey = getRowRequest.encode(getRowRequest.rowkey);
     return this.sendRequest('GET', '/v1/instance/' + instanceName + '/table/' + tableName + '/row', {
         body: JSON.stringify(getRowRequest)
@@ -115,7 +115,7 @@ BtsClient.prototype.getRow = function(instanceName, tableName, getRowRequest) {
  * @param batchGetRowRequest BatchGetRow 请求体
  * @returns {*}
  */
-BtsClient.prototype.batchGetRow = function(instanceName, tableName, batchGetRowRequest) {
+BtsClient.prototype.batchGetRow = function (instanceName, tableName, batchGetRowRequest) {
     return this.sendRequest('GET', '/v1/instance/' + instanceName + '/table/' + tableName + '/rows', {
         body: JSON.stringify(batchGetRowRequest)
     });
@@ -128,7 +128,7 @@ BtsClient.prototype.batchGetRow = function(instanceName, tableName, batchGetRowR
  * @param scanRowRequest Scan 请求体
  * @returns {*}
  */
-BtsClient.prototype.scan = function(instanceName, tableName, scanRowRequest) {
+BtsClient.prototype.scan = function (instanceName, tableName, scanRowRequest) {
     if (scanRowRequest.startRowkey !== null) {
         scanRowRequest.startRowkey = scanRowRequest.encode(scanRowRequest.startRowkey);
     }
@@ -142,8 +142,8 @@ BtsClient.prototype.scan = function(instanceName, tableName, scanRowRequest) {
 };
 
 module.exports = {
-    BtsClient:BtsClient,
-    PutRowRequest:PutRowRequest,
+    BtsClient: BtsClient,
+    PutRowRequest: PutRowRequest,
     BatchPutRowRequest: BatchPutRowRequest,
     DeleteRowRequest: DeleteRowRequest,
     BatchDeleteRowRequest: BatchDeleteRowRequest,
