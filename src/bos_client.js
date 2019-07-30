@@ -248,6 +248,47 @@ BosClient.prototype.getBucketAcl = function (bucketName, options) {
     });
 };
 
+BosClient.prototype.getObjectAcl = function (bucketName, key, options) {
+    options = options || {};
+
+    return this.sendRequest('GET', {
+        bucketName: bucketName,
+        key: key,
+        params: {acl: ''},
+        config: options.config
+    });
+};
+
+BosClient.prototype.putObjectAcl = function (bucketName, key, acl, options) {
+    options = options || {};
+
+    var headers = {};
+    headers[H.CONTENT_TYPE] = 'application/json; charset=UTF-8';
+    return this.sendRequest('PUT', {
+        bucketName: bucketName,
+        key: key,
+        body: JSON.stringify({accessControlList: acl}),
+        headers: headers,
+        params: {acl: ''},
+        config: options.config
+    });
+};
+
+BosClient.prototype.putObjectCannedAcl = function (bucketName, key, cannedAcl, options) {
+    options = options || {};
+
+    var headers = {};
+    headers[H.X_BCE_ACL] = cannedAcl;
+    return this.sendRequest('PUT', {
+        bucketName: bucketName,
+        key: key,
+        headers: headers,
+        params: {acl: ''},
+        config: options.config
+    });
+};
+
+
 BosClient.prototype.getBucketLocation = function (bucketName, options) {
     options = options || {};
 
@@ -970,6 +1011,9 @@ BosClient.prototype._prepareObjectHeaders = function (options) {
         H.SESSION_TOKEN,
         H.CACHE_CONTROL,
         H.EXPIRES,
+        H.X_BCE_ACL,
+        H.X_BCE_GRANT_READ,
+        H.X_BCE_GRANT_FULL_CONTROL,
         H.X_BCE_OBJECT_ACL,
         H.X_BCE_OBJECT_GRANT_READ
     ];
