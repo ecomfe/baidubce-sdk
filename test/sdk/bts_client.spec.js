@@ -23,15 +23,15 @@ describe('BtsClient', function () {
         client = new BtsClient.BtsClient(config.bts);
     });
 
-    var instanceName = 'test_whx';
-    var tableName = 'table1';
+    var instanceName = 'test0';
+    var tableName = 'test';
     debug('name ', 'bce_sdk_test' + Date.now());
 
     // 单行写入 PutRow
     var putRowRequest = new BtsClient.PutRowRequest();
     putRowRequest.rowkey = "a";
-    putRowRequest.addCells("c1","v1");
-    putRowRequest.addCells("c2","v2");
+    putRowRequest.addCells("c1", "v1");
+    putRowRequest.addCells("c2", "v2");
 
     // 批量写入 BatchPutRow
     var batchPutRowRequest = new BtsClient.BatchPutRowRequest();
@@ -51,7 +51,7 @@ describe('BtsClient', function () {
 
     // 区间读 ScanRow
     var scanRowRequest = new BtsClient.ScanRequest();
-    scanRowRequest.startRowkey =  'a1';
+    scanRowRequest.startRowkey = 'a1';
     scanRowRequest.stopRowkey = 'a2';
     scanRowRequest.includeStart = true;
     scanRowRequest.includeStop = false;
@@ -71,7 +71,7 @@ describe('BtsClient', function () {
             .then(function (response) {
                 debug('putRow response (%j)', response);
                 return client.batchPutRow(instanceName, tableName, batchPutRowRequest)
-            }).then(function (response){
+            }).then(function (response) {
                 debug('batchPutRow response (%j)', response);
                 return client.getRow(instanceName, tableName, getRowRequest)
             }).then(function (response) {
@@ -88,6 +88,18 @@ describe('BtsClient', function () {
                 return client.batchDeleteRow(instanceName, tableName, batchDeleteRowRequest)
             }).then(function (response) {
                 debug('batchDeleteRow response (%j)', response);
+                return client.listInstances()
+            }).then(function (response) {
+                debug('listInstances response (%j)', response);
+                return client.showInstance(instanceName)
+            }).then(function (response) {
+                debug('showInstance response (%j)', response);
+                return client.listTables(instanceName)
+            }).then(function (response) {
+                debug('listTables response (%j)', response);
+                return client.showTable(instanceName, tableName)
+            }).then(function (response) {
+                debug('showTable response (%j)', response);
             }).catch(function (reason) {
                 debug('error', reason);
             });

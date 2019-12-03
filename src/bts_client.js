@@ -16,6 +16,9 @@ var util = require('util');
 var models = require('./bts/models');
 var BceBaseClient = require('./bce_base_client');
 
+var CreateInstanceRequest = models.CreateInstanceRequest;
+var CreateTableRequest = models.CreateTableRequest;
+var UpdateTableRequest = models.UpdateTableRequest;
 var PutRowRequest = models.PutRowRequest;
 var BatchPutRowRequest = models.BatchPutRowRequest;
 var DeleteRowRequest = models.DeleteRowRequest;
@@ -39,6 +42,109 @@ function BtsClient(config) {
     BceBaseClient.call(this, config, 'bts', true);
 }
 util.inherits(BtsClient, BceBaseClient);
+
+/**
+ * 列举实例 ListInstances
+ * @returns {*}
+ */
+BtsClient.prototype.listInstances = function () {
+    return this.sendRequest('GET', '/v1/instances', null);
+};
+
+/**
+ * 删除实例 DropInstance
+ * @param instanceName 实例名
+ * @returns {*}
+ */
+BtsClient.prototype.dropInstance = function (instanceName) {
+    return this.sendRequest('DELETE', '/v1/instance/' + instanceName, null);
+};
+
+/**
+ * 显示实例信息 ShowInstance
+ * @param instanceName 实例名
+ * @returns {*}
+ */
+BtsClient.prototype.showInstance = function (instanceName) {
+    return this.sendRequest('GET', '/v1/instance/' + instanceName, null);
+};
+
+/**
+ * 创建实例 CreateInstance
+ * @param instanceName 实例名
+ * @param createInstanceRequest CreateInstance请求体
+ * @returns {*}
+ */
+BtsClient.prototype.createInstance = function (instanceName, createInstanceRequest) {
+    return this.sendRequest('PUT', '/v1/instance/' + instanceName, {
+        body: JSON.stringify(createInstanceRequest)
+    });
+};
+
+/**
+ * 创建表 CreateTable
+ * @param instanceName 实例名
+ * @param tableName 表名
+ * @param createTableRequest CreateTable请求体
+ * @returns {*}
+ */
+BtsClient.prototype.createTable = function (instanceName, tableName, createTableRequest) {
+    return this.sendRequest('PUT', '/v1/instance/' + instanceName + '/table/' + tableName, {
+        body: JSON.stringify(createTableRequest)
+    });
+};
+
+/**
+ * 更新表 UpdateTable
+ * @param instanceName 实例名
+ * @param tableName 表名
+ * @param UpdateTableRequest UpdateTable请求体
+ * @returns {*}
+ */
+BtsClient.prototype.updateTable = function (instanceName, tableName, updateTableRequest) {
+    return this.sendRequest('PUT', '/v1/instance/' + instanceName + '/table/' + tableName, {
+        body: JSON.stringify(updateTableRequest)
+    });
+};
+
+/**
+ * 删除表 DropTable
+ * @param instanceName 实例名
+ * @param tableName 表名
+ * @returns {*}
+ */
+BtsClient.prototype.dropTable = function (instanceName, tableName) {
+    return this.sendRequest('DELETE', '/v1/instance/' + instanceName + '/table/' + tableName, null);
+};
+
+/**
+ * 显示表信息 ShowTable
+ * @param instanceName 实例名
+ * @param tableName 表名
+ * @param onlyState 设为true则响应只会返回tableState字段，主要用于建表成功后轮询状态使用
+ * @returns {*}
+ */
+BtsClient.prototype.showTable = function (instanceName, tableName, onlyState) {
+    var params = {
+        onlyState: ''
+    };
+    if (onlyState) {
+        return this.sendRequest('GET', '/v1/instance/' + instanceName + '/table/' + tableName, {
+            params: params
+        });
+    } else {
+        return this.sendRequest('GET', '/v1/instance/' + instanceName + '/table/' + tableName, null);
+    }
+};
+
+/**
+ * 列举所有表 ListTables
+ * @param instanceName 实例名
+ * @returns {*}
+ */
+BtsClient.prototype.listTables = function (instanceName) {
+    return this.sendRequest('GET', '/v1/instance/' + instanceName + '/tables', null);
+};
 
 /**
  * 单条写入 PutRow
@@ -143,6 +249,9 @@ BtsClient.prototype.scan = function (instanceName, tableName, scanRowRequest) {
 
 module.exports = {
     BtsClient: BtsClient,
+    CreateInstanceRequest: CreateInstanceRequest,
+    CreateTableRequest: CreateTableRequest,
+    UpdateTableRequest: UpdateTableRequest,
     PutRowRequest: PutRowRequest,
     BatchPutRowRequest: BatchPutRowRequest,
     DeleteRowRequest: DeleteRowRequest,

@@ -69,6 +69,90 @@ class Row {
 }
 
 /**
+ * CreateInstance请求参数结构体
+ * @class
+ */
+class CreateInstanceRequest {
+    constructor() {
+        /**
+         * 实例默认存储类型,仅支持HighPerformance和CommonPerformance
+         * @type {string | null}
+         */
+        this.storageType = null;
+    }
+}
+
+/**
+ * CreateTable请求参数结构体
+ * @class
+ */
+class CreateTableRequest {
+    constructor() {
+        /**
+         * 建表时固定传0，非0值代表更新表信息。如果不传body，默认为建表
+         * @type {number | null}
+         */
+        this.tableVersion = 0;
+
+        /**
+         * 数据压缩方式，可取以下值："NONE"不压缩 "SNAPPY_ALL"使用snappy压缩 ,默认为NONE
+         * @type {string | null}
+         */
+        this.compressType = null;
+
+        /**
+         * 数据过期时间，为0时永不过期，单位秒。默认为0，即永不过期
+         * @type {number | null}
+         */
+        this.ttl = null;
+
+        /**
+         * 表存储类型,仅支持HighPerformance和CommonPerformance，若无此参数则默认使用Instance中定义的表存储类型
+         * @type {string | null}
+         */
+        this.storageType = null;
+
+        /**
+         * 最多保留版本数，取值范围[1, 50000]
+         * @type {number | null}
+         */
+        this.maxVersions = null;
+    }
+}
+
+/**
+ * UpdateTable请求参数结构体
+ * @class
+ */
+class UpdateTableRequest {
+    constructor() {
+        /**
+         * 必须先通过GET 获取表的版本信息后，再带入此次请求
+         * @type {number | null}
+         */
+        this.tableVersion = null;
+
+        /**
+         * 数据压缩方式，可取以下值："NONE"不压缩 "SNAPPY_ALL"使用snappy压缩 ,默认为NONE
+         * @type {string | null}
+         */
+        this.compressType = null;
+
+        /**
+         * 数据过期时间，为0时永不过期，单位秒。默认为0，即永不过期
+         * @type {number | null}
+         */
+        this.ttl = null;
+
+        /**
+         * 最多保留版本数，取值范围[1, 50000]
+         * @type {number | null}
+         */
+        this.maxVersions = null;
+    }
+}
+
+/**
  * PutRow请求参数结构体
  * @class
  */
@@ -142,7 +226,7 @@ class DeleteRowRequest {
         this.cells = null;
     }
 
-    encode(rowKey){
+    encode(rowKey) {
         return urlencode(rowKey);
     }
 
@@ -296,6 +380,9 @@ class ScanRequest {
 module.exports = {
     Cell: Cell,
     Row: Row,
+    CreateInstanceRequest: CreateInstanceRequest,
+    CreateTableRequest: CreateTableRequest,
+    UpdateTableRequest: UpdateTableRequest,
     PutRowRequest: PutRowRequest,
     BatchPutRowRequest: BatchPutRowRequest,
     DeleteRowRequest: DeleteRowRequest,
