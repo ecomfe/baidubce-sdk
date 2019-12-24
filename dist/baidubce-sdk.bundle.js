@@ -44688,7 +44688,7 @@ exports.createContext = Script.createContext = function (context) {
 },{"indexof":135}],209:[function(require,module,exports){
 module.exports={
   "name": "@baiducloud/sdk",
-  "version": "1.0.0-rc.12",
+  "version": "1.0.0-rc.13",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
@@ -48898,17 +48898,17 @@ HttpClient.prototype._doRequest = function (options, body, outputStream) {
     });
 
     // 设置超时10s
-    if (typeof req.setTimeout === 'function') {
-        req.setTimeout(10e3);
+    // if (typeof req.setTimeout === 'function') {
+    //     req.setTimeout(60e3);
 
-        req.on('timeout', function() {
-            deferred.reject(new Error('socket Timeout!'));
+    //     req.on('timeout', function() {
+    //         deferred.reject(new Error('socket Timeout!'));
 
-            req.destroy();
-        });
-    } else if (req.xhr) {
-        req.xhr.timeout = 10e3;
-    }
+    //         req.destroy();
+    //     });
+    // } else if (req.xhr) {
+    //     req.xhr.timeout = 60e3;
+    // }
 
     if (req.xhr && typeof req.xhr.upload === 'object') {
         u.each(['progress', 'error', 'abort', 'timeout'], function (eventName) {
