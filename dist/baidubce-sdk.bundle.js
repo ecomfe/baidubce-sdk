@@ -44688,7 +44688,7 @@ exports.createContext = Script.createContext = function (context) {
 },{"indexof":135}],209:[function(require,module,exports){
 module.exports={
   "name": "@baiducloud/sdk",
-  "version": "1.0.0-rc.13",
+  "version": "1.0.0-rc.14",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "index.js",
   "directories": {
