@@ -113,6 +113,8 @@ HttpClient.prototype.sendRequest = function (httpMethod, path, body, headers, pa
     // 通过browserify打包后，在Safari下并不能有效处理server的content-type
     // 参考ISSUE：https://github.com/jhiesey/stream-http/issues/8
     options.mode = 'prefer-fast';
+    // 某些产品网关CORS Header `Access-Control-Allow-Origin` 为 `*`, 例如：VOD
+    options.withCredentials = false;
 
     // rejectUnauthorized: If true, the server certificate is verified against the list of supplied CAs.
     // An 'error' event is emitted if verification fails.
