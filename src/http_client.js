@@ -18,6 +18,7 @@
 /* eslint max-params:[0,10] */
 /* globals ArrayBuffer */
 
+var process = require('process');
 var http = require('http');
 var https = require('https');
 var util = require('util');

@@ -24,5 +24,6 @@ declare namespace BaiduBce.SDK {
     /** 服务Endpoinit, default: http(s)://<Service>.<Region>.baidubce.com */
     type Endpoint = string;
 
+    /** 翻译不了枚举了，因为我也不知道啥都是啥 */
     type Region = 'bj' | 'cn-n1' | 'gz' | 'hk' | 'hkg' | 'hk02' | 'su' | 'fsh' | 'bd' | 'hb-fsg' | 'fwh' | 'sin' | 'bjfsg' | 'gz';
 }

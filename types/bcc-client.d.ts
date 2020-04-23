@@ -9,8 +9,10 @@
  */
 
 /// <reference path="bce-config.d.ts" />
+/// <reference path="http-client.d.ts" />
 
 declare namespace BaiduBce.SDK {
     class BccClient {
+        constructor(options: { endpoint: string } & Credentials);
     }
 }
