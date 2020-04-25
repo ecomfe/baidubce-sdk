@@ -95,7 +95,7 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
 
     var resource = path.normalize(path.join(
         '/v1',
-        /(bcebos|baidubce)\.com$/.test(config.endpoint) ? strings.normalize(bucketName || '') : '',
+        /\.[\w\-]+\.bcebos\.com$/.test(config.endpoint) ? '' : strings.normalize(bucketName || ''),
         strings.normalize(key || '', false)
     )).replace(/\\/g, '/');
 
@@ -956,7 +956,7 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
     var config = u.extend({}, this.config, args.config);
     var resource = path.normalize(path.join(
         '/v1',
-        /(bcebos|baidubce)\.com$/.test(config.endpoint) ? strings.normalize(args.bucketName || '') : '',
+        /\.[\w\-]+\.bcebos\.com$/.test(config.endpoint) ? '' : strings.normalize(args.bucketName || ''),
         strings.normalize(args.key || '', false)
     )).replace(/\\/g, '/');
 
