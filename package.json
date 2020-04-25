@@ -1,6 +1,6 @@
 {
   "name": "@baiducloud/sdk",
-  "version": "1.0.0-rc.14",
+  "version": "1.0.0-rc.15",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "./index.js",
   "browser": {
@@ -32,7 +32,7 @@
     "urlencode": "^1.1.0"
   },
   "devDependencies": {
-    "browserify": "^10.2.6",
+    "browserify": "10.2.6",
     "coveralls": "^3.0.2",
     "expect.js": "^0.3.1",
     "fs-walk": "0.0.2",
