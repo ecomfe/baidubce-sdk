@@ -95,7 +95,7 @@ BosClient.prototype.generatePresignedUrl = function (bucketName, key, timestamp,
 
     var resource = path.normalize(path.join(
         '/v1',
-        strings.normalize(bucketName || ''),
+        /(bcebos|baidubce)\.com$/.test(config.endpoint) ? strings.normalize(bucketName || '') : '',
         strings.normalize(key || '', false)
     )).replace(/\\/g, '/');
 
@@ -210,6 +210,7 @@ BosClient.prototype.listObjects = function (bucketName, options) {
     });
 };
 
+BosClient.prototype.headBucket =
 BosClient.prototype.doesBucketExist = function (bucketName, options) {
     options = options || {};
 
@@ -955,7 +956,7 @@ BosClient.prototype.sendRequest = function (httpMethod, varArgs) {
     var config = u.extend({}, this.config, args.config);
     var resource = path.normalize(path.join(
         '/v1',
-        strings.normalize(args.bucketName || ''),
+        /(bcebos|baidubce)\.com$/.test(config.endpoint) ? strings.normalize(args.bucketName || '') : '',
         strings.normalize(args.key || '', false)
     )).replace(/\\/g, '/');
 
