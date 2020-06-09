@@ -44706,13 +44706,12 @@ exports.createContext = Script.createContext = function (context) {
 },{"indexof":134}],208:[function(require,module,exports){
 module.exports={
   "name": "@baiducloud/sdk",
-  "version": "1.0.0-rc.16",
+  "version": "1.0.0-rc.17",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "./index.js",
   "browser": {
     "fs": false
   },
-  "types": "types",
   "directories": {
     "test": "test"
   },
@@ -45791,36 +45790,36 @@ BosClient.prototype.createBucket = function (bucketName, options) {
     });
 };
 
-BosClient.prototype.deleteBucketCopyrightProtection =
-BosClient.prototype.getBucketCopyrightProtection =
-BosClient.prototype.putBucketCopyrightProtection =
-BosClient.prototype.deleteBucketCors =
-BosClient.prototype.putBucketCors =
-BosClient.prototype.getBucketCors =
-BosClient.prototype.deleteBucketTrash =
-BosClient.prototype.getBucketTrash =
-BosClient.prototype.putBucketTrash =
-BosClient.prototype.putBucketStaticWebsite =
-BosClient.prototype.getBucketStaticWebsite =
-BosClient.prototype.deleteBucketStaticWebsite =
-BosClient.prototype.deleteBucketEncryption =
-BosClient.prototype.getBucketEncryption =
-BosClient.prototype.putBucketEncryption =
-BosClient.prototype.getBucketStorageclass =
-BosClient.prototype.putBucketStorageclass =
-BosClient.prototype.deleteBucketLifecycle =
-BosClient.prototype.getBucketLifecycle =
-BosClient.prototype.putBucketLifecycle =
-BosClient.prototype.deleteBucketLogging =
-BosClient.prototype.putBucketLogging =
-BosClient.prototype.getBucketReplicationProgress =
-BosClient.prototype.deleteBucketReplication =
-BosClient.prototype.getBucketReplication =
-BosClient.prototype.putBucketReplication =
-BosClient.prototype.deleteBucket =
-BosClient.prototype.headBucket = function() {
-    throw new Error("Method not implemented.");
-}
+// BosClient.prototype.deleteBucketCopyrightProtection =
+// BosClient.prototype.getBucketCopyrightProtection =
+// BosClient.prototype.putBucketCopyrightProtection =
+// BosClient.prototype.deleteBucketCors =
+// BosClient.prototype.putBucketCors =
+// BosClient.prototype.getBucketCors =
+// BosClient.prototype.deleteBucketTrash =
+// BosClient.prototype.getBucketTrash =
+// BosClient.prototype.putBucketTrash =
+// BosClient.prototype.putBucketStaticWebsite =
+// BosClient.prototype.getBucketStaticWebsite =
+// BosClient.prototype.deleteBucketStaticWebsite =
+// BosClient.prototype.deleteBucketEncryption =
+// BosClient.prototype.getBucketEncryption =
+// BosClient.prototype.putBucketEncryption =
+// BosClient.prototype.getBucketStorageclass =
+// BosClient.prototype.putBucketStorageclass =
+// BosClient.prototype.deleteBucketLifecycle =
+// BosClient.prototype.getBucketLifecycle =
+// BosClient.prototype.putBucketLifecycle =
+// BosClient.prototype.deleteBucketLogging =
+// BosClient.prototype.putBucketLogging =
+// BosClient.prototype.getBucketReplicationProgress =
+// BosClient.prototype.deleteBucketReplication =
+// BosClient.prototype.getBucketReplication =
+// BosClient.prototype.putBucketReplication =
+// BosClient.prototype.deleteBucket =
+// BosClient.prototype.headBucket = function() {
+//     throw new Error("Method not implemented.");
+// }
 
 BosClient.prototype.listObjects = function (bucketName, options) {
     options = options || {};

@@ -1,12 +1,11 @@
 {
   "name": "@baiducloud/sdk",
-  "version": "1.0.0-rc.16",
+  "version": "1.0.0-rc.17",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "./index.js",
   "browser": {
     "fs": false
   },
-  "types": "types",
   "directories": {
     "test": "test"
   },
