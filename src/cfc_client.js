@@ -47,7 +47,7 @@ util.inherits(CfcClient, BceBaseClient);
 CfcClient.prototype.listFunctions = function (opt_options) {
     var options = opt_options || {};
     var params = u.extend(
-        u.pick(options, 'marker')
+        u.pick(options, 'Marker', 'MaxItems')
     );
     debug('params ', params);
     return this.sendRequest('GET', '/v1/functions', {
@@ -93,7 +93,7 @@ CfcClient.prototype.getFunction = function (functionName, opt_options) {
     var params = u.extend(
         u.pick(options, 'Qualifier')
     );
-    return this.sendRequest('GET', '/v1/functions/' +  strings.normalize(functionName), {
+    return this.sendRequest('GET', '/v1/functions/' + strings.normalize(functionName), {
         params: params
     });
 };
@@ -111,7 +111,7 @@ CfcClient.prototype.deleteFunction = function (functionName, opt_options) {
 CfcClient.prototype.invocations = function (functionName, body, opt_options) {
     var options = opt_options || {};
     var params = u.extend(
-        u.pick(options, 'Qualifier', 'invocationType', 'logType')
+        u.pick(options, 'Qualifier', 'invocationType', 'logType', 'logToBody')
     );
     /**
      var body =  {
