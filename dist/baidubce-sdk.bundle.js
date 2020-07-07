@@ -22222,7 +22222,7 @@ module.exports={
   "_args": [
     [
       "elliptic@6.5.2",
-      "/Users/yangwei14/project/bce-sdk-js"
+      "/Users/yangwei14/project/third-project/bce-sdk-js"
     ]
   ],
   "_development": true,
@@ -22248,7 +22248,7 @@ module.exports={
   ],
   "_resolved": "http://registry.npm.baidu-int.com/elliptic/-/elliptic-6.5.2.tgz",
   "_spec": "6.5.2",
-  "_where": "/Users/yangwei14/project/bce-sdk-js",
+  "_where": "/Users/yangwei14/project/third-project/bce-sdk-js",
   "author": {
     "name": "Fedor Indutny",
     "email": "fedor@indutny.com"
@@ -44710,7 +44710,7 @@ exports.createContext = Script.createContext = function (context) {
 },{"indexof":134}],208:[function(require,module,exports){
 module.exports={
   "name": "@baiducloud/sdk",
-  "version": "1.0.0-rc.18",
+  "version": "1.0.0-rc.19",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "./index.js",
   "browser": {
@@ -44730,7 +44730,8 @@ module.exports={
   },
   "authors": [
     "leeight <leeight@gmail.com>",
-    "木休大人 <523317421@qq.com>"
+    "木休大人 <523317421@qq.com>",
+    "yangwei <yangwei9012@163.com>"
   ],
   "license": "MIT",
   "dependencies": {
@@ -46646,6 +46647,9 @@ BosClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, conf
         BceBaseClient.prototype.timeOffset = serverTimestamp - Date.now();
 
         if (err[H.X_STATUS_CODE] === 403 && err[H.X_CODE] === 'RequestTimeTooSkewed') {
+            return doRequest.call(client);
+        }
+        else if (err[H.X_STATUS_CODE] === 400 && err[H.X_CODE] === 'Http400') {
             return doRequest.call(client);
         }
 
