@@ -22219,30 +22219,36 @@ utils.intFromLE = intFromLE;
 
 },{"bn.js":23,"minimalistic-assert":140,"minimalistic-crypto-utils":141}],93:[function(require,module,exports){
 module.exports={
-  "_from": "elliptic@^6.0.0",
+  "_args": [
+    [
+      "elliptic@6.5.2",
+      "/Users/yangwei14/project/bce-sdk-js"
+    ]
+  ],
+  "_development": true,
+  "_from": "elliptic@6.5.2",
   "_id": "elliptic@6.5.2",
   "_inBundle": false,
   "_integrity": "sha1-BcVnjXFzwEnYykM1UiJKSV0ON2I=",
   "_location": "/elliptic",
   "_phantomChildren": {},
   "_requested": {
-    "type": "range",
+    "type": "version",
     "registry": true,
-    "raw": "elliptic@^6.0.0",
+    "raw": "elliptic@6.5.2",
     "name": "elliptic",
     "escapedName": "elliptic",
-    "rawSpec": "^6.0.0",
+    "rawSpec": "6.5.2",
     "saveSpec": null,
-    "fetchSpec": "^6.0.0"
+    "fetchSpec": "6.5.2"
   },
   "_requiredBy": [
     "/browserify-sign",
     "/create-ecdh"
   ],
   "_resolved": "http://registry.npm.baidu-int.com/elliptic/-/elliptic-6.5.2.tgz",
-  "_shasum": "05c5678d7173c049d8ca433552224a495d0e3762",
-  "_spec": "elliptic@^6.0.0",
-  "_where": "/Users/mudio/Desktop/workspace/node/bce-sdk-js/node_modules/browserify-sign",
+  "_spec": "6.5.2",
+  "_where": "/Users/yangwei14/project/bce-sdk-js",
   "author": {
     "name": "Fedor Indutny",
     "email": "fedor@indutny.com"
@@ -22250,7 +22256,6 @@ module.exports={
   "bugs": {
     "url": "https://github.com/indutny/elliptic/issues"
   },
-  "bundleDependencies": false,
   "dependencies": {
     "bn.js": "^4.4.0",
     "brorand": "^1.0.1",
@@ -22260,7 +22265,6 @@ module.exports={
     "minimalistic-assert": "^1.0.0",
     "minimalistic-crypto-utils": "^1.0.0"
   },
-  "deprecated": false,
   "description": "EC cryptography",
   "devDependencies": {
     "brfs": "^1.4.3",
@@ -44706,7 +44710,7 @@ exports.createContext = Script.createContext = function (context) {
 },{"indexof":134}],208:[function(require,module,exports){
 module.exports={
   "name": "@baiducloud/sdk",
-  "version": "1.0.0-rc.17",
+  "version": "1.0.0-rc.18",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "./index.js",
   "browser": {
@@ -47524,7 +47528,7 @@ util.inherits(CfcClient, BceBaseClient);
 CfcClient.prototype.listFunctions = function (opt_options) {
     var options = opt_options || {};
     var params = u.extend(
-        u.pick(options, 'marker')
+        u.pick(options, 'Marker', 'MaxItems')
     );
     debug('params ', params);
     return this.sendRequest('GET', '/v1/functions', {
@@ -47570,7 +47574,7 @@ CfcClient.prototype.getFunction = function (functionName, opt_options) {
     var params = u.extend(
         u.pick(options, 'Qualifier')
     );
-    return this.sendRequest('GET', '/v1/functions/' +  strings.normalize(functionName), {
+    return this.sendRequest('GET', '/v1/functions/' + strings.normalize(functionName), {
         params: params
     });
 };
@@ -47588,7 +47592,7 @@ CfcClient.prototype.deleteFunction = function (functionName, opt_options) {
 CfcClient.prototype.invocations = function (functionName, body, opt_options) {
     var options = opt_options || {};
     var params = u.extend(
-        u.pick(options, 'Qualifier', 'invocationType', 'logType')
+        u.pick(options, 'Qualifier', 'invocationType', 'logType', 'logToBody')
     );
     /**
      var body =  {
