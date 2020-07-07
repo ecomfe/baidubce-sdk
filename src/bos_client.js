@@ -1018,6 +1018,9 @@ BosClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, conf
         if (err[H.X_STATUS_CODE] === 403 && err[H.X_CODE] === 'RequestTimeTooSkewed') {
             return doRequest.call(client);
         }
+        else if (err[H.X_STATUS_CODE] === 400 && err[H.X_CODE] === 'Http400') {
+            return doRequest.call(client);
+        }
 
         return Q.reject(err);
     });
