@@ -45672,6 +45672,7 @@ var MAX_PUT_OBJECT_LENGTH = 5368709120; // 5G
 var MAX_USER_METADATA_SIZE = 2048; // 2 * 1024
 var MIN_PART_NUMBER = 1;
 var MAX_PART_NUMBER = 10000;
+var MAX_RETRY_COUNT = 3;
 var COMMAND_MAP = {
     scale: 's',
     width: 'w',
@@ -46092,11 +46093,11 @@ BosClient.prototype.putObjectFromFile = function (bucketName, key, filename, opt
         return crypto.md5stream(fp2)
             .then(function (md5sum) {
                 options[H.CONTENT_MD5] = md5sum;
-                return putObjectWithRetry(options.retryCount || 5);
+                return putObjectWithRetry(options.retryCount || MAX_RETRY_COUNT);
             });
     }
 
-    return putObjectWithRetry(options.retryCount || 5);
+    return putObjectWithRetry(options.retryCount || MAX_RETRY_COUNT);
 };
 
 BosClient.prototype.getObjectMetadata = function (bucketName, key, options) {
