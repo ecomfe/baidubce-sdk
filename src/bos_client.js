@@ -438,18 +438,34 @@ BosClient.prototype.putObjectFromFile = function (bucketName, key, filename, opt
         start: 0,
         end: Math.max(0, contentLength - 1)
     };
-    var fp = fs.createReadStream(filename, streamOptions);
+
+    var me = this;
+
+    function putObjectWithRetry(lastRetryTimes) {
+        return me.putObject(bucketName, key, fs.createReadStream(filename, streamOptions), options)
+            .catch(function (err) {
+                var serverTimestamp = new Date(err[H.X_BCE_DATE]).getTime();
+
+                BceBaseClient.prototype.timeOffset = serverTimestamp - Date.now();
+
+                if (err[H.X_STATUS_CODE] === 400 && err[H.X_CODE] === 'Http400' && lastRetryTimes > 0) {
+                    return putObjectWithRetry(--lastRetryTimes);
+                }
+
+                return Q.reject(err);
+            });
+    }
+
     if (!u.has(options, H.CONTENT_MD5)) {
-        var me = this;
         var fp2 = fs.createReadStream(filename, streamOptions);
         return crypto.md5stream(fp2)
             .then(function (md5sum) {
                 options[H.CONTENT_MD5] = md5sum;
-                return me.putObject(bucketName, key, fp, options);
+                return putObjectWithRetry(options.retryCount || 5);
             });
     }
 
-    return this.putObject(bucketName, key, fp, options);
+    return putObjectWithRetry(options.retryCount || 5);
 };
 
 BosClient.prototype.getObjectMetadata = function (bucketName, key, options) {
@@ -1010,15 +1026,12 @@ BosClient.prototype.sendHTTPRequest = function (httpMethod, resource, args, conf
     }
 
 
-    return doRequest.call(client).catch(function(err) {
+    return doRequest.call(client).catch(function (err) {
         var serverTimestamp = new Date(err[H.X_BCE_DATE]).getTime();
 
         BceBaseClient.prototype.timeOffset = serverTimestamp - Date.now();
 
         if (err[H.X_STATUS_CODE] === 403 && err[H.X_CODE] === 'RequestTimeTooSkewed') {
-            return doRequest.call(client);
-        }
-        else if (err[H.X_STATUS_CODE] === 400 && err[H.X_CODE] === 'Http400') {
             return doRequest.call(client);
         }
 
