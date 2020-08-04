@@ -51,7 +51,7 @@ VodClient.prototype.createMediaResource = function (title, description, blob, op
     var self = this;
     var protocol = url.parse(this.config.endpoint).protocol || 'https:';
     var mediaClient = new Media(this.config);
-    return mediaClient.apply().then(function (res) {
+    return mediaClient.apply(this.config.mode).then(function (res) {
         // bos endpoint 的协议跟随 this.config.endpoint
         var bosClient = new BosClient({
             endpoint: protocol + '//' + res.body.host,
