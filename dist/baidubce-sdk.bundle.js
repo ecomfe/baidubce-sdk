@@ -22222,7 +22222,7 @@ module.exports={
   "_args": [
     [
       "elliptic@6.5.2",
-      "/Users/yangwei14/project/third-project/bce-sdk-js"
+      "/Users/dqcDu/bce-sdk-js"
     ]
   ],
   "_development": true,
@@ -22248,7 +22248,7 @@ module.exports={
   ],
   "_resolved": "http://registry.npm.baidu-int.com/elliptic/-/elliptic-6.5.2.tgz",
   "_spec": "6.5.2",
-  "_where": "/Users/yangwei14/project/third-project/bce-sdk-js",
+  "_where": "/Users/dqcDu/bce-sdk-js",
   "author": {
     "name": "Fedor Indutny",
     "email": "fedor@indutny.com"
@@ -44710,7 +44710,7 @@ exports.createContext = Script.createContext = function (context) {
 },{"indexof":134}],208:[function(require,module,exports){
 module.exports={
   "name": "@baiducloud/sdk",
-  "version": "1.0.0-rc.20",
+  "version": "1.0.0-rc.21",
   "description": "Baidu Cloud Engine JavaScript SDK",
   "main": "./index.js",
   "browser": {
@@ -53311,7 +53311,7 @@ VodClient.prototype.createMediaResource = function (title, description, blob, op
     var self = this;
     var protocol = url.parse(this.config.endpoint).protocol || 'https:';
     var mediaClient = new Media(this.config);
-    return mediaClient.apply().then(function (res) {
+    return mediaClient.apply(this.config.mode).then(function (res) {
         // bos endpoint 的协议跟随 this.config.endpoint
         var bosClient = new BosClient({
             endpoint: protocol + '//' + res.body.host,
